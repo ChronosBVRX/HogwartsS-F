@@ -1,11 +1,19 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import "tailwindcss";
+
+@theme {
+  --color-magical-navy: #0a0a1a;
+  --color-magical-gold: #d4af37;
+  --color-magical-purple: #6a0dad;
+  --color-magical-parchment: #f4e4bc;
+}
 
 @layer base {
   body {
-    @apply bg-magical-navy text-white min-h-screen font-sans;
-    background-image: url('/src/assets/background.png'); /* Using the one we had */
+    background-color: var(--color-magical-navy);
+    color: white;
+    min-height: 100vh;
+    font-family: sans-serif;
+    background-image: url('/src/assets/background.png');
     background-size: cover;
     background-attachment: fixed;
     position: relative;
@@ -13,22 +21,48 @@
 
   body::after {
     content: '';
-    @apply absolute inset-0 bg-magical-navy/70 -z-10;
+    position: absolute;
+    inset: 0;
+    background-color: rgba(10, 10, 26, 0.7);
+    z-index: -10;
   }
 }
 
 @layer components {
   .glass-card {
-    @apply bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl shadow-2xl;
+    background-color: rgba(255, 255, 255, 0.05);
+    backdrop-filter: blur(24px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 1rem;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
   }
 
   .btn-gold {
-    @apply px-6 py-2 bg-magical-gold text-magical-navy font-bold rounded-xl 
-           hover:scale-105 transition-transform shadow-[0_0_15px_rgba(212,175,55,0.3)];
+    padding: 0.5rem 1.5rem;
+    background-color: var(--color-magical-gold);
+    color: var(--color-magical-navy);
+    font-weight: bold;
+    border-radius: 0.75rem;
+    transition: transform 0.2s;
+    box-shadow: 0 0 15px rgba(212, 175, 55, 0.3);
+  }
+
+  .btn-gold:hover {
+    transform: scale(1.05);
   }
 
   .input-field {
-    @apply w-full px-4 py-2 bg-white/10 border border-white/20 rounded-xl focus:outline-none 
-           focus:border-magical-gold transition-colors;
+    width: 100%;
+    padding: 0.5rem 1rem;
+    background-color: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 0.75rem;
+    color: white;
+    transition: border-color 0.2s;
+  }
+
+  .input-field:focus {
+    outline: none;
+    border-color: var(--color-magical-gold);
   }
 }
