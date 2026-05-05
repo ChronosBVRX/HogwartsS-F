@@ -65,7 +65,7 @@ export default function Menu() {
 
       <div className="max-w-7xl mx-auto px-4 -mt-12 relative z-20">
         {/* Search and Filter Bar */}
-        <div className="glass-card p-2 md:p-3 mb-12 flex flex-col md:flex-row gap-3 items-center sticky top-24">
+        <div className="p-3 mb-12 flex flex-col md:flex-row gap-3 items-center sticky top-4 z-40 bg-magical-navy border border-white/10 rounded-2xl shadow-[0_20px_50px_rgba(0,0,0,0.8)]">
           <div className="relative flex-1 w-full">
             <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-white/40" />
             <input 
@@ -76,7 +76,7 @@ export default function Menu() {
               onChange={(e) => setSearchQuery(e.target.value)}
             />
           </div>
-          <div className="flex items-center gap-2 overflow-x-auto w-full md:w-auto pb-2 md:pb-0 no-scrollbar">
+          <div className="flex items-center gap-2 overflow-x-auto w-full md:w-auto pb-2 md:pb-0 scrollbar-hide">
             {CATEGORIES.map(cat => (
               <button
                 key={cat.name}
