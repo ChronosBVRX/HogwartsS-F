@@ -24,7 +24,7 @@ const ProtectedRoute = ({ children, role }) => {
 function App() {
   return (
     <AuthProvider>
-      <Router basename="/HogwartsS-F">
+      <Router>
         <div className="min-h-screen flex flex-col">
           <Navbar />
           <Routes>
