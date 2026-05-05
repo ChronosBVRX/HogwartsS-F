@@ -40,22 +40,26 @@ export default function Menu() {
   return (
     <div className="flex-1 pb-20">
       {/* Dynamic Hero based on Category */}
-      <header className="relative h-[40vh] md:h-[50vh] flex items-center justify-center overflow-hidden">
+      <header className="relative h-[50vh] md:h-[65vh] flex items-center justify-center overflow-hidden">
         <div className="absolute inset-0 z-0">
           <img 
             src={currentCategoryData?.img || "./src/assets/background.png"} 
-            className="w-full h-full object-cover transition-all duration-1000 scale-105"
+            className="w-full h-full object-cover transition-all duration-1000 scale-100"
             alt="Fondo" 
           />
-          <div className="absolute inset-0 bg-gradient-to-t from-magical-navy via-magical-navy/60 to-transparent" />
-          <div className="absolute inset-0 bg-black/20" />
+          {/* Subtle vignette instead of heavy gradient */}
+          <div className="absolute inset-0 bg-gradient-to-t from-magical-navy via-transparent to-black/20" />
         </div>
         
-        <div className="relative z-10 text-center space-y-4 px-4 mt-20">
-          <h1 className="text-4xl md:text-7xl font-black text-white tracking-tighter uppercase italic drop-shadow-[0_10px_10px_rgba(0,0,0,0.5)]">
-            <span className="text-magical-gold">{activeCategory === "Todos" ? "El Menú" : activeCategory}</span>
+        <div className="relative z-10 text-center space-y-4 px-4 mt-10">
+          <div className="inline-flex items-center gap-2 px-4 py-1.5 bg-magical-gold/20 backdrop-blur-md border border-magical-gold/30 rounded-full mb-4 animate-bounce-slow">
+            {currentCategoryData?.icon}
+            <span className="text-[10px] font-black uppercase tracking-[0.3em] text-magical-gold">Colección Mágica</span>
+          </div>
+          <h1 className="text-5xl md:text-8xl font-black text-white tracking-tighter uppercase italic drop-shadow-[0_15px_30px_rgba(0,0,0,0.8)]">
+            <span className="text-magical-gold drop-shadow-[0_0_20px_rgba(212,175,55,0.4)]">{activeCategory === "Todos" ? "El Gran Menú" : activeCategory}</span>
           </h1>
-          <p className="text-white/80 max-w-xl mx-auto font-medium text-lg drop-shadow-md">
+          <p className="text-white max-w-xl mx-auto font-bold text-lg md:text-xl drop-shadow-[0_2px_4px_rgba(0,0,0,0.5)] bg-black/20 backdrop-blur-sm p-2 rounded-xl">
             {activeCategory === "Todos" 
               ? "Explora nuestra selección de platillos y pociones preparadas con ingredientes del mundo mágico."
               : `Descubre los secretos de nuestra sección de ${activeCategory}.`}
@@ -76,18 +80,21 @@ export default function Menu() {
               onChange={(e) => setSearchQuery(e.target.value)}
             />
           </div>
-          <div className="flex items-center gap-2 overflow-x-auto w-full md:w-auto pb-2 md:pb-0 scrollbar-hide">
+          <div className="flex items-center gap-3 overflow-x-auto w-full md:w-auto pb-2 md:pb-0 scrollbar-hide px-2">
             {CATEGORIES.map(cat => (
               <button
                 key={cat.name}
                 onClick={() => setActiveCategory(cat.name)}
-                className={`px-4 py-2.5 rounded-xl text-sm font-bold whitespace-nowrap transition-all flex items-center gap-2 border ${
+                className={`px-4 py-2 rounded-xl text-xs font-black whitespace-nowrap transition-all flex items-center gap-3 border h-12 ${
                   activeCategory === cat.name 
-                    ? 'bg-magical-gold text-magical-navy border-magical-gold shadow-[0_0_20px_rgba(212,175,55,0.3)]' 
+                    ? 'bg-magical-gold text-magical-navy border-magical-gold shadow-[0_0_20px_rgba(212,175,55,0.4)]' 
                     : 'bg-white/5 text-white/60 border-white/5 hover:bg-white/10 hover:border-white/20'
                 }`}
               >
-                {cat.icon}
+                {cat.img && (
+                  <img src={cat.img} className="w-6 h-6 rounded-md object-cover border border-white/20" alt="" />
+                )}
+                {!cat.img && cat.icon}
                 {cat.name}
               </button>
             ))}
