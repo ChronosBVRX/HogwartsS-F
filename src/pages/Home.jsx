@@ -1,6 +1,7 @@
 import { Link } from 'react-router-dom'
 import { Sparkles, Utensils, Award, Flame, Star, Zap } from 'lucide-react'
 import logo from '../assets/logo.png'
+import heroImg from '../assets/illustrations/hero.png'
 import { menuData } from '../data/menuData'
 
 export default function Home() {
@@ -9,7 +10,16 @@ export default function Home() {
   return (
     <div className="flex-1 flex flex-col items-center">
       {/* Hero Section */}
-      <header className="w-full min-h-[80vh] flex flex-col items-center justify-center p-6 text-center relative overflow-hidden">
+      <header className="w-full min-h-screen flex flex-col items-center justify-center p-6 text-center relative overflow-hidden">
+        {/* Background Image */}
+        <div className="absolute inset-0 z-0">
+          <img 
+            src={heroImg} 
+            className="w-full h-full object-cover scale-105"
+            alt="Hogwarts Restaurant" 
+          />
+          <div className="absolute inset-0 bg-gradient-to-b from-magical-navy/40 via-magical-navy/80 to-magical-navy" />
+        </div>
         {/* Animated Orbs */}
         <div className="absolute top-1/4 left-1/4 w-64 h-64 bg-magical-gold/10 rounded-full blur-[100px] animate-pulse" />
         <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-magical-purple/10 rounded-full blur-[120px] animate-pulse delay-700" />

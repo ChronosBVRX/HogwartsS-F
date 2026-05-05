@@ -1,20 +1,25 @@
 import { useState, useMemo } from 'react'
 import { menuData } from '../data/menuData'
-import { Search, Filter, Sparkles, Flame, Wine, Coffee } from 'lucide-react'
+import { Search, Sparkles, Flame, Coffee, Wine, UtensilsCrossed, Star } from 'lucide-react'
+
+// Import illustrations
+import burgerImg from '../assets/illustrations/burgers.png'
+import wingsImg from '../assets/illustrations/wings.png'
+import drinksImg from '../assets/illustrations/drinks.png'
+import coffeeImg from '../assets/illustrations/coffee.png'
 
 const CATEGORIES = [
-  "Todos",
-  "Hamburguesas",
-  "Alitas",
-  "Boneless",
-  "Snacks",
-  "Cajitas Mágicas",
-  "Bebidas Café",
-  "Bebidas Mágicas",
-  "Carajillos",
-  "Casas",
-  "Crepas",
-  "Nuevos"
+  { name: "Todos", icon: <Sparkles className="w-4 h-4" /> },
+  { name: "Hamburguesas", icon: <UtensilsCrossed className="w-4 h-4" />, img: burgerImg },
+  { name: "Alitas", icon: <Flame className="w-4 h-4" />, img: wingsImg },
+  { name: "Boneless", icon: <Flame className="w-4 h-4" />, img: wingsImg },
+  { name: "Snacks", icon: <Star className="w-4 h-4" /> },
+  { name: "Cajitas Mágicas", icon: <Sparkles className="w-4 h-4" /> },
+  { name: "Bebidas Café", icon: <Coffee className="w-4 h-4" />, img: coffeeImg },
+  { name: "Bebidas Mágicas", icon: <Wine className="w-4 h-4" />, img: drinksImg },
+  { name: "Carajillos", icon: <Wine className="w-4 h-4" />, img: drinksImg },
+  { name: "Crepas", icon: <Sparkles className="w-4 h-4" /> },
+  { name: "Nuevos", icon: <Star className="w-4 h-4" /> }
 ]
 
 export default function Menu() {
@@ -30,70 +35,75 @@ export default function Menu() {
     })
   }, [activeCategory, searchQuery])
 
+  const currentCategoryData = CATEGORIES.find(c => c.name === activeCategory)
+
   return (
     <div className="flex-1 pb-20">
-      {/* Header */}
-      <header className="relative h-64 flex items-center justify-center overflow-hidden">
+      {/* Dynamic Hero based on Category */}
+      <header className="relative h-[40vh] md:h-[50vh] flex items-center justify-center overflow-hidden">
         <div className="absolute inset-0 z-0">
           <img 
-            src="./src/assets/background.png" 
-            className="w-full h-full object-cover blur-sm opacity-50"
+            src={currentCategoryData?.img || "./src/assets/background.png"} 
+            className="w-full h-full object-cover transition-all duration-1000 scale-105"
             alt="Fondo" 
           />
-          <div className="absolute inset-0 bg-gradient-to-b from-magical-navy/80 to-magical-navy" />
+          <div className="absolute inset-0 bg-gradient-to-t from-magical-navy via-magical-navy/60 to-transparent" />
+          <div className="absolute inset-0 bg-black/20" />
         </div>
         
-        <div className="relative z-10 text-center space-y-4 px-4">
-          <h1 className="text-4xl md:text-6xl font-bold text-magical-gold tracking-tight">
-            Menú de Hechizos Gastronómicos
+        <div className="relative z-10 text-center space-y-4 px-4 mt-20">
+          <h1 className="text-4xl md:text-7xl font-black text-white tracking-tighter uppercase italic drop-shadow-[0_10px_10px_rgba(0,0,0,0.5)]">
+            <span className="text-magical-gold">{activeCategory === "Todos" ? "El Menú" : activeCategory}</span>
           </h1>
-          <p className="text-white/60 max-w-xl mx-auto">
-            Explora nuestra selección de platillos y pociones preparadas con ingredientes 
-            del mundo mágico.
+          <p className="text-white/80 max-w-xl mx-auto font-medium text-lg drop-shadow-md">
+            {activeCategory === "Todos" 
+              ? "Explora nuestra selección de platillos y pociones preparadas con ingredientes del mundo mágico."
+              : `Descubre los secretos de nuestra sección de ${activeCategory}.`}
           </p>
         </div>
       </header>
 
-      <div className="max-w-7xl mx-auto px-4 -mt-8 relative z-20">
+      <div className="max-w-7xl mx-auto px-4 -mt-12 relative z-20">
         {/* Search and Filter Bar */}
-        <div className="glass-card p-4 md:p-6 mb-8 flex flex-col md:flex-row gap-4 items-center">
+        <div className="glass-card p-2 md:p-3 mb-12 flex flex-col md:flex-row gap-3 items-center sticky top-24">
           <div className="relative flex-1 w-full">
             <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-white/40" />
             <input 
               type="text"
               placeholder="Busca un hechizo o platillo..."
-              className="input-field pl-12"
+              className="w-full bg-white/5 border border-white/10 rounded-xl py-3 pl-12 pr-4 text-white placeholder:text-white/30 focus:outline-none focus:border-magical-gold/50 transition-all"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
             />
           </div>
-          <div className="flex items-center gap-2 overflow-x-auto w-full md:w-auto pb-2 md:pb-0 scrollbar-hide">
+          <div className="flex items-center gap-2 overflow-x-auto w-full md:w-auto pb-2 md:pb-0 no-scrollbar">
             {CATEGORIES.map(cat => (
               <button
-                key={cat}
-                onClick={() => setActiveCategory(cat)}
-                className={`px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap transition-all ${
-                  activeCategory === cat 
-                    ? 'bg-magical-gold text-magical-navy shadow-[0_0_15px_rgba(212,175,55,0.4)]' 
-                    : 'bg-white/5 text-white/60 hover:bg-white/10'
+                key={cat.name}
+                onClick={() => setActiveCategory(cat.name)}
+                className={`px-4 py-2.5 rounded-xl text-sm font-bold whitespace-nowrap transition-all flex items-center gap-2 border ${
+                  activeCategory === cat.name 
+                    ? 'bg-magical-gold text-magical-navy border-magical-gold shadow-[0_0_20px_rgba(212,175,55,0.3)]' 
+                    : 'bg-white/5 text-white/60 border-white/5 hover:bg-white/10 hover:border-white/20'
                 }`}
               >
-                {cat}
+                {cat.icon}
+                {cat.name}
               </button>
             ))}
           </div>
         </div>
 
         {/* Menu Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
           {filteredMenu.length > 0 ? (
-            filteredMenu.map(item => (
-              <ProductCard key={item.id} item={item} />
+            filteredMenu.map((item, index) => (
+              <ProductCard key={item.id} item={item} index={index} />
             ))
           ) : (
             <div className="col-span-full py-20 text-center">
               <Sparkles className="w-12 h-12 text-magical-gold/20 mx-auto mb-4" />
-              <p className="text-white/40 text-lg">No se encontraron hechizos con ese nombre.</p>
+              <p className="text-white/40 text-lg font-medium">No se encontraron hechizos con ese nombre.</p>
             </div>
           )}
         </div>
@@ -102,57 +112,69 @@ export default function Menu() {
   )
 }
 
-function ProductCard({ item }) {
+function ProductCard({ item, index }) {
   const isNew = item.tags?.includes('nuevo')
   const isAlcohol = item.tags?.includes('18+')
   const isPremium = item.tags?.includes('premium')
 
   return (
-    <div className="glass-card overflow-hidden group hover:border-magical-gold/50 transition-all duration-300 flex flex-col h-full">
-      <div className="p-6 space-y-4 flex-1">
-        <div className="flex justify-between items-start gap-4">
-          <div className="space-y-1">
-            <div className="flex flex-wrap gap-2 mb-2">
-              {isNew && (
-                <span className="px-2 py-0.5 bg-green-500/20 text-green-400 text-[10px] font-bold uppercase tracking-wider rounded border border-green-500/30">
-                  Nuevo
-                </span>
-              )}
-              {isAlcohol && (
-                <span className="px-2 py-0.5 bg-red-500/20 text-red-400 text-[10px] font-bold uppercase tracking-wider rounded border border-red-500/30">
-                  18+
-                </span>
-              )}
-              {isPremium && (
-                <span className="px-2 py-0.5 bg-magical-gold/20 text-magical-gold text-[10px] font-bold uppercase tracking-wider rounded border border-magical-gold/30">
-                  Premium
-                </span>
-              )}
+    <div 
+      className="group relative"
+      style={{ animationDelay: `${index * 50}ms` }}
+    >
+      <div className="absolute inset-0 bg-magical-gold/5 blur-2xl rounded-3xl opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+      <div className="glass-card overflow-hidden transition-all duration-500 group-hover:-translate-y-2 border-white/5 group-hover:border-magical-gold/30 flex flex-col h-full relative z-10">
+        
+        {/* Card Content */}
+        <div className="p-8 space-y-5 flex-1">
+          <div className="flex justify-between items-start gap-4">
+            <div className="space-y-1.5">
+              <div className="flex flex-wrap gap-2 mb-3">
+                {isNew && (
+                  <span className="px-2.5 py-1 bg-green-500/10 text-green-400 text-[9px] font-black uppercase tracking-widest rounded-lg border border-green-500/20 shadow-[0_0_10px_rgba(34,197,94,0.1)]">
+                    Nuevo Hechizo
+                  </span>
+                )}
+                {isAlcohol && (
+                  <span className="px-2.5 py-1 bg-red-500/10 text-red-400 text-[9px] font-black uppercase tracking-widest rounded-lg border border-red-500/20 shadow-[0_0_10px_rgba(239,68,68,0.1)]">
+                    Poción 18+
+                  </span>
+                )}
+                {isPremium && (
+                  <span className="px-2.5 py-1 bg-magical-gold/10 text-magical-gold text-[9px] font-black uppercase tracking-widest rounded-lg border border-magical-gold/20 shadow-[0_0_10px_rgba(212,175,55,0.1)]">
+                    Calidad Épica
+                  </span>
+                )}
+              </div>
+              <h3 className="text-2xl font-black text-white group-hover:text-magical-gold transition-colors leading-tight">
+                {item.nombre}
+              </h3>
+              <p className="text-[10px] text-magical-gold/60 font-black uppercase tracking-[0.2em]">
+                {item.categoria}
+              </p>
             </div>
-            <h3 className="text-xl font-bold text-white group-hover:text-magical-gold transition-colors">
-              {item.nombre}
-            </h3>
-            <p className="text-xs text-magical-gold/60 font-medium uppercase tracking-widest">
-              {item.categoria}
+            <div className="text-2xl font-black text-magical-gold drop-shadow-[0_0_10px_rgba(212,175,55,0.2)]">
+              {item.precio > 0 ? `$${item.precio}` : <span className="text-sm italic opacity-50">TBA</span>}
+            </div>
+          </div>
+          
+          {item.descripcion && (
+            <p className="text-sm text-white/60 leading-relaxed font-medium italic border-l-2 border-magical-gold/20 pl-4 py-1">
+              "{item.descripcion}"
             </p>
-          </div>
-          <div className="text-xl font-bold text-magical-gold">
-            {item.precio > 0 ? `$${item.precio}` : 'TBA'}
-          </div>
+          )}
         </div>
         
-        {item.descripcion && (
-          <p className="text-sm text-white/50 leading-relaxed italic">
-            "{item.descripcion}"
-          </p>
-        )}
-      </div>
-      
-      <div className="px-6 py-4 bg-white/5 border-t border-white/5 flex justify-between items-center">
-        <span className="text-[10px] text-white/30 uppercase tracking-widest">Hogwarts S&F</span>
-        <button className="text-magical-gold hover:text-white transition-colors">
-          <Sparkles className="w-4 h-4" />
-        </button>
+        {/* Card Footer */}
+        <div className="px-8 py-5 bg-white/5 border-t border-white/5 flex justify-between items-center group-hover:bg-magical-gold/5 transition-colors">
+          <div className="flex items-center gap-2">
+            <div className="w-1.5 h-1.5 rounded-full bg-magical-gold animate-pulse" />
+            <span className="text-[10px] text-white/40 font-bold uppercase tracking-widest">Hogwarts S&F</span>
+          </div>
+          <button className="p-2 bg-white/5 rounded-lg text-magical-gold hover:bg-magical-gold hover:text-magical-navy transition-all duration-300">
+            <Sparkles className="w-4 h-4" />
+          </button>
+        </div>
       </div>
     </div>
   )
