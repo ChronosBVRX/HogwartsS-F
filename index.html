@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hogwarts Spirit-Finder | Descubre tu Alma Mágica</title>
+    <meta name="description" content="¿A qué casa de Hogwarts perteneces realmente? Deja que los espíritus decidan tu destino en esta experiencia inmersiva.">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div id="particles-container"></div>
+
+    <main class="container" id="main-content">
+        <div id="intro-scene">
+            <h1>Hogwarts Spirit-Finder</h1>
+            <p>El Sombrero Seleccionador ha guardado silencio por siglos, pero los espíritus de la escuela aún susurran. ¿Estás listo para descubrir tu verdadero destino?</p>
+            <button class="btn" onclick="startExperience()">Comenzar el Ritual</button>
+        </div>
+
+        <div id="quiz-scene" style="display: none;">
+            <h2 id="question-text" style="font-size: 2rem; margin-bottom: 2rem;">Cargando sabiduría antigua...</h2>
+            <div class="options" id="options-container">
+                <!-- Opciones se generarán dinámicamente -->
+            </div>
+        </div>
+
+        <div id="result-scene" class="result-card" style="display: none;">
+            <h2 style="font-size: 1.5rem; color: var(--primary-gold); margin-bottom: 0.5rem;">Tu espíritu pertenece a...</h2>
+            <h1 id="house-name" style="font-size: 4rem;">Cargando...</h1>
+            <img id="house-image" src="" alt="Escudo de la Casa" class="house-crest">
+            <p id="house-description">Una descripción mágica te espera.</p>
+            <button class="btn" onclick="location.reload()">Reiniciar Ritual</button>
+        </div>
+    </main>
+
+    <script src="app.js"></script>
+</body>
+</html>
