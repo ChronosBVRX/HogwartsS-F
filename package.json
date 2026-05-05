@@ -9,7 +9,8 @@
     "lint": "eslint .",
     "preview": "vite preview",
     "predeploy": "npm run build",
-    "deploy": "gh-pages -d docs"
+    "deploy": "gh-pages -d docs",
+    "deploy-main": "npm run build && cp docs/index.html . && cp -r docs/assets . && cp docs/favicon.svg . && cp docs/icons.svg . && git add . && git commit -m 'Deploy update' && git push origin main"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.105.3",
