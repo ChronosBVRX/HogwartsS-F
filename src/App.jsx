@@ -1,4 +1,4 @@
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom'
+import { HashRouter as Router, Routes, Route, Navigate } from 'react-router-dom'
 import { AuthProvider, useAuth } from './context/AuthContext'
 import Home from './pages/Home'
 import Login from './pages/Login'
@@ -24,7 +24,7 @@ const ProtectedRoute = ({ children, role }) => {
 function App() {
   return (
     <AuthProvider>
-      <Router>
+      <Router basename="/HogwartsS-F">
         <div className="min-h-screen flex flex-col">
           <Navbar />
           <Routes>
