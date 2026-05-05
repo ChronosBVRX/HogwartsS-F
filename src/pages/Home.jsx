@@ -6,8 +6,9 @@ export default function Home() {
     <div className="flex-1 flex flex-col items-center justify-center p-6 text-center">
       <header className="max-w-4xl space-y-6 animate-in fade-in slide-in-from-bottom-8 duration-1000">
         <h1 className="text-5xl md:text-7xl font-extrabold tracking-tight">
+          <img src="./src/assets/logo.png" alt="Hogwarts Logo" className="w-48 md:w-64 mx-auto mb-6 drop-shadow-[0_0_25px_rgba(212,175,55,0.4)]" />
           <span className="bg-gradient-to-b from-white to-magical-gold bg-clip-text text-transparent">
-            Howard's
+            Hogwarts
           </span>
           <br />
           <span className="text-3xl md:text-5xl opacity-90">Snacks & Foods</span>

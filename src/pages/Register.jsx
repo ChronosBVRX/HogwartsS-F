@@ -42,7 +42,7 @@ export default function Register() {
       <div className="glass-card w-full max-w-md p-8 space-y-8">
         <div className="text-center space-y-2">
           <h1 className="text-3xl font-bold text-magical-gold">Registro</h1>
-          <p className="text-white/60">Únete a Howard's Snacks & Foods.</p>
+          <p className="text-white/60">Únete a Hogwarts Snacks & Foods.</p>
         </div>
 
         <form onSubmit={handleRegister} className="space-y-4">

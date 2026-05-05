@@ -8,6 +8,7 @@ export default function Navbar() {
   return (
     <nav className="glass-card m-4 px-6 py-4 flex justify-between items-center z-50">
       <Link to="/" className="flex items-center gap-2">
+        <img src="./src/assets/logo.png" alt="Logo" className="w-8 h-8 object-contain" />
         <span className="text-xl font-bold text-magical-gold tracking-tighter">HSF</span>
       </Link>
 

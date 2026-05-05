@@ -71,7 +71,7 @@ export default function Quiz() {
           <>
             <h1 className="text-4xl md:text-6xl font-bold text-magical-gold">El Ritual del Espíritu</h1>
             <p className="text-xl text-white/60">
-              Deja que las sombras del pasado y la luz del presente decidan tu lugar en Howard's.
+              Deja que las sombras del pasado y la luz del presente decidan tu lugar en Hogwarts.
             </p>
             <button onClick={handleStart} className="btn-gold text-xl px-12 py-4">
               Comenzar Ritual
