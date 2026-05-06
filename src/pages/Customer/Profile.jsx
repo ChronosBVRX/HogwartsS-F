@@ -13,10 +13,10 @@ import idBg from '../../assets/id_bg_minimal.png'
 import logo from '../../assets/logo.png'
 
 const HOUSE_CONFIG = {
-  red: { name: "Gryffindor", logo: gryffindorLogo, quote: "Valor y Caballerosidad", color: "from-red-500 to-amber-500", text: "text-red-400" },
-  green: { name: "Slytherin", logo: slytherinLogo, quote: "Astucia y Ambición", color: "from-emerald-400 to-emerald-700", text: "text-emerald-400" },
-  blue: { name: "Ravenclaw", logo: ravenclawLogo, quote: "Inteligencia y Sabiduría", color: "from-blue-400 to-indigo-400", text: "text-blue-400" },
-  yellow: { name: "Hufflepuff", logo: hufflepuffLogo, quote: "Lealtad y Paciencia", color: "from-yellow-400 to-orange-400", text: "text-yellow-400" }
+  red: { name: "Gryffindor", logo: gryffindorLogo, quote: "Valor y Caballerosidad", color: "from-red-500 to-amber-500", text: "text-red-400", reward: "Bebida de Mantequilla Gratis" },
+  green: { name: "Slytherin", logo: slytherinLogo, quote: "Astucia y Ambición", color: "from-emerald-400 to-emerald-700", text: "text-emerald-400", reward: "Postre Mágico Gratis" },
+  blue: { name: "Ravenclaw", logo: ravenclawLogo, quote: "Inteligencia y Sabiduría", color: "from-blue-400 to-indigo-400", text: "text-blue-400", reward: "Upgrade a Bebida Grande" },
+  yellow: { name: "Hufflepuff", logo: hufflepuffLogo, quote: "Lealtad y Paciencia", color: "from-yellow-400 to-orange-400", text: "text-yellow-400", reward: "Snack de Bienvenida" }
 }
 
 export default function Profile() {
@@ -53,11 +53,11 @@ export default function Profile() {
           </div>
           <div>
             <h1 className="text-xl md:text-2xl font-black text-white tracking-tighter uppercase italic">{profile?.display_name}</h1>
-            <p className="text-[9px] text-white/30 uppercase font-bold tracking-[0.2em]">Hogwarts Member</p>
+            <p className="text-[9px] text-white/30 uppercase font-bold tracking-[0.2em]">Miembro de Hogwarts</p>
           </div>
         </div>
         <button onClick={signOut} className="text-xs font-bold text-white/30 hover:text-red-400 transition-colors uppercase tracking-widest px-4 py-2 border border-white/5 rounded-xl">
-          Logout
+          Cerrar Sesión
         </button>
       </header>
 
@@ -65,7 +65,7 @@ export default function Profile() {
       <section className="space-y-4">
         <div className="flex items-center gap-2 px-2">
           <Shield className="w-4 h-4 text-magical-gold/50" />
-          <h2 className="text-[10px] font-black uppercase tracking-[0.4em] text-white/40">Digital Identification Card</h2>
+          <h2 className="text-[10px] font-black uppercase tracking-[0.4em] text-white/40">Identificación Mágica Oficial</h2>
         </div>
 
         {house ? (
@@ -79,7 +79,7 @@ export default function Profile() {
               <div className="flex justify-between items-start">
                 <div className="space-y-1">
                   <h2 className="text-2xl md:text-3xl font-black uppercase italic tracking-tighter text-magical-gold">Hogwarts</h2>
-                  <p className="text-[9px] font-bold uppercase tracking-[0.3em] opacity-40">Snacks & Foods Official</p>
+                  <p className="text-[9px] font-bold uppercase tracking-[0.3em] opacity-40">Snacks & Foods Oficial</p>
                 </div>
                 <img src={logo} className="w-12 md:w-16 grayscale opacity-80" alt="" />
               </div>
@@ -93,7 +93,7 @@ export default function Profile() {
                 {/* Details Section - Minimal & Legible */}
                 <div className="space-y-6">
                   <div className="space-y-1">
-                    <p className="text-[9px] font-bold text-white/40 uppercase tracking-widest">Name</p>
+                    <p className="text-[9px] font-bold text-white/40 uppercase tracking-widest">Nombre del Mago</p>
                     <h3 className="text-2xl md:text-4xl font-black uppercase italic tracking-tighter leading-none">
                       {profile?.display_name}
                     </h3>
@@ -101,7 +101,7 @@ export default function Profile() {
 
                   <div className="flex gap-10">
                     <div className="space-y-1">
-                      <p className="text-[9px] font-bold text-white/40 uppercase tracking-widest">House</p>
+                      <p className="text-[9px] font-bold text-white/40 uppercase tracking-widest">Casa</p>
                       <h4 className={`text-xl md:text-3xl font-black uppercase tracking-widest ${house.text}`}>
                         {house.name}
                       </h4>
@@ -126,9 +126,9 @@ export default function Profile() {
         ) : (
           <div className="glass-card p-16 text-center space-y-6 border-dashed border-2 border-white/5 bg-transparent">
             <Zap className="w-12 h-12 text-white/10 mx-auto" />
-            <p className="text-white/40 font-bold uppercase text-xs tracking-widest leading-relaxed">No house assigned. <br /> The sorting ceremony awaits you.</p>
+            <p className="text-white/40 font-bold uppercase text-xs tracking-widest leading-relaxed">Sin casa asignada. <br /> La ceremonia te espera.</p>
             <Link to="/quiz" className="btn-gold px-10 py-4 inline-flex items-center gap-3 text-sm font-black uppercase">
-              Start Ceremony
+              Comenzar Ceremonia
             </Link>
           </div>
         )}
@@ -139,14 +139,14 @@ export default function Profile() {
         {/* Points - Minimalist */}
         <div className="bg-white/5 rounded-[2.5rem] p-8 md:p-10 border border-white/5 flex flex-col justify-between space-y-10 relative overflow-hidden">
            <div className="space-y-1 relative z-10">
-              <p className="text-[10px] font-black text-magical-gold uppercase tracking-[0.3em]">Merits Balance</p>
+              <p className="text-[10px] font-black text-magical-gold uppercase tracking-[0.3em]">Méritos Acumulados</p>
               <h4 className="text-6xl font-black tracking-tighter text-white">{profile?.loyalty_points || 0}</h4>
            </div>
            
            {house && (
              <div className="bg-white/5 rounded-2xl p-6 border border-white/5 space-y-2 relative z-10">
-                <p className="text-[9px] font-black text-white/30 uppercase tracking-widest">Active House Perk</p>
-                <p className="text-lg font-black text-white uppercase italic">{HOUSE_CONFIG[profile.house_slug].reward}</p>
+                <p className="text-[9px] font-black text-white/30 uppercase tracking-widest">Beneficio de Casa Activo</p>
+                <p className="text-lg font-black text-white uppercase italic">{house.reward}</p>
              </div>
            )}
            <Star className="absolute -bottom-10 -right-10 w-48 h-48 text-magical-gold/5 rotate-12" />
@@ -155,7 +155,7 @@ export default function Profile() {
         {/* Visit - Functional & Minimalist */}
         <div className="bg-white/5 rounded-[2.5rem] p-8 md:p-10 border border-white/5 space-y-8 flex flex-col">
           <div className="flex items-center justify-between">
-            <p className="text-[10px] font-black text-white/30 uppercase tracking-[0.3em]">Current Visit Status</p>
+            <p className="text-[10px] font-black text-white/30 uppercase tracking-[0.3em]">Estado de Visita</p>
             {activeSession && (
                <span className="px-3 py-1 bg-white/10 rounded-full text-[9px] font-black uppercase tracking-widest text-white/60">
                  {activeSession.status.replace(/_/g, ' ')}
@@ -165,29 +165,29 @@ export default function Profile() {
 
           {!activeSession ? (
             <div className="flex-1 flex flex-col justify-center items-center text-center space-y-6">
-              <p className="text-sm text-white/40 font-medium italic">Welcome to the grounds.</p>
+              <p className="text-sm text-white/40 font-medium italic">Bienvenido a los terrenos de la escuela.</p>
               <Link to="/asistencia" className="btn-gold w-full flex items-center justify-center gap-3 py-5 text-sm font-black uppercase">
                 <QrCode className="w-6 h-6" />
-                Request Access
+                Obtener Pase de Entrada
               </Link>
             </div>
           ) : (
             <div className="flex-1 flex flex-col justify-center space-y-6">
               {activeSession.status === 'seated' && (
                 <div className="text-center space-y-1">
-                  <p className="text-4xl font-black text-white italic tracking-tighter">Table {activeSession.table_number}</p>
-                  <p className="text-[10px] text-magical-gold font-black uppercase tracking-widest">Location Confirmed</p>
+                  <p className="text-4xl font-black text-white italic tracking-tighter">Mesa {activeSession.table_number}</p>
+                  <p className="text-[10px] text-magical-gold font-black uppercase tracking-widest">Ubicación Confirmada</p>
                 </div>
               )}
 
               {activeSession.status === 'closed_waiting_ticket' && (
                 <Link to="/registrar-ticket" className="btn-gold w-full block text-center py-5 text-sm font-black uppercase">
-                  Claim Consumption
+                  Registrar Consumo
                 </Link>
               )}
 
               <Link to="/asistencia" className="text-center block text-[9px] font-black text-white/20 uppercase tracking-[0.3em] hover:text-white/40 transition-colors">
-                Open QR Scanner
+                Abrir Escáner QR
               </Link>
             </div>
           )}
