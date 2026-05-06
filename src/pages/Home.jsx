@@ -1,3 +1,4 @@
+import React from 'react'
 import { Link } from 'react-router-dom'
 import { Sparkles, Utensils, Award, Flame, Star, Zap, ShoppingBag, Scroll, UserPlus, ArrowRight } from 'lucide-react'
 import logo from '../assets/logo.png'
@@ -211,7 +212,7 @@ function FeatureCard({ icon, title, desc }) {
   return (
     <div className="flex items-center gap-4 group">
       <div className="p-4 bg-white/5 rounded-2xl group-hover:bg-magical-gold/10 transition-colors">
-        {Object.cloneElement(icon, { className: "w-6 h-6 text-magical-gold" })}
+        {React.cloneElement(icon, { className: "w-6 h-6 text-magical-gold" })}
       </div>
       <div>
         <h5 className="font-bold uppercase text-xs tracking-widest">{title}</h5>
