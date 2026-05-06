@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useAuth } from '../../context/AuthContext'
 import { supabase } from '../../lib/supabase'
-import { Award, QrCode, LogOut, Sparkles, Star, Shield, Zap, Wand2, Hash } from 'lucide-react'
+import { Award, QrCode, LogOut, Sparkles, Star, Shield, Zap, Wand2, Hash, Settings as SettingsIcon } from 'lucide-react'
 
 // House assets
 import gryffindorLogo from '../../assets/houses/gryffindor.png'
@@ -56,9 +56,11 @@ export default function Profile() {
             <p className="text-[9px] text-white/30 uppercase font-bold tracking-[0.2em]">Miembro de Hogwarts</p>
           </div>
         </div>
-        <button onClick={signOut} className="text-xs font-bold text-white/30 hover:text-red-400 transition-colors uppercase tracking-widest px-4 py-2 border border-white/5 rounded-xl">
-          Cerrar Sesión
-        </button>
+        <div className="flex gap-2">
+          <Link to="/ajustes" className="p-3 bg-white/5 rounded-xl border border-white/5 hover:bg-white/10 transition-colors">
+            <SettingsIcon className="w-5 h-5 text-white/40" />
+          </Link>
+        </div>
       </header>
 
       {/* MAGICAL ID CARD - ULTRA MINIMALIST */}

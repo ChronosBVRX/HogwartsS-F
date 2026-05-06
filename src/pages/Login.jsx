@@ -63,6 +63,12 @@ export default function Login() {
           >
             {loading ? 'Cargando...' : 'Entrar'}
           </button>
+
+          <div className="text-center">
+            <Link to="/olvide-password" size="sm" className="text-[10px] uppercase font-bold tracking-widest text-white/30 hover:text-magical-gold transition-colors">
+              ¿Olvidaste tu contraseña?
+            </Link>
+          </div>
         </form>
 
         <p className="text-center text-white/60 text-sm">

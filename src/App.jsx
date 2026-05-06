@@ -11,6 +11,8 @@ import ClaimTicket from './pages/Customer/ClaimTicket'
 import WaiterDashboard from './pages/Waiter/Dashboard'
 import WaiterScanner from './pages/Waiter/Scanner'
 import AdminDashboard from './pages/Admin/Dashboard'
+import Settings from './pages/Customer/Settings'
+import ForgotPassword from './pages/ForgotPassword'
 import Navbar from './components/layout/Navbar'
 
 const ProtectedRoute = ({ children, role }) => {
@@ -32,11 +34,13 @@ function App() {
             <Route path="/" element={<Home />} />
             <Route path="/menu" element={<Menu />} />
             <Route path="/login" element={<Login />} />
+            <Route path="/olvide-password" element={<ForgotPassword />} />
             <Route path="/registro" element={<Register />} />
             <Route path="/quiz" element={<Quiz />} />
 
             {/* Customer Routes */}
             <Route path="/perfil" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
+            <Route path="/ajustes" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
             <Route path="/asistencia" element={<ProtectedRoute><Attendance /></ProtectedRoute>} />
             <Route path="/registrar-ticket" element={<ProtectedRoute><ClaimTicket /></ProtectedRoute>} />
 
