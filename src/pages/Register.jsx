@@ -22,6 +22,7 @@ export default function Register() {
       email: formData.email,
       password: formData.password,
       options: {
+        emailRedirectTo: `${window.location.origin}/confirmacion-email.html`,
         data: {
           display_name: formData.displayName,
           phone: formData.phone
