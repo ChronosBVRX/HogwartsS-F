@@ -29,7 +29,10 @@ export default function Attendance() {
       // Create new session
       const { data, error } = await supabase
         .from('hsf_visit_sessions')
-        .insert({ customer_id: user.id })
+        .insert({ 
+          customer_id: user.id,
+          qr_token: `HSF-${Math.random().toString(36).substring(2, 10).toUpperCase()}`
+        })
         .select()
         .single()
       
