@@ -7,6 +7,7 @@ import burgerImg from '../assets/illustrations/burgers.png'
 import wingsImg from '../assets/illustrations/wings.png'
 import drinksImg from '../assets/illustrations/drinks.png'
 import coffeeImg from '../assets/illustrations/coffee.png'
+import defaultBg from '../assets/background.png'
 
 const CATEGORIES = [
   { name: "Todos", icon: <Sparkles className="w-4 h-4" /> },
@@ -43,7 +44,7 @@ export default function Menu() {
       <header className="relative h-[50vh] md:h-[65vh] flex items-center justify-center overflow-hidden">
         <div className="absolute inset-0 z-0">
           <img 
-            src={currentCategoryData?.img || "./src/assets/background.png"} 
+            src={currentCategoryData?.img || defaultBg} 
             className="w-full h-full object-cover transition-all duration-1000 scale-100"
             alt="Fondo" 
           />
