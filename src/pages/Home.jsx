@@ -165,24 +165,6 @@ export default function Home() {
           </div>
         </div>
 
-        {/* Collectibles Showcase */}
-        <div className="grid md:grid-cols-2 gap-12 items-center bg-white/5 rounded-[40px] p-12 md:p-20 border border-white/5">
-          <div className="aspect-square relative rounded-3xl overflow-hidden">
-            <img 
-              src={collectiblesImg} 
-              className="absolute inset-0 w-full h-full object-cover"
-              alt="Coleccionables" 
-            />
-          </div>
-          <div className="space-y-8">
-            <h3 className="text-4xl font-black uppercase italic text-magical-gold">Ediciones de Coleccionista</h3>
-            <div className="space-y-6">
-              <CollectibleItem name="Varita de Saúco" price="950 G" description="La varita más poderosa de la historia." />
-              <CollectibleItem name="Snitch Dorada" price="450 G" description="Acabado en chapa de oro con movimiento." />
-              <CollectibleItem name="Diario de Tom Riddle" price="780 G" description="Réplica exacta con páginas envejecidas." />
-            </div>
-          </div>
-        </div>
       </section>
 
       {/* Trust Badges */}
@@ -196,17 +178,6 @@ export default function Home() {
   )
 }
 
-function CollectibleItem({ name, price, description }) {
-  return (
-    <div className="flex justify-between items-center border-b border-white/5 pb-4 group">
-      <div>
-        <h4 className="font-bold text-xl group-hover:text-magical-gold transition-colors">{name}</h4>
-        <p className="text-sm text-white/40">{description}</p>
-      </div>
-      <div className="text-xl font-black text-magical-gold">{price}</div>
-    </div>
-  )
-}
 
 function FeatureCard({ icon, title, desc }) {
   return (
