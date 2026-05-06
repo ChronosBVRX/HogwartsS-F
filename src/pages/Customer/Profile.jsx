@@ -32,7 +32,7 @@ export default function Profile() {
     const { data, error } = await supabase
       .from('hsf_visit_sessions')
       .select('*')
-      .in('status', ['qr_generated', 'seated', 'closed_waiting_ticket'])
+      .in('status', ['qr_generated', 'seated', 'closed_waiting_ticket', 'ticket_submitted'])
       .order('created_at', { ascending: false })
       .limit(1)
       .maybeSingle()
@@ -70,11 +70,9 @@ export default function Profile() {
 
         {house ? (
           <div className="relative aspect-[1.6/1] w-full max-w-2xl mx-auto rounded-[2.5rem] overflow-hidden shadow-2xl group border border-white/10">
-            {/* Minimalist Background Image */}
             <img src={idBg} className="absolute inset-0 w-full h-full object-cover" alt="" />
             <div className="absolute inset-0 bg-black/20" />
             
-            {/* ID Content - High Contrast */}
             <div className="absolute inset-0 p-10 md:p-14 flex flex-col justify-between z-10 text-white">
               <div className="flex justify-between items-start">
                 <div className="space-y-1">
@@ -85,12 +83,10 @@ export default function Profile() {
               </div>
 
               <div className="flex items-center gap-10 md:gap-16">
-                {/* Clean Photo / Logo Container */}
                 <div className="w-24 h-24 md:w-36 md:h-36 rounded-3xl bg-black/40 backdrop-blur-md border border-white/10 p-5 shadow-2xl flex items-center justify-center">
                    <img src={house.logo} className="w-full h-full object-contain" alt={house.name} />
                 </div>
 
-                {/* Details Section - Minimal & Legible */}
                 <div className="space-y-6">
                   <div className="space-y-1">
                     <p className="text-[9px] font-bold text-white/40 uppercase tracking-widest">Nombre del Mago</p>
@@ -110,7 +106,6 @@ export default function Profile() {
                 </div>
               </div>
 
-              {/* Bottom Strip - Information Only */}
               <div className="flex justify-between items-end border-t border-white/10 pt-6">
                 <div className="flex items-center gap-3">
                   <Wand2 className="w-4 h-4 text-magical-gold/40" />
@@ -118,7 +113,7 @@ export default function Profile() {
                 </div>
                 <div className="flex items-center gap-2 text-white/30">
                   <Hash className="w-3 h-3" />
-                  <span className="text-[10px] font-black tracking-widest uppercase">{profile?.id?.slice(0, 8).toUpperCase()}</span>
+                  <span className="text-[10px] font-black tracking-widest uppercase">ID #{profile?.user_id?.slice(0, 8).toUpperCase()}</span>
                 </div>
               </div>
             </div>
@@ -134,9 +129,7 @@ export default function Profile() {
         )}
       </section>
 
-      {/* Stats & Actions - Clean Grid */}
       <div className="grid md:grid-cols-2 gap-6">
-        {/* Points - Minimalist */}
         <div className="bg-white/5 rounded-[2.5rem] p-8 md:p-10 border border-white/5 flex flex-col justify-between space-y-10 relative overflow-hidden">
            <div className="space-y-1 relative z-10">
               <p className="text-[10px] font-black text-magical-gold uppercase tracking-[0.3em]">Méritos Acumulados</p>
@@ -152,7 +145,6 @@ export default function Profile() {
            <Star className="absolute -bottom-10 -right-10 w-48 h-48 text-magical-gold/5 rotate-12" />
         </div>
 
-        {/* Visit - Functional & Minimalist */}
         <div className="bg-white/5 rounded-[2.5rem] p-8 md:p-10 border border-white/5 space-y-8 flex flex-col">
           <div className="flex items-center justify-between">
             <p className="text-[10px] font-black text-white/30 uppercase tracking-[0.3em]">Estado de Visita</p>
@@ -163,7 +155,7 @@ export default function Profile() {
             )}
           </div>
 
-          {!activeSession ? (
+          {!activeSession || activeSession.status === 'ticket_submitted' ? (
             <div className="flex-1 flex flex-col justify-center items-center text-center space-y-6">
               <p className="text-sm text-white/40 font-medium italic">Bienvenido a los terrenos de la escuela.</p>
               <Link to="/asistencia" className="btn-gold w-full flex items-center justify-center gap-3 py-5 text-sm font-black uppercase">

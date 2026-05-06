@@ -1,37 +1,42 @@
 import { useEffect, useState } from 'react'
-import { Link } from 'react-router-dom'
-import { QRCodeSVG } from 'qrcode.react'
-import { supabase } from '../../lib/supabase'
+import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../../context/AuthContext'
-import { ChevronLeft, Info } from 'lucide-react'
+import { supabase } from '../../lib/supabase'
+import { QRCodeSVG } from 'qrcode.react'
+import { ChevronLeft, QrCode, Clock, ShieldCheck, AlertCircle } from 'lucide-react'
 
 export default function Attendance() {
   const { user } = useAuth()
   const [session, setSession] = useState(null)
   const [loading, setLoading] = useState(true)
+  const navigate = useNavigate()
 
   useEffect(() => {
-    fetchOrCreateSession()
-  }, [])
+    if (user) fetchOrCreateSession()
+  }, [user])
 
   const fetchOrCreateSession = async () => {
-    // Check if active session exists
+    setLoading(true)
+    
+    // 1. Check for active session
     const { data: existing } = await supabase
       .from('hsf_visit_sessions')
       .select('*')
       .in('status', ['qr_generated', 'seated'])
+      .eq('customer_id', user.id)
+      .order('created_at', { ascending: false })
+      .limit(1)
       .maybeSingle()
 
     if (existing) {
       setSession(existing)
       setLoading(false)
     } else {
-      // Create new session
+      // 2. Create new session (DB handles qr_token as UUID)
       const { data, error } = await supabase
         .from('hsf_visit_sessions')
         .insert({ 
-          customer_id: user.id,
-          qr_token: `HSF-${Math.random().toString(36).substring(2, 10).toUpperCase()}`
+          customer_id: user.id 
         })
         .select()
         .single()
@@ -41,35 +46,74 @@ export default function Attendance() {
     }
   }
 
-  if (loading) return <div className="flex-1 flex items-center justify-center">Cargando...</div>
+  if (loading) {
+    return (
+      <div className="flex-1 flex items-center justify-center p-6 text-center animate-pulse">
+        <p className="text-magical-gold uppercase font-black tracking-widest italic">Invocando pase de entrada...</p>
+      </div>
+    )
+  }
 
   return (
-    <div className="flex-1 p-6 flex flex-col max-w-md mx-auto w-full space-y-6">
-      <Link to="/perfil" className="flex items-center gap-2 text-white/60 hover:text-white">
+    <div className="flex-1 p-6 flex flex-col max-w-2xl mx-auto w-full space-y-8 animate-in fade-in duration-700">
+      <button onClick={() => navigate('/perfil')} className="flex items-center gap-2 text-white/40 hover:text-white transition-colors">
         <ChevronLeft className="w-5 h-5" />
-        Volver al Perfil
-      </Link>
+        <span className="text-xs font-black uppercase tracking-widest">Volver al Perfil</span>
+      </button>
 
-      <div className="glass-card p-8 flex flex-col items-center text-center space-y-6">
-        <h1 className="text-2xl font-bold text-magical-gold">Tu Código de Asistencia</h1>
-        <p className="text-sm text-white/60">
-          Muestra este código al mesero cuando llegues al restaurante para asignar tu mesa.
-        </p>
-
-        <div className="bg-white p-4 rounded-2xl shadow-xl">
-          <QRCodeSVG 
-            value={session?.qr_token || ''} 
-            size={200}
-            level="H"
-            includeMargin={true}
-          />
+      <div className="glass-card overflow-hidden">
+        <div className="p-10 text-center bg-magical-gold/5 border-b border-white/5 space-y-2">
+          <h1 className="text-3xl font-black uppercase italic tracking-tighter text-white">Pase de <span className="text-magical-gold">Entrada</span></h1>
+          <p className="text-xs text-white/40 uppercase font-bold tracking-[0.3em]">Presenta este código al llegar</p>
         </div>
 
-        <div className="flex items-start gap-3 bg-magical-gold/10 p-4 rounded-xl border border-magical-gold/20 text-left">
-          <Info className="w-5 h-5 text-magical-gold shrink-0 mt-0.5" />
-          <p className="text-xs text-magical-gold/80 leading-relaxed">
-            Este código es único para tu visita actual. Si ya estás sentado, el mesero ya lo ha procesado.
-          </p>
+        <div className="p-10 flex flex-col items-center space-y-10">
+          {session ? (
+            <>
+              {/* QR Code Container */}
+              <div className="p-8 bg-white rounded-[3rem] shadow-[0_0_50px_rgba(255,255,255,0.1)] relative group">
+                <QRCodeSVG 
+                  value={session.qr_token} 
+                  size={200}
+                  level="H"
+                  includeMargin={true}
+                />
+                <div className="absolute inset-0 border-4 border-magical-gold/20 rounded-[3rem] pointer-events-none group-hover:border-magical-gold/40 transition-all" />
+              </div>
+
+              {/* Status & Info */}
+              <div className="w-full space-y-6">
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="bg-white/5 p-4 rounded-2xl border border-white/5 flex flex-col items-center gap-2">
+                    <Clock className="w-4 h-4 text-magical-gold" />
+                    <span className="text-[10px] font-black uppercase text-white/40">Válido hasta</span>
+                    <span className="text-xs font-bold text-white">
+                      {new Date(session.qr_expires_at || Date.now() + 20*60*1000).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                    </span>
+                  </div>
+                  <div className="bg-white/5 p-4 rounded-2xl border border-white/5 flex flex-col items-center gap-2">
+                    <ShieldCheck className="w-4 h-4 text-magical-gold" />
+                    <span className="text-[10px] font-black uppercase text-white/40">Estado</span>
+                    <span className="text-[10px] font-black uppercase text-magical-gold">
+                      {session.status.replace(/_/g, ' ')}
+                    </span>
+                  </div>
+                </div>
+
+                <div className="bg-magical-gold/5 border border-magical-gold/20 p-5 rounded-2xl flex items-start gap-4">
+                  <AlertCircle className="w-5 h-5 text-magical-gold shrink-0 mt-0.5" />
+                  <p className="text-xs text-white/60 leading-relaxed italic">
+                    Un mesero escaneará este código para asignarte una mesa y comenzar tu experiencia mágica.
+                  </p>
+                </div>
+              </div>
+            </>
+          ) : (
+            <div className="py-20 text-center space-y-4">
+              <AlertCircle className="w-12 h-12 text-red-400 mx-auto" />
+              <p className="text-white/60">No se pudo generar el pase. Inténtalo de nuevo.</p>
+            </div>
+          )}
         </div>
       </div>
     </div>

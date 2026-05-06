@@ -23,6 +23,7 @@ export default function ClaimTicket() {
       .from('hsf_visit_sessions')
       .select('*')
       .eq('status', 'closed_waiting_ticket')
+      .eq('customer_id', user.id)
       .order('created_at', { ascending: false })
       .limit(1)
       .maybeSingle()
@@ -40,22 +41,24 @@ export default function ClaimTicket() {
     setLoading(true)
     setError(null)
 
+    // 1. Create ticket claim
     const { error: claimError } = await supabase
       .from('hsf_ticket_claims')
       .insert({
         session_id: activeSession.id,
+        customer_id: user.id,
         folio,
         amount: parseFloat(amount)
       })
 
     if (claimError) {
-      setError('Error al enviar el ticket. Verifica los datos.')
+      setError('Error al enviar el ticket. ¿Ya registraste este folio?')
       setLoading(false)
     } else {
-      // Mark session as completed
+      // 2. Update session status to ticket_submitted
       await supabase
         .from('hsf_visit_sessions')
-        .update({ status: 'completed' })
+        .update({ status: 'ticket_submitted' })
         .eq('id', activeSession.id)
 
       setSuccess(true)
@@ -146,10 +149,6 @@ export default function ClaimTicket() {
             <Send className="w-6 h-6 group-hover:translate-x-1 group-hover:-translate-y-1 transition-transform" />
             <span className="font-black uppercase italic tracking-tighter">Enviar para Validación</span>
           </button>
-          
-          <p className="text-[9px] text-center text-white/20 uppercase font-bold tracking-[0.2em]">
-            Tu ticket será validado por un administrador en un plazo de 24 horas.
-          </p>
         </form>
       </div>
     </div>
