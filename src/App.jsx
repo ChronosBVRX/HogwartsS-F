@@ -14,6 +14,7 @@ import AdminDashboard from './pages/Admin/Dashboard'
 import Settings from './pages/Customer/Settings'
 import ForgotPassword from './pages/ForgotPassword'
 import Navbar from './components/layout/Navbar'
+import InstallPWA from './components/InstallPWA'
 
 const ProtectedRoute = ({ children, role }) => {
   const { user, profile } = useAuth()
@@ -29,6 +30,7 @@ function App() {
       <Router>
         <div className="min-h-screen flex flex-col max-w-full overflow-x-hidden">
           <Navbar />
+          <InstallPWA />
           <Routes>
             {/* Public Routes */}
             <Route path="/" element={<Home />} />
