@@ -102,6 +102,15 @@ const InstallPWA = () => {
           </button>
         )}
 
+        {!isIOS && !canInstall && (
+          <button
+            onClick={() => alert("En Chrome Android: toca el menú ⋮ y elige 'Instalar aplicación' o 'Agregar a pantalla principal'. Si no aparece, navega unos segundos dentro de la app y vuelve a intentarlo.")}
+            className="bg-magical-gold text-magical-navy px-3 py-1.5 rounded text-sm font-bold shadow-md hover:scale-105 transition-transform"
+          >
+            Ver cómo
+          </button>
+        )}
+
         <button
           onClick={() => setIsVisible(false)}
           className="text-white/40 hover:text-white transition-colors p-1"
