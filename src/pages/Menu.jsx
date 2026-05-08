@@ -19,11 +19,24 @@ const ICON_MAP = {
   "Wine": <Wine className="w-4 h-4" />
 }
 
-const IMG_MAP = {
-  "burgerImg": burgerImg,
-  "wingsImg": wingsImg,
-  "coffeeImg": coffeeImg,
-  "drinksImg": drinksImg
+const STOCK_IMAGES = {
+  "Hamburguesas": "https://images.unsplash.com/photo-1568901346375-23c9450c58cd?auto=format&fit=crop&q=80&w=400",
+  "Alitas de Fénix": "https://images.unsplash.com/photo-1567620905732-2d1ec7bb7445?auto=format&fit=crop&q=80&w=400",
+  "Boneless de Hipogrifo": "https://images.unsplash.com/photo-1562967914-608f82629710?auto=format&fit=crop&q=80&w=400",
+  "Bebidas con Alcohol": "https://images.unsplash.com/photo-1514362545857-3bc16c4c7d1b?auto=format&fit=crop&q=80&w=400",
+  "Bebidas sin Alcohol": "https://images.unsplash.com/photo-1536935338788-846bb9981813?auto=format&fit=crop&q=80&w=400",
+  "Cafés Calientes": "https://images.unsplash.com/photo-1541167760496-162955ed8a9f?auto=format&fit=crop&q=80&w=400",
+  "Cold Brew (Bebidas de café heladas)": "https://images.unsplash.com/photo-1461023058943-07fcbe16d735?auto=format&fit=crop&q=80&w=400",
+  "Postres": "https://images.unsplash.com/photo-1563729784474-d77dbb933a9e?auto=format&fit=crop&q=80&w=400",
+  "Tacos, Burritos, Gringas, Fajitas": "https://images.unsplash.com/photo-1565299585323-38d6b0865b47?auto=format&fit=crop&q=80&w=400",
+  "Snacks": "https://images.unsplash.com/photo-1599487488170-d11ec9c172f0?auto=format&fit=crop&q=80&w=400",
+  "Frappes": "https://images.unsplash.com/photo-1572490122747-3968b75cc699?auto=format&fit=crop&q=80&w=400",
+  "Malteadas": "https://images.unsplash.com/photo-1572490122747-3968b75cc699?auto=format&fit=crop&q=80&w=400",
+  "Carajillos (Café Helado con Alcohol)": "https://images.unsplash.com/photo-1594631252845-29fc4586d517?auto=format&fit=crop&q=80&w=400",
+  "Expresos": "https://images.unsplash.com/photo-1510591509098-f4fdc6d0ff04?auto=format&fit=crop&q=80&w=400",
+  "Infusiones": "https://images.unsplash.com/photo-1576092768241-dec231879fc3?auto=format&fit=crop&q=80&w=400",
+  "Cajitas Mágicas y Ensaladas": "https://images.unsplash.com/photo-1512621776951-a57141f2eefd?auto=format&fit=crop&q=80&w=400",
+  "default": "https://images.unsplash.com/photo-1561043433-9265f73e685f?auto=format&fit=crop&q=80&w=400"
 }
 
 export default function Menu() {
@@ -49,7 +62,7 @@ export default function Menu() {
         id: c.id,
         name: c.name,
         icon: ICON_MAP[c.description?.split('|')[0]] || <Sparkles className="w-4 h-4" />,
-        img: IMG_MAP[c.description?.split('|')[1]] || null
+        img: STOCK_IMAGES[c.name] || STOCK_IMAGES["default"]
       }))
       setCategories(dynamicCats)
       if (dynamicCats.length > 0 && !activeCategory) {
@@ -132,23 +145,43 @@ export default function Menu() {
               <button
                 key={cat.name}
                 onClick={() => setActiveCategory(cat.name)}
-                className={`relative overflow-hidden group px-4 py-4 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all flex flex-col items-center justify-center gap-2 border h-24 md:h-16 md:flex-row md:flex-1 ${
+                className={`relative overflow-hidden group rounded-2xl transition-all border h-28 md:h-20 flex-1 ${
                   activeCategory === cat.name 
-                    ? 'bg-magical-gold text-magical-navy border-magical-gold shadow-[0_10px_30px_rgba(212,175,55,0.3)] scale-[1.02]' 
-                    : 'bg-white/5 text-white/40 border-white/10 hover:bg-white/10'
+                    ? 'border-magical-gold shadow-[0_0_30px_rgba(212,175,55,0.4)] scale-[1.02]' 
+                    : 'border-white/10 hover:border-white/30'
                 }`}
               >
-                {/* Background Glow for active */}
+                {/* Category Image Background */}
+                <img 
+                  src={cat.img} 
+                  className={`absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-110 ${
+                    activeCategory === cat.name ? 'opacity-100' : 'opacity-40 grayscale'
+                  }`}
+                  alt="" 
+                />
+                
+                {/* Dark Overlay */}
+                <div className={`absolute inset-0 transition-colors duration-500 ${
+                  activeCategory === cat.name 
+                    ? 'bg-magical-navy/40' 
+                    : 'bg-black/60 group-hover:bg-black/40'
+                }`} />
+
+                {/* Selection border/glow */}
                 {activeCategory === cat.name && (
-                  <div className="absolute inset-0 bg-white/20 animate-pulse" />
+                   <div className="absolute inset-0 border-2 border-magical-gold/50 rounded-2xl animate-pulse" />
                 )}
                 
-                <div className={`p-2 rounded-xl transition-colors ${activeCategory === cat.name ? 'bg-magical-navy/10' : 'bg-white/5'}`}>
-                  {cat.img ? (
-                    <img src={cat.img} className="w-6 h-6 rounded-md object-cover" alt="" />
-                  ) : cat.icon}
+                <div className="relative z-10 flex flex-col md:flex-row items-center justify-center gap-2 p-3 text-center">
+                  <div className={`p-1.5 rounded-lg transition-colors ${activeCategory === cat.name ? 'text-magical-gold drop-shadow-[0_0_8px_rgba(212,175,55,0.8)]' : 'text-white/60'}`}>
+                    {cat.icon}
+                  </div>
+                  <span className={`text-[10px] md:text-xs font-black uppercase tracking-[0.15em] drop-shadow-lg ${
+                    activeCategory === cat.name ? 'text-white' : 'text-white/60'
+                  }`}>
+                    {cat.name}
+                  </span>
                 </div>
-                <span className="relative z-10 text-center">{cat.name}</span>
               </button>
             ))}
           </div>
