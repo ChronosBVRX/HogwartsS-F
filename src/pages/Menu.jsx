@@ -21,17 +21,34 @@ const ICON_MAP = {
 }
 
 const STOCK_IMAGES = {
-  "Hamburguesas": "/burgers.png",
-  "Alitas de Fenix": "/wings.png",
-  "Bebidas con Alcohol": "/drinks.png",
-  "Bebidas sin Alcohol": "/drinks.png",
-  "Especial de las casas": "/drinks.png",
-  "Clericot": "/drinks.png",
-  "En copa": "/drinks.png",
-  "Cerveza y Cocteles": "/drinks.png",
-  "Cold Brew": "/coffee.png",
-  "Infusiones (Café)": "/coffee.png",
-  "Café Expreso": "/coffee.png",
+  "Hamburguesas": "https://images.unsplash.com/photo-1568901346375-23c9450c58cd?auto=format&fit=crop&q=80&w=400",
+  "Alitas de Fenix": "https://images.unsplash.com/photo-1567620905732-2d1ec7bb7445?auto=format&fit=crop&q=80&w=400",
+  "Boneless de Hipogrifo": "https://images.unsplash.com/photo-1562967914-608f82629710?auto=format&fit=crop&q=80&w=400",
+  "Snacks": "https://images.unsplash.com/photo-1599487488170-d11ec9c172f0?auto=format&fit=crop&q=80&w=400",
+  "Comida Mexicana": "https://images.unsplash.com/photo-1565299585323-38d6b0865b47?auto=format&fit=crop&q=80&w=400",
+  "Cajitas Mágicas": "https://images.unsplash.com/photo-1543352634-a1c51d9f1fa7?auto=format&fit=crop&q=80&w=400",
+  "Ensaladas": "https://images.unsplash.com/photo-1512621776951-a57141f2eefd?auto=format&fit=crop&q=80&w=400",
+
+  "Cold Brew": "https://images.unsplash.com/photo-1461023058943-07fcbe16d735?auto=format&fit=crop&q=80&w=400",
+  "Frappes y Malteadas": "https://images.unsplash.com/photo-1572490122840-3b7131a74857?auto=format&fit=crop&q=80&w=400",
+
+  "Infusiones (Café)": "https://images.unsplash.com/photo-1541167760496-162955ed8a9f?auto=format&fit=crop&q=80&w=400",
+  "Café Expreso": "https://images.unsplash.com/photo-1510591509098-f4fdc6d0ff04?auto=format&fit=crop&q=80&w=400",
+  "Tés y Postres": "https://images.unsplash.com/photo-1509042239860-f550ce710b93?auto=format&fit=crop&q=80&w=400",
+
+  "Carajillos (Bebidas heladas)": "https://images.unsplash.com/photo-1594631252845-29fc4586d517?auto=format&fit=crop&q=80&w=400",
+  "Bebidas con Alcohol": "https://images.unsplash.com/photo-1514362545857-3bc16c4c7d1b?auto=format&fit=crop&q=80&w=400",
+  "Especial de las casas": "https://images.unsplash.com/photo-1536935338788-846bb9981813?auto=format&fit=crop&q=80&w=400",
+  "Clericot": "https://images.unsplash.com/photo-1510812431401-41d2bd2722f3?auto=format&fit=crop&q=80&w=400",
+  "En copa": "https://images.unsplash.com/photo-1506377247377-2a5b3b4cc446?auto=format&fit=crop&q=80&w=400",
+  "Cerveza y Cocteles": "https://images.unsplash.com/photo-1608270586620-248524c67de9?auto=format&fit=crop&q=80&w=400",
+
+  "Refrescos y Aguas": "https://images.unsplash.com/photo-1544145945-f90425340c7e?auto=format&fit=crop&q=80&w=400",
+
+  "Crepas Delux": "https://images.unsplash.com/photo-1519676867240-f03562e64548?auto=format&fit=crop&q=80&w=400",
+  "Crepas Clásicas": "https://images.unsplash.com/photo-1608651034415-bc446543b573?auto=format&fit=crop&q=80&w=400",
+  "Nuevos Productos": "https://images.unsplash.com/photo-1561043433-9265f73e685f?auto=format&fit=crop&q=80&w=400",
+
   "default": "/background.png"
 }
 const SUPER_CATEGORY_MAP = {
