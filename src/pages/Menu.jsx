@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect } from 'react'
+import React, { useState, useMemo, useEffect } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
 import { Search, Sparkles, Flame, Coffee, Wine, UtensilsCrossed, Star, Zap, ChevronLeft } from 'lucide-react'
