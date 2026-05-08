@@ -1,5 +1,24 @@
 -- ==========================================
--- 1. FUNCIÓN PARA PROCESAR APROBACIÓN DE TICKETS
+-- 1. FUNCIONES DE SEGURIDAD (Para evitar recursividad infinita)
+-- ==========================================
+CREATE OR REPLACE FUNCTION public.check_is_admin()
+RETURNS BOOLEAN AS $$
+  SELECT EXISTS (
+    SELECT 1 FROM public.hsf_profiles
+    WHERE user_id = auth.uid() AND role = 'admin'
+  );
+$$ LANGUAGE sql SECURITY DEFINER;
+
+CREATE OR REPLACE FUNCTION public.check_is_staff()
+RETURNS BOOLEAN AS $$
+  SELECT EXISTS (
+    SELECT 1 FROM public.hsf_profiles
+    WHERE user_id = auth.uid() AND role IN ('waiter', 'admin')
+  );
+$$ LANGUAGE sql SECURITY DEFINER;
+
+-- ==========================================
+-- 2. FUNCIÓN PARA PROCESAR APROBACIÓN DE TICKETS
 -- Esta función actualiza los puntos del perfil e inserta en el ledger de forma atómica.
 -- ==========================================
 CREATE OR REPLACE FUNCTION process_ticket_approval(
@@ -34,43 +53,45 @@ BEGIN
   -- 3. Marcar ticket como otorgado
   UPDATE public.hsf_ticket_claims
   SET awarded_at = NOW(),
-      points_awarded = points_to_add
+      points_awarded = points_to_add,
+      status = 'approved'
   WHERE id = claim_id;
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 
 -- ==========================================
--- 2. POLÍTICAS DE SEGURIDAD (RLS)
--- Asegúrate de que estas políticas existan para que el frontend funcione.
+-- 3. LIMPIEZA Y CREACIÓN DE POLÍTICAS (RLS)
 -- ==========================================
+DROP POLICY IF EXISTS "Select Own Profile" ON public.hsf_profiles;
+DROP POLICY IF EXISTS "Update Own Profile" ON public.hsf_profiles;
+DROP POLICY IF EXISTS "Admin All Profiles" ON public.hsf_profiles;
+DROP POLICY IF EXISTS "Select Own Sessions" ON public.hsf_visit_sessions;
+DROP POLICY IF EXISTS "Insert Own Sessions" ON public.hsf_visit_sessions;
+DROP POLICY IF EXISTS "Staff All Sessions" ON public.hsf_visit_sessions;
+DROP POLICY IF EXISTS "Customer Own Claims" ON public.hsf_ticket_claims;
+DROP POLICY IF EXISTS "Customer Insert Claims" ON public.hsf_ticket_claims;
+DROP POLICY IF EXISTS "Admin All Claims" ON public.hsf_ticket_claims;
 
 -- Perfiles
 ALTER TABLE public.hsf_profiles ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "Select Own Profile" ON public.hsf_profiles FOR SELECT USING (auth.uid() = user_id);
 CREATE POLICY "Update Own Profile" ON public.hsf_profiles FOR UPDATE USING (auth.uid() = user_id);
-CREATE POLICY "Admin All Profiles" ON public.hsf_profiles FOR ALL USING (
-  EXISTS (SELECT 1 FROM public.hsf_profiles WHERE user_id = auth.uid() AND role = 'admin')
-);
+CREATE POLICY "Admin All Profiles" ON public.hsf_profiles FOR ALL USING (public.check_is_admin());
 
 -- Sesiones
 ALTER TABLE public.hsf_visit_sessions ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "Select Own Sessions" ON public.hsf_visit_sessions FOR SELECT USING (auth.uid() = customer_id);
 CREATE POLICY "Insert Own Sessions" ON public.hsf_visit_sessions FOR INSERT WITH CHECK (auth.uid() = customer_id);
-CREATE POLICY "Staff All Sessions" ON public.hsf_visit_sessions FOR ALL USING (
-  EXISTS (SELECT 1 FROM public.hsf_profiles WHERE user_id = auth.uid() AND role IN ('waiter', 'admin'))
-);
+CREATE POLICY "Staff All Sessions" ON public.hsf_visit_sessions FOR ALL USING (public.check_is_staff());
 
 -- Tickets
 ALTER TABLE public.hsf_ticket_claims ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "Customer Own Claims" ON public.hsf_ticket_claims FOR SELECT USING (auth.uid() = customer_id);
 CREATE POLICY "Customer Insert Claims" ON public.hsf_ticket_claims FOR INSERT WITH CHECK (auth.uid() = customer_id);
-CREATE POLICY "Admin All Claims" ON public.hsf_ticket_claims FOR ALL USING (
-  EXISTS (SELECT 1 FROM public.hsf_profiles WHERE user_id = auth.uid() AND role = 'admin')
-);
+CREATE POLICY "Admin All Claims" ON public.hsf_ticket_claims FOR ALL USING (public.check_is_admin());
 
 -- ==========================================
--- 3. DATOS INICIALES PARA CASAS (SI NO EXISTEN)
--- Esto es vital para que los iconos y colores se mapeen correctamente.
+-- 4. DATOS INICIALES
 -- ==========================================
 INSERT INTO public.hsf_houses (slug, name, description, color_hex)
 VALUES 
