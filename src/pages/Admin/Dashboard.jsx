@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from 'react'
 import { supabase } from '../../lib/supabase'
 import { useAuth } from '../../context/AuthContext'
-import { Shield, Ticket, Check, X, Users, Star, TrendingUp, AlertCircle, Search, UserCog, UserPlus } from 'lucide-react'
+import { Shield, Ticket, Check, X, Users, Star, TrendingUp, AlertCircle, Search, UserCog, UserPlus, Sparkles } from 'lucide-react'
+import AdminMenuManager from '../../components/AdminMenuManager'
 
 export default function AdminDashboard() {
   const [stats, setStats] = useState({ users: 0, points: 0, pendingTickets: 0 })
@@ -139,10 +140,21 @@ export default function AdminDashboard() {
             <UserCog className="w-4 h-4" />
             Usuarios
           </button>
+          <button
+            onClick={() => setActiveTab('menu')}
+            className={`px-6 py-3 rounded-xl text-xs font-black uppercase tracking-widest transition-all flex items-center gap-2 ${
+              activeTab === 'menu' ? 'bg-magical-gold text-magical-navy' : 'text-white/40 hover:text-white'
+            }`}
+          >
+            <Sparkles className="w-4 h-4" />
+            Menú
+          </button>
         </div>
       </header>
 
-      {activeTab === 'tickets' ? (
+      {activeTab === 'menu' && <AdminMenuManager />}
+
+      {activeTab === 'tickets' && (
         <>
           <div className="grid md:grid-cols-3 gap-6">
             <StatCard icon={<Users />} label="Magos Registrados" value={stats.users} />
@@ -225,7 +237,9 @@ export default function AdminDashboard() {
             </div>
           </section>
         </>
-      ) : (
+      )}
+
+      {activeTab === 'users' && (
         <section className="space-y-6">
           <div className="flex items-center gap-3 px-2">
             <UserCog className="w-5 h-5 text-magical-gold" />

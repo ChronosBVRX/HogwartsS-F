@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useAuth } from '../../context/AuthContext'
 import { supabase } from '../../lib/supabase'
-import { Award, QrCode, LogOut, Sparkles, Star, Shield, Zap, Wand2, Hash, Settings as SettingsIcon, Map, Footprints } from 'lucide-react'
+import { Award, QrCode, LogOut, Sparkles, Star, Shield, Zap, Wand2, Hash, Settings as SettingsIcon, Map, Footprints, Ticket, CheckCircle2, XCircle, Clock } from 'lucide-react'
 
 // House assets
 import gryffindorLogo from '../../assets/houses/gryffindor.png'
@@ -33,11 +33,14 @@ const HOUSE_CONFIG = {
 export default function Profile() {
   const { profile, signOut } = useAuth()
   const [activeSession, setActiveSession] = useState(null)
+  const [ticketHistory, setTicketHistory] = useState([])
   const [loading, setLoading] = useState(true)
 
   const fetchActiveSession = async () => {
     if (!profile) return
-    const { data, error } = await supabase
+    
+    // Fetch active session
+    const { data: sessionData } = await supabase
       .from('hsf_visit_sessions')
       .select('*')
       .in('status', ['qr_generated', 'seated', 'closed_waiting_ticket', 'ticket_submitted'])
@@ -46,7 +49,18 @@ export default function Profile() {
       .limit(1)
       .maybeSingle()
 
-    if (!error) setActiveSession(data)
+    if (sessionData) setActiveSession(sessionData)
+
+    // Fetch ticket history
+    const { data: historyData } = await supabase
+      .from('hsf_ticket_claims')
+      .select('*')
+      .eq('customer_id', profile.user_id)
+      .order('created_at', { ascending: false })
+      .limit(10)
+
+    if (historyData) setTicketHistory(historyData)
+    
     setLoading(false)
   }
 
@@ -328,6 +342,64 @@ export default function Profile() {
                )}
             </div>
           </div>
+        </div>
+      </section>
+
+      {/* TICKET HISTORY SECTION */}
+      <section className="space-y-4 pt-4">
+        <div className="flex items-center gap-2 px-2">
+          <Ticket className="w-5 h-5 text-white/40" />
+          <h2 className="text-[10px] md:text-xs font-black uppercase tracking-[0.4em] text-white/40">Historial de Consumos</h2>
+        </div>
+        
+        <div className="glass-card overflow-hidden divide-y divide-white/5 border border-white/5">
+          {ticketHistory.length === 0 ? (
+            <div className="p-8 text-center">
+              <p className="text-xs text-white/30 uppercase font-bold tracking-widest">Aún no hay consumos registrados</p>
+            </div>
+          ) : (
+            ticketHistory.map((ticket) => (
+              <div key={ticket.id} className="p-5 flex flex-col md:flex-row md:items-center justify-between gap-4 hover:bg-white/5 transition-colors">
+                <div className="space-y-1">
+                  <div className="flex items-center gap-2">
+                    <span className="font-mono text-sm text-white font-bold">{ticket.folio}</span>
+                    <span className="text-[10px] text-white/30 uppercase tracking-widest">
+                      {new Date(ticket.created_at).toLocaleDateString()}
+                    </span>
+                  </div>
+                  <div className="text-xl font-black text-magical-gold">${ticket.amount}</div>
+                </div>
+
+                <div className="flex items-center gap-4">
+                  {ticket.status === 'pending' && (
+                    <div className="flex items-center gap-2 text-yellow-400 bg-yellow-400/10 px-3 py-1.5 rounded-lg border border-yellow-400/20">
+                      <Clock className="w-4 h-4" />
+                      <span className="text-[10px] font-black uppercase tracking-widest">En revisión</span>
+                    </div>
+                  )}
+                  {ticket.status === 'approved' && (
+                    <div className="flex items-center gap-2 text-green-400 bg-green-400/10 px-3 py-1.5 rounded-lg border border-green-400/20">
+                      <CheckCircle2 className="w-4 h-4" />
+                      <span className="text-[10px] font-black uppercase tracking-widest">Aprobado (+{ticket.points_awarded} pts)</span>
+                    </div>
+                  )}
+                  {ticket.status === 'rejected' && (
+                    <div className="flex flex-col items-end gap-1">
+                      <div className="flex items-center gap-2 text-red-400 bg-red-400/10 px-3 py-1.5 rounded-lg border border-red-400/20">
+                        <XCircle className="w-4 h-4" />
+                        <span className="text-[10px] font-black uppercase tracking-widest">Rechazado</span>
+                      </div>
+                      {ticket.rejection_reason && (
+                        <span className="text-[9px] text-red-400/60 italic max-w-[200px] text-right">
+                          "{ticket.rejection_reason}"
+                        </span>
+                      )}
+                    </div>
+                  )}
+                </div>
+              </div>
+            ))
+          )}
         </div>
       </section>
     </div>

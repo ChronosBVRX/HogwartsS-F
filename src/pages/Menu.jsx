@@ -1,5 +1,5 @@
-import { useState, useMemo } from 'react'
-import { menuData } from '../data/menuData'
+import { useState, useMemo, useEffect } from 'react'
+import { supabase } from '../lib/supabase'
 import { Search, Sparkles, Flame, Coffee, Wine, UtensilsCrossed, Star } from 'lucide-react'
 
 // Import illustrations
@@ -9,34 +9,76 @@ import drinksImg from '../assets/illustrations/drinks.png'
 import coffeeImg from '../assets/illustrations/coffee.png'
 import defaultBg from '../assets/background.png'
 
-const CATEGORIES = [
-  { name: "Todos", icon: <Sparkles className="w-4 h-4" /> },
-  { name: "Hamburguesas", icon: <UtensilsCrossed className="w-4 h-4" />, img: burgerImg },
-  { name: "Alitas", icon: <Flame className="w-4 h-4" />, img: wingsImg },
-  { name: "Boneless", icon: <Flame className="w-4 h-4" />, img: wingsImg },
-  { name: "Snacks", icon: <Star className="w-4 h-4" /> },
-  { name: "Cajitas Mágicas", icon: <Sparkles className="w-4 h-4" /> },
-  { name: "Bebidas Café", icon: <Coffee className="w-4 h-4" />, img: coffeeImg },
-  { name: "Bebidas Mágicas", icon: <Wine className="w-4 h-4" />, img: drinksImg },
-  { name: "Carajillos", icon: <Wine className="w-4 h-4" />, img: drinksImg },
-  { name: "Crepas", icon: <Sparkles className="w-4 h-4" /> },
-  { name: "Nuevos", icon: <Star className="w-4 h-4" /> }
-]
+const ICON_MAP = {
+  "Sparkles": <Sparkles className="w-4 h-4" />,
+  "UtensilsCrossed": <UtensilsCrossed className="w-4 h-4" />,
+  "Flame": <Flame className="w-4 h-4" />,
+  "Star": <Star className="w-4 h-4" />,
+  "Coffee": <Coffee className="w-4 h-4" />,
+  "Wine": <Wine className="w-4 h-4" />
+}
+
+const IMG_MAP = {
+  "burgerImg": burgerImg,
+  "wingsImg": wingsImg,
+  "coffeeImg": coffeeImg,
+  "drinksImg": drinksImg
+}
 
 export default function Menu() {
   const [activeCategory, setActiveCategory] = useState("Todos")
   const [searchQuery, setSearchQuery] = useState("")
+  const [menuItems, setMenuItems] = useState([])
+  const [categories, setCategories] = useState([{ name: "Todos", icon: <Sparkles className="w-4 h-4" /> }])
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    fetchMenuData()
+  }, [])
+
+  const fetchMenuData = async () => {
+    setLoading(true)
+    const [catRes, itemRes] = await Promise.all([
+      supabase.from('hsf_menu_categories').select('*').eq('active', true).order('sort_order', { ascending: true }),
+      supabase.from('hsf_menu_items').select('*, category:hsf_menu_categories(name)').eq('active', true).order('sort_order', { ascending: true })
+    ])
+
+    if (!catRes.error && catRes.data) {
+      const dynamicCats = catRes.data.map(c => ({
+        id: c.id,
+        name: c.name,
+        // We'll use hardcoded mappings for now if description contains hints, or default to Sparkles
+        icon: ICON_MAP[c.description?.split('|')[0]] || <Sparkles className="w-4 h-4" />,
+        img: IMG_MAP[c.description?.split('|')[1]] || null
+      }))
+      setCategories([{ name: "Todos", icon: <Sparkles className="w-4 h-4" /> }, ...dynamicCats])
+    }
+
+    if (!itemRes.error && itemRes.data) {
+      // Map DB schema to component schema
+      const mappedItems = itemRes.data.map(i => ({
+        id: i.id,
+        nombre: i.name,
+        categoria: i.category?.name || 'Otros',
+        descripcion: i.description,
+        precio: parseFloat(i.price),
+        tags: i.is_featured ? ['premium'] : []
+      }))
+      setMenuItems(mappedItems)
+    }
+    setLoading(false)
+  }
 
   const filteredMenu = useMemo(() => {
-    return menuData.filter(item => {
+    return menuItems.filter(item => {
       const matchesCategory = activeCategory === "Todos" || item.categoria === activeCategory
       const matchesSearch = item.nombre.toLowerCase().includes(searchQuery.toLowerCase()) || 
                            item.categoria.toLowerCase().includes(searchQuery.toLowerCase())
       return matchesCategory && matchesSearch
     })
-  }, [activeCategory, searchQuery])
+  }, [activeCategory, searchQuery, menuItems])
 
-  const currentCategoryData = CATEGORIES.find(c => c.name === activeCategory)
+  const currentCategoryData = categories.find(c => c.name === activeCategory)
 
   return (
     <div className="flex-1 pb-20">
@@ -82,7 +124,7 @@ export default function Menu() {
             />
           </div>
           <div className="flex items-center gap-3 overflow-x-auto w-full md:w-auto pb-2 md:pb-0 scrollbar-hide px-2">
-            {CATEGORIES.map(cat => (
+            {categories.map(cat => (
               <button
                 key={cat.name}
                 onClick={() => setActiveCategory(cat.name)}
@@ -104,7 +146,12 @@ export default function Menu() {
 
         {/* Menu Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {filteredMenu.length > 0 ? (
+          {loading ? (
+            <div className="col-span-full py-20 text-center">
+              <Sparkles className="w-12 h-12 text-magical-gold/20 mx-auto mb-4 animate-pulse" />
+              <p className="text-white/40 text-lg font-medium">Invocando platillos mágicos...</p>
+            </div>
+          ) : filteredMenu.length > 0 ? (
             filteredMenu.map((item, index) => (
               <ProductCard key={item.id} item={item} index={index} />
             ))
