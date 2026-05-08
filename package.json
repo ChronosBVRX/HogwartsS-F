@@ -10,7 +10,7 @@
     "preview": "vite preview",
     "predeploy": "npm run build",
     "deploy": "gh-pages -d docs",
-    "deploy-main": "cp index.html index.backup.html && npm run build && cp docs/index.html . && Remove-Item -Recurse -Force assets; cp -r docs/assets ./assets && cp docs/favicon.svg . && cp docs/icons.svg . && git add . && git commit -m 'Deploy update' && git push origin main && mv index.backup.html index.html"
+    "deploy": "npm run build && git add . && git commit -m 'Deploy' && git push origin main"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.105.3",
