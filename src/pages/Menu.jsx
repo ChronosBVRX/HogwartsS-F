@@ -202,20 +202,20 @@ export default function Menu() {
                     </h2>
                   </div>
 
-                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                  <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
                     {sectionCategories.map((cat) => (
                       <button
                         key={cat.name}
                         onClick={() => handleCategoryClick(cat.name)}
-                        className="relative h-56 md:h-64 rounded-[2.5rem] overflow-hidden group border border-white/10 shadow-2xl transition-all hover:scale-[1.02] hover:border-magical-gold/50"
+                        className="relative h-40 md:h-64 rounded-3xl md:rounded-[2.5rem] overflow-hidden group border border-white/10 shadow-2xl transition-all hover:scale-[1.02] hover:border-magical-gold/50"
                       >
                         <img src={cat.img} className="absolute inset-0 w-full h-full object-cover transition-transform duration-1000 group-hover:scale-110" alt="" />
                         <div className="absolute inset-0 bg-gradient-to-t from-magical-navy via-magical-navy/20 to-transparent" />
-                        <div className="absolute inset-0 p-8 flex flex-col items-center justify-end text-center space-y-3">
-                          <div className="p-4 rounded-2xl bg-white/10 backdrop-blur-md border border-white/10 text-magical-gold shadow-2xl group-hover:bg-magical-gold group-hover:text-magical-navy transition-all">
-                            {cat.icon}
+                        <div className="absolute inset-0 p-4 md:p-8 flex flex-col items-center justify-end text-center space-y-2 md:space-y-3">
+                          <div className="p-2.5 md:p-4 rounded-xl md:rounded-2xl bg-white/10 backdrop-blur-md border border-white/10 text-magical-gold shadow-2xl group-hover:bg-magical-gold group-hover:text-magical-navy transition-all">
+                            {React.cloneElement(cat.icon, { className: "w-4 h-4 md:w-5 md:h-5" })}
                           </div>
-                          <span className="text-lg font-black uppercase tracking-[0.2em] text-white drop-shadow-2xl">{cat.name}</span>
+                          <span className="text-[10px] md:text-lg font-black uppercase tracking-widest md:tracking-[0.2em] text-white drop-shadow-2xl">{cat.name}</span>
                         </div>
                       </button>
                     ))}
@@ -262,7 +262,7 @@ export default function Menu() {
               />
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-8">
               {filteredMenu.map((item, index) => (
                 <ProductCard key={item.id} item={item} index={index} />
               ))}
