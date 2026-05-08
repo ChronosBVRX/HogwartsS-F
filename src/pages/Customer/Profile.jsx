@@ -41,6 +41,17 @@ export default function Profile() {
     setLoading(false)
   }
 
+  const handleEndVisit = async () => {
+    if (!activeSession) return
+    
+    const { error } = await supabase
+      .from('hsf_visit_sessions')
+      .update({ status: 'closed_waiting_ticket', closed_at: new Date().toISOString() })
+      .eq('id', activeSession.id)
+
+    if (!error) fetchActiveSession()
+  }
+
   const house = profile?.house_slug ? HOUSE_CONFIG[profile.house_slug] : null
 
   return (
@@ -168,14 +179,23 @@ export default function Profile() {
           ) : (
             <div className="flex-1 flex flex-col justify-center space-y-6">
               {activeSession.status === 'seated' && (
-                <div className="text-center space-y-1">
-                  <p className="text-4xl font-black text-white italic tracking-tighter">Mesa {activeSession.table_number}</p>
-                  <p className="text-[10px] text-magical-gold font-black uppercase tracking-widest">Ubicación Confirmada</p>
+                <div className="space-y-6">
+                  <div className="text-center space-y-1">
+                    <p className="text-4xl font-black text-white italic tracking-tighter">Mesa {activeSession.table_number}</p>
+                    <p className="text-[10px] text-magical-gold font-black uppercase tracking-widest">Disfruta tu banquete</p>
+                  </div>
+                  <button 
+                    onClick={handleEndVisit}
+                    className="w-full bg-white/5 border border-white/10 text-white/60 hover:bg-white/10 hover:text-white py-4 rounded-2xl text-xs font-black uppercase tracking-widest transition-all"
+                  >
+                    Terminar Visita
+                  </button>
                 </div>
               )}
 
               {activeSession.status === 'closed_waiting_ticket' && (
-                <Link to="/registrar-ticket" className="btn-gold w-full block text-center py-5 text-sm font-black uppercase">
+                <Link to="/registrar-ticket" className="btn-gold w-full flex items-center justify-center gap-3 py-5 text-sm font-black uppercase">
+                  <Star className="w-5 h-5" />
                   Registrar Consumo
                 </Link>
               )}
