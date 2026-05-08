@@ -15,36 +15,41 @@ const InstallPWA = () => {
     // Check if already installed
     const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone;
     
-    // Show only on mobile and if NOT installed
-    if (isMobile && !isStandalone) {
-      // FORCE visibility after a short delay
-      const timer = setTimeout(() => setIsVisible(true), 3000);
-      
-      const handler = (e) => {
-        console.log('✅ PWA Install Prompt captured');
-        e.preventDefault();
-        setDeferredPrompt(e);
-      };
+    // 1. Listen for the magical prompt (Android/Chrome)
+    const handlePrompt = (e) => {
+      console.log('🪄 Hogwarts App is ready to be summoned (Prompt captured)');
+      // Prevent Chrome from showing its own boring banner
+      e.preventDefault();
+      // Save the event for later
+      setDeferredPrompt(e);
+      // Now it's safe to show our premium button
+      if (!isStandalone) setIsVisible(true);
+    };
 
-      window.addEventListener('beforeinstallprompt', handler);
-      return () => {
-        clearTimeout(timer);
-        window.removeEventListener('beforeinstallprompt', handler);
-      };
+    window.addEventListener('beforeinstallprompt', handlePrompt);
+
+    // 2. iOS Logic (Since Apple doesn't fire the event)
+    if (isIosDevice && !isStandalone) {
+      const timer = setTimeout(() => setIsVisible(true), 4000);
+      return () => clearTimeout(timer);
     }
+
+    return () => window.removeEventListener('beforeinstallprompt', handlePrompt);
   }, []);
 
   const handleInstallClick = async () => {
-    if (isIOS) return; // iOS has its own visual hint in the UI
-    
+    // For iOS, the UI already shows the "Share" instruction
+    if (isIOS) return; 
+
     if (deferredPrompt) {
+      // 3. Execute the installation ritual
       deferredPrompt.prompt();
       const { outcome } = await deferredPrompt.userChoice;
-      if (outcome === 'accepted') setIsVisible(false);
+      console.log(`✨ Ritual Outcome: ${outcome}`);
+      
+      // Clean up and hide
       setDeferredPrompt(null);
-    } else {
-      // Fallback if prompt is not yet ready
-      alert('Para instalar: Toca los tres puntos (⋮) de tu navegador y selecciona "Instalar aplicación" o "Añadir a la pantalla de inicio".');
+      setIsVisible(false);
     }
   };
 
