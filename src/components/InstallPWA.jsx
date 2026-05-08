@@ -56,44 +56,39 @@ const InstallPWA = () => {
   if (!isVisible) return null;
 
   return (
-    <div className="w-full bg-magical-gold py-3 px-4 relative z-[100] shadow-[0_4px_20px_rgba(212,175,55,0.4)] animate-in slide-in-from-top duration-500">
-      <div className="max-w-7xl mx-auto flex items-center justify-between gap-4">
-        <div className="flex items-center gap-3 flex-1">
-          <div className="p-2 bg-magical-navy rounded-lg shadow-inner">
-             <Sparkles className="w-4 h-4 text-magical-gold animate-pulse" />
-          </div>
+    <div className="fixed bottom-6 left-1/2 -translate-x-1/2 w-[90%] max-w-sm bg-magical-navy border border-magical-gold/20 p-3 rounded-xl shadow-[0_8px_30px_rgba(0,0,0,0.5)] z-[9999] flex items-center justify-between gap-3 animate-in slide-in-from-bottom-5 fade-in duration-300">
+      <div className="flex items-center gap-3 flex-1">
+        {!isIOS ? (
+           <p className="text-sm font-medium text-white leading-tight flex items-center gap-2">
+             <span className="text-lg">📱</span> Instala la app para un acceso más rápido.
+           </p>
+        ) : (
           <div className="space-y-0.5">
-            <p className="text-[10px] md:text-xs font-black text-magical-navy uppercase tracking-widest leading-none">
-              {isIOS ? 'Instalar Hogwarts App' : 'App Mágica Disponible'}
+            <p className="text-sm font-medium text-white leading-tight">
+               📱 Instala la app para un acceso más rápido.
             </p>
-            <p className="text-[9px] text-magical-navy/70 font-bold uppercase tracking-tight leading-none">
-              {isIOS ? 'Toca [↑] y luego "Añadir a inicio"' : 'Lleva el menú siempre contigo'}
+            <p className="text-[10px] text-white/50 uppercase tracking-widest flex items-center gap-1">
+              Toca <Share className="w-3 h-3"/> y "Añadir a inicio"
             </p>
           </div>
-        </div>
+        )}
+      </div>
 
-        <div className="flex items-center gap-3">
-          {!isIOS ? (
-            <button 
-              onClick={handleInstallClick}
-              className="bg-magical-navy text-magical-gold px-5 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest hover:scale-105 active:scale-95 transition-all shadow-lg flex items-center gap-2"
-            >
-              <Download className="w-3.5 h-3.5" />
-              Instalar
-            </button>
-          ) : (
-             <div className="flex items-center gap-2 px-3 py-2 bg-magical-navy/10 rounded-xl border border-magical-navy/10">
-                <Share className="w-4 h-4 text-magical-navy" />
-                <span className="text-[10px] font-black text-magical-navy">IOS</span>
-             </div>
-          )}
+      <div className="flex items-center gap-3">
+        {!isIOS && (
           <button 
-            onClick={() => setIsVisible(false)}
-            className="p-1.5 text-magical-navy/30 hover:text-magical-navy transition-colors"
+            onClick={handleInstallClick}
+            className="bg-green-600 text-white px-3 py-1.5 rounded text-sm font-bold shadow-md hover:bg-green-500 transition-colors"
           >
-            <X className="w-4 h-4" />
+            Instalar
           </button>
-        </div>
+        )}
+        <button 
+          onClick={() => setIsVisible(false)}
+          className="text-white/40 hover:text-white transition-colors p-1"
+        >
+          <X className="w-5 h-5" />
+        </button>
       </div>
     </div>
   );
