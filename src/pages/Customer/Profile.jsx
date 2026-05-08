@@ -46,7 +46,11 @@ export default function Profile() {
     
     const { error } = await supabase
       .from('hsf_visit_sessions')
-      .update({ status: 'closed_waiting_ticket', closed_at: new Date().toISOString() })
+      .update({ 
+        status: 'closed_waiting_ticket', 
+        closed_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
+      })
       .eq('id', activeSession.id)
 
     if (!error) fetchActiveSession()

@@ -38,7 +38,6 @@ export default function WaiterScanner() {
     setScanResult(null)
     
     try {
-      // Html5Qrcode needs an empty div. We ensure it's empty by logic.
       const html5QrCode = new Html5Qrcode("reader")
       scannerRef.current = html5QrCode
       
@@ -58,7 +57,7 @@ export default function WaiterScanner() {
       )
       setIsCameraActive(true)
     } catch (err) {
-      setError("Error de cámara: Asegúrate de dar permisos y no tener otras apps usándola.")
+      setError("Error de cámara: Asegúrate de dar permisos.")
       console.error(err)
     }
   }
@@ -68,6 +67,7 @@ export default function WaiterScanner() {
     setLoading(true)
     setError(null)
 
+    // 1. Check if token exists
     const { data: session, error: fetchError } = await supabase
       .from('hsf_visit_sessions')
       .select('*')
@@ -80,18 +80,21 @@ export default function WaiterScanner() {
       return
     }
 
+    // 2. Update session - Using CORRECT column names from user schema
+    // Table: hsf_visit_sessions, Columns: seated_by, seated_at
     const { error: updateError } = await supabase
       .from('hsf_visit_sessions')
       .update({
         status: 'seated',
         table_number: tableNumber,
-        waiter_id: (await supabase.auth.getUser()).data.user.id,
+        seated_by: (await supabase.auth.getUser()).data.user.id,
         seated_at: new Date().toISOString()
       })
       .eq('id', session.id)
 
     if (updateError) {
-      setError('Error al asignar mesa.')
+      console.error("Update Error:", updateError)
+      setError('Error al asignar mesa. Verifica la conexión.')
       setLoading(false)
     } else {
       alert('¡Mesa asignada con éxito!')
@@ -114,11 +117,6 @@ export default function WaiterScanner() {
 
         <div className="p-6 md:p-8 space-y-8">
           <div className="relative aspect-square w-full max-w-[400px] mx-auto">
-            {/* 
-                CRITICAL: The #reader div MUST BE EMPTY for React. 
-                Html5Qrcode will inject a video element here. 
-                React should never render children inside this div.
-            */}
             <div 
               id="reader" 
               className={`w-full h-full rounded-3xl overflow-hidden bg-black/40 border-2 border-dashed transition-all duration-500 ${
@@ -126,7 +124,6 @@ export default function WaiterScanner() {
               }`}
             ></div>
 
-            {/* OVERLAYS: These are siblings to #reader, so React and the library don't fight */}
             {!isCameraActive && !scanResult && (
               <div className="absolute inset-0 flex flex-col items-center justify-center p-8 text-center space-y-6 z-10">
                 <div className="p-6 bg-magical-gold/10 rounded-full animate-pulse">

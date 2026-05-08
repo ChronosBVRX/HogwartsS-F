@@ -38,6 +38,8 @@ export default function WaiterDashboard() {
       .from('hsf_visit_sessions')
       .update({
         status: 'closed_waiting_ticket',
+        closed_by: user.id,
+        closed_at: new Date().toISOString(),
         updated_at: new Date().toISOString()
       })
       .eq('id', visitId)
