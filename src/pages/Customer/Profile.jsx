@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useAuth } from '../../context/AuthContext'
 import { supabase } from '../../lib/supabase'
-import { Award, QrCode, LogOut, Sparkles, Star, Shield, Zap, Wand2, Hash, Settings as SettingsIcon } from 'lucide-react'
+import { Award, QrCode, LogOut, Sparkles, Star, Shield, Zap, Wand2, Hash, Settings as SettingsIcon, Map, Footprints } from 'lucide-react'
 
 // House assets
 import gryffindorLogo from '../../assets/houses/gryffindor.png'
@@ -11,6 +11,17 @@ import ravenclawLogo from '../../assets/houses/ravenclaw.png'
 import hufflepuffLogo from '../../assets/houses/hufflepuff.png'
 import idBg from '../../assets/id_bg_minimal.png'
 import logo from '../../assets/logo.png'
+import mapBg from '../../assets/map_bg.png'
+
+const MAP_THRESHOLDS = [
+  { steps: 0, name: "Entrada Principal", icon: "🚪" },
+  { steps: 100, name: "Gran Comedor", icon: "🍽️" },
+  { steps: 300, name: "Pasillos y Aulas", icon: "📜" },
+  { steps: 600, name: "Cabaña de Hagrid", icon: "🛖" },
+  { steps: 1000, name: "Bosque Prohibido", icon: "🌲" },
+  { steps: 1500, name: "Sala de Menesteres", icon: "✨" }
+]
+
 
 const HOUSE_CONFIG = {
   red: { name: "Gryffindor", logo: gryffindorLogo, quote: "Valor y Caballerosidad", color: "from-red-500 to-amber-500", text: "text-red-400", reward: "Bebida de Mantequilla Gratis" },
@@ -87,8 +98,23 @@ export default function Profile() {
     )
   }
 
+  const currentSteps = profile?.pasos_mapa_mes || 0
+  
+  // Calculate map progress
+  const nextMilestoneIndex = MAP_THRESHOLDS.findIndex(m => m.steps > currentSteps)
+  const currentMilestoneIndex = nextMilestoneIndex === -1 ? MAP_THRESHOLDS.length - 1 : nextMilestoneIndex - 1
+  const currentMilestone = MAP_THRESHOLDS[currentMilestoneIndex]
+  const nextMilestone = nextMilestoneIndex === -1 ? null : MAP_THRESHOLDS[nextMilestoneIndex]
+  
+  let progressPercentage = 100
+  if (nextMilestone) {
+    const range = nextMilestone.steps - currentMilestone.steps
+    const progressIntoRange = currentSteps - currentMilestone.steps
+    progressPercentage = (progressIntoRange / range) * 100
+  }
+
   return (
-    <div className="flex-1 max-w-5xl mx-auto w-full p-6 pb-20 space-y-12 animate-in fade-in duration-700">
+    <div className="flex-1 max-w-5xl mx-auto w-full p-4 md:p-6 pb-24 space-y-8 md:space-y-12 animate-in fade-in duration-700 overflow-x-hidden">
       {/* Header - Minimalist */}
       <header className="flex justify-between items-center bg-white/5 p-4 md:p-6 rounded-[2rem] border border-white/5 backdrop-blur-sm">
         <div className="flex items-center gap-4">
@@ -238,6 +264,72 @@ export default function Profile() {
           )}
         </div>
       </div>
+
+      {/* MARAUDER's MAP SECTION */}
+      <section className="space-y-4 pt-4">
+        <div className="flex items-center gap-2 px-2">
+          <Map className="w-5 h-5 text-[#8b5a2b]" />
+          <h2 className="text-[10px] md:text-xs font-black uppercase tracking-[0.4em] text-[#8b5a2b]">Mapa del Merodeador</h2>
+        </div>
+
+        <div className="relative w-full rounded-[2.5rem] overflow-hidden border-2 border-[#8b5a2b]/30 shadow-2xl bg-[#e6c9a8]">
+          {/* Parchment Background */}
+          <img src={mapBg} className="absolute inset-0 w-full h-full object-cover opacity-60 mix-blend-multiply" alt="Parchment" />
+          
+          <div className="relative z-10 p-6 md:p-10 flex flex-col space-y-10">
+            <div className="text-center space-y-2">
+               <h3 className="text-3xl md:text-4xl font-black italic tracking-tighter text-[#5c3a21]">Juro solemnemente...</h3>
+               <p className="text-xs md:text-sm font-bold uppercase tracking-widest text-[#5c3a21]/60">Que mis intenciones no son buenas</p>
+            </div>
+
+            {/* Progress Track */}
+            <div className="relative py-10">
+              {/* Line */}
+              <div className="absolute top-1/2 left-0 right-0 h-1 bg-[#8b5a2b]/20 -translate-y-1/2 rounded-full overflow-hidden">
+                 <div 
+                   className="h-full bg-[#5c3a21] transition-all duration-1000 ease-out" 
+                   style={{ width: `${(currentMilestoneIndex / (MAP_THRESHOLDS.length - 1)) * 100}%` }}
+                 />
+              </div>
+
+              {/* Milestones */}
+              <div className="relative flex justify-between">
+                {MAP_THRESHOLDS.map((milestone, index) => {
+                  const isPast = index <= currentMilestoneIndex
+                  const isCurrent = index === currentMilestoneIndex
+                  return (
+                    <div key={index} className="flex flex-col items-center gap-3 relative">
+                      <div className={`w-8 h-8 md:w-12 md:h-12 rounded-full flex items-center justify-center border-2 transition-all z-10
+                        ${isPast ? 'bg-[#5c3a21] border-[#5c3a21] text-[#e6c9a8]' : 'bg-[#e6c9a8] border-[#8b5a2b]/30 text-[#8b5a2b]/50'}
+                        ${isCurrent ? 'ring-4 ring-[#8b5a2b]/30 scale-110 shadow-xl' : ''}
+                      `}>
+                        {isCurrent ? <Footprints className="w-4 h-4 md:w-6 md:h-6 animate-pulse" /> : <span className="text-xs md:text-sm">{milestone.icon}</span>}
+                      </div>
+                      
+                      <div className="absolute top-14 w-24 text-center">
+                        <p className={`text-[8px] md:text-[10px] font-black uppercase tracking-widest ${isPast ? 'text-[#5c3a21]' : 'text-[#8b5a2b]/50'}`}>
+                          {milestone.name}
+                        </p>
+                        <p className={`text-[7px] md:text-[8px] font-bold ${isPast ? 'text-[#5c3a21]/60' : 'text-[#8b5a2b]/30'}`}>
+                          {milestone.steps} pasos
+                        </p>
+                      </div>
+                    </div>
+                  )
+                })}
+              </div>
+            </div>
+
+            <div className="bg-[#5c3a21]/5 border border-[#5c3a21]/10 rounded-2xl p-4 flex flex-col items-center text-center mt-12">
+               <p className="text-[10px] uppercase font-black tracking-widest text-[#5c3a21]/60">Tus pasos este mes</p>
+               <p className="text-3xl font-black text-[#5c3a21] italic tracking-tighter">{currentSteps}</p>
+               {nextMilestone && (
+                 <p className="text-[9px] font-bold text-[#5c3a21]/50 mt-1">Faltan {nextMilestone.steps - currentSteps} pasos para {nextMilestone.name}</p>
+               )}
+            </div>
+          </div>
+        </div>
+      </section>
     </div>
   )
 }

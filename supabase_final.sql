@@ -29,9 +29,10 @@ CREATE OR REPLACE FUNCTION process_ticket_approval(
 )
 RETURNS VOID AS $$
 BEGIN
-  -- 1. Actualizar puntos en el perfil del usuario
+  -- 1. Actualizar puntos en el perfil del usuario y pasos del mapa
   UPDATE public.hsf_profiles
   SET loyalty_points = loyalty_points + points_to_add,
+      pasos_mapa_mes = pasos_mapa_mes + points_to_add,
       updated_at = NOW()
   WHERE user_id = user_uuid;
 
