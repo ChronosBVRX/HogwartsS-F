@@ -2,7 +2,7 @@ import { useEffect, useState, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Html5Qrcode } from 'html5-qrcode'
 import { supabase } from '../../lib/supabase'
-import { ChevronLeft, Info, CheckCircle2, AlertCircle, Camera } from 'lucide-react'
+import { ChevronLeft, Info, CheckCircle2, AlertCircle, Camera, RefreshCw } from 'lucide-react'
 
 export default function WaiterScanner() {
   const [scanResult, setScanResult] = useState(null)
@@ -11,36 +11,56 @@ export default function WaiterScanner() {
   const [error, setError] = useState(null)
   const [isCameraActive, setIsCameraActive] = useState(false)
   const navigate = useNavigate()
+  
+  // Refs to manage scanner outside of React's render cycle
   const scannerRef = useRef(null)
+  const readerRef = useRef(null)
 
   useEffect(() => {
+    // Cleanup on unmount
     return () => {
-      if (scannerRef.current) {
-        scannerRef.current.stop().catch(err => console.error("Error stopping scanner", err))
-      }
+      stopScanner()
     }
   }, [])
 
+  const stopScanner = async () => {
+    if (scannerRef.current && scannerRef.current.isScanning) {
+      try {
+        await scannerRef.current.stop()
+      } catch (err) {
+        console.warn("Scanner stop warning:", err)
+      }
+    }
+    setIsCameraActive(false)
+  }
+
   const startScanner = async () => {
     setError(null)
+    setScanResult(null)
+    
     try {
+      // Always create a fresh instance on the stable ref node
       const html5QrCode = new Html5Qrcode("reader")
       scannerRef.current = html5QrCode
       
-      const config = { fps: 10, qrbox: { width: 250, height: 250 } }
+      const config = { 
+        fps: 10, 
+        qrbox: { width: 250, height: 250 },
+        aspectRatio: 1.0
+      }
       
       await html5QrCode.start(
         { facingMode: "environment" }, 
         config, 
         (decodedText) => {
           setScanResult(decodedText)
-          html5QrCode.stop().then(() => setIsCameraActive(false))
+          stopScanner()
         }
       )
       setIsCameraActive(true)
     } catch (err) {
-      setError("No se pudo acceder a la cámara. Asegúrate de dar permisos.")
-      console.error(err)
+      setError("No se pudo acceder a la cámara. Revisa los permisos del navegador.")
+      console.error("Scanner Error:", err)
     }
   }
 
@@ -81,54 +101,77 @@ export default function WaiterScanner() {
   }
 
   return (
-    <div className="flex-1 p-6 flex flex-col max-w-2xl mx-auto w-full space-y-6">
+    <div className="flex-1 p-4 md:p-6 flex flex-col max-w-2xl mx-auto w-full space-y-6 pb-20">
       <button onClick={() => navigate('/mesero')} className="flex items-center gap-2 text-white/40 hover:text-white transition-colors">
         <ChevronLeft className="w-5 h-5" />
-        <span className="text-xs font-black uppercase tracking-widest">Regresar al Panel</span>
+        <span className="text-[10px] font-black uppercase tracking-widest">Regresar al Panel</span>
       </button>
 
-      <div className="glass-card overflow-hidden">
-        <div className="p-8 text-center bg-magical-gold/5 border-b border-white/5">
-          <h1 className="text-2xl font-black uppercase italic tracking-tighter text-magical-gold">Escáner de Asistencia</h1>
-          <p className="text-[10px] text-white/40 uppercase font-bold tracking-widest mt-1">Registrar nueva llegada</p>
+      <div className="glass-card overflow-hidden border border-white/10 shadow-2xl">
+        <div className="p-6 md:p-8 text-center bg-magical-gold/5 border-b border-white/5">
+          <h1 className="text-xl md:text-2xl font-black uppercase italic tracking-tighter text-magical-gold">Escáner de Asistencia</h1>
+          <p className="text-[9px] text-white/40 uppercase font-bold tracking-widest mt-1">Gringotts Validation System</p>
         </div>
 
-        <div className="p-8 space-y-8">
-          {!scanResult ? (
-            <div className="space-y-6">
-              <div id="reader" className="rounded-3xl overflow-hidden bg-black/40 aspect-square flex items-center justify-center border-2 border-dashed border-white/10">
-                {!isCameraActive && (
+        <div className="p-6 md:p-8 space-y-8">
+          {/* STABLE READER NODE - React won't touch its children */}
+          <div className="relative group">
+            <div 
+              id="reader" 
+              ref={readerRef}
+              className={`rounded-3xl overflow-hidden bg-black/40 aspect-square border-2 border-dashed transition-all duration-500 ${
+                isCameraActive ? 'border-magical-gold/50 shadow-[0_0_50px_rgba(212,175,55,0.1)]' : 'border-white/10'
+              }`}
+            >
+              {!isCameraActive && !scanResult && (
+                <div className="absolute inset-0 flex flex-col items-center justify-center p-8 text-center space-y-6">
+                  <div className="p-6 bg-magical-gold/10 rounded-full animate-pulse">
+                    <Camera className="w-12 h-12 text-magical-gold/60" />
+                  </div>
+                  <div className="space-y-2">
+                    <p className="text-xs font-bold text-white/60">Cámara Inactiva</p>
+                    <p className="text-[10px] text-white/30 uppercase tracking-widest">Presiona el botón para iniciar</p>
+                  </div>
                   <button 
                     onClick={startScanner}
-                    className="flex flex-col items-center gap-4 text-magical-gold/60 hover:text-magical-gold transition-colors"
+                    className="btn-gold px-10 py-4 text-xs font-black uppercase tracking-widest flex items-center gap-2"
                   >
-                    <div className="p-6 bg-magical-gold/10 rounded-full">
-                      <Camera className="w-12 h-12" />
-                    </div>
-                    <span className="font-black uppercase tracking-widest text-xs">Activar Cámara</span>
+                    <RefreshCw className="w-4 h-4" />
+                    Iniciar Cámara
                   </button>
-                )}
-              </div>
-              <div className="flex items-start gap-3 bg-white/5 p-4 rounded-2xl text-left border border-white/5">
-                <Info className="w-5 h-5 text-magical-gold shrink-0 mt-0.5" />
-                <p className="text-xs text-white/60 leading-relaxed italic">
-                  Apunta la cámara al código QR del cliente para identificar su sesión.
-                </p>
-              </div>
-            </div>
-          ) : (
-            <div className="space-y-8 animate-in zoom-in duration-300">
-              <div className="flex flex-col items-center text-center space-y-4">
-                <div className="p-4 bg-green-500/20 rounded-full">
-                  <CheckCircle2 className="w-12 h-12 text-green-400" />
                 </div>
-                <div className="space-y-1">
-                  <h2 className="text-xl font-black uppercase italic">¡Código Escaneado!</h2>
-                  <p className="text-[10px] text-white/40 uppercase tracking-widest">Sesión identificada correctamente</p>
-                </div>
-              </div>
+              )}
 
-              <form onSubmit={handleAssignTable} className="space-y-6">
+              {scanResult && (
+                <div className="absolute inset-0 bg-magical-navy/90 backdrop-blur-sm flex flex-col items-center justify-center p-8 text-center space-y-4 animate-in fade-in zoom-in duration-500">
+                  <div className="p-4 bg-green-500/20 rounded-full">
+                    <CheckCircle2 className="w-12 h-12 text-green-400" />
+                  </div>
+                  <h2 className="text-xl font-black uppercase italic text-white">¡Escaneado!</h2>
+                  <button 
+                    onClick={startScanner}
+                    className="text-[10px] font-black text-magical-gold uppercase tracking-widest hover:underline"
+                  >
+                    Escanear otro código
+                  </button>
+                </div>
+              )}
+            </div>
+            
+            {isCameraActive && (
+              <button 
+                onClick={stopScanner}
+                className="absolute bottom-4 right-4 bg-black/60 backdrop-blur-md text-white/60 hover:text-white px-4 py-2 rounded-xl text-[9px] font-black uppercase tracking-widest border border-white/10 z-20"
+              >
+                Detener
+              </button>
+            )}
+          </div>
+
+          {/* Form & Info */}
+          <div className="space-y-8">
+            {scanResult ? (
+              <form onSubmit={handleAssignTable} className="space-y-6 animate-in slide-in-from-bottom duration-500">
                 <div className="space-y-2">
                   <label className="text-[10px] font-black uppercase tracking-widest text-white/60">Número de Mesa</label>
                   <input 
@@ -145,36 +188,37 @@ export default function WaiterScanner() {
                 {error && (
                   <div className="flex items-center gap-3 bg-red-400/10 p-5 rounded-2xl border border-red-400/20 text-red-400">
                     <AlertCircle className="w-5 h-5" />
-                    <p className="text-xs font-bold">{error}</p>
+                    <p className="text-[10px] font-bold uppercase">{error}</p>
                   </div>
                 )}
 
-                <div className="grid grid-cols-2 gap-4">
-                  <button 
-                    type="button"
-                    onClick={() => { setScanResult(null); setIsCameraActive(false); }}
-                    className="py-5 rounded-2xl border border-white/10 font-black uppercase text-[10px] tracking-widest hover:bg-white/5 transition-all text-white/40"
-                  >
-                    Re-escanear
-                  </button>
-                  <button 
-                    type="submit" 
-                    className="btn-gold py-5 text-sm font-black uppercase italic tracking-tighter"
-                    disabled={loading}
-                  >
-                    {loading ? 'Procesando...' : 'Confirmar Mesa'}
-                  </button>
-                </div>
+                <button 
+                  type="submit" 
+                  className="btn-gold w-full py-5 text-sm font-black uppercase italic tracking-tighter"
+                  disabled={loading}
+                >
+                  {loading ? 'Asignando...' : 'Confirmar Mesa'}
+                </button>
               </form>
-            </div>
-          )}
+            ) : (
+              <div className="flex items-start gap-4 bg-white/5 p-6 rounded-2xl border border-white/5">
+                <Info className="w-5 h-5 text-magical-gold shrink-0 mt-0.5" />
+                <div className="space-y-1">
+                  <p className="text-xs text-white/80 font-bold uppercase tracking-widest">Instrucciones</p>
+                  <p className="text-[10px] text-white/40 leading-relaxed italic">
+                    Pide al cliente su Pase de Entrada y apunta la cámara al código QR. Asegúrate de estar en un área iluminada.
+                  </p>
+                </div>
+              </div>
+            )}
 
-          {error && !isCameraActive && !scanResult && (
-             <div className="flex items-center gap-3 bg-red-400/10 p-5 rounded-2xl border border-red-400/20 text-red-400">
-               <AlertCircle className="w-5 h-5" />
-               <p className="text-xs font-bold">{error}</p>
-             </div>
-          )}
+            {error && !isCameraActive && !scanResult && (
+               <div className="flex items-center gap-3 bg-red-400/10 p-5 rounded-2xl border border-red-400/20 text-red-400">
+                 <AlertCircle className="w-5 h-5" />
+                 <p className="text-[10px] font-bold uppercase">{error}</p>
+               </div>
+            )}
+          </div>
         </div>
       </div>
     </div>
