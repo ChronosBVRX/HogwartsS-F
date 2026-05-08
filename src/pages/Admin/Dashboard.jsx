@@ -166,36 +166,36 @@ export default function AdminDashboard() {
               </div>
             </div>
 
-            <div className="glass-card overflow-hidden">
-              <div className="overflow-x-auto">
-                <table className="w-full text-left border-collapse min-w-[800px]">
+            <div className="glass-card overflow-hidden border border-white/10">
+              <div className="overflow-x-auto custom-scrollbar">
+                <table className="w-full text-left border-collapse min-w-[700px]">
                   <thead className="bg-white/5 text-white/40 text-[9px] font-black uppercase tracking-[0.2em]">
                     <tr>
-                      <th className="px-8 py-6">Mago / Estudiante</th>
-                      <th className="px-8 py-6">Folio</th>
-                      <th className="px-8 py-6">Monto</th>
-                      <th className="px-8 py-6">Puntos</th>
-                      <th className="px-8 py-6">Estado</th>
-                      <th className="px-8 py-6 text-right">Acciones</th>
+                      <th className="px-6 py-5">Mago / Estudiante</th>
+                      <th className="px-6 py-5">Folio</th>
+                      <th className="px-6 py-5">Monto</th>
+                      <th className="px-6 py-5">Puntos</th>
+                      <th className="px-6 py-5">Estado</th>
+                      <th className="px-6 py-5 text-right">Acciones</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-white/5">
                     {loading ? (
-                       <tr><td colSpan="6" className="px-8 py-20 text-center text-white/20 uppercase font-black">Cargando tickets...</td></tr>
+                       <tr><td colSpan="6" className="px-6 py-16 text-center text-white/20 uppercase font-black">Cargando tickets...</td></tr>
                     ) : filteredTickets.length === 0 ? (
-                      <tr><td colSpan="6" className="px-8 py-20 text-center text-white/20 uppercase font-black">Sin registros</td></tr>
+                      <tr><td colSpan="6" className="px-6 py-16 text-center text-white/20 uppercase font-black">Sin registros</td></tr>
                     ) : (
                       filteredTickets.map(ticket => (
                         <tr key={ticket.id} className="hover:bg-white/5 transition-colors group">
-                          <td className="px-8 py-6">
-                            <div className="font-bold text-white uppercase italic">{ticket.session?.customer?.display_name || 'Desconocido'}</div>
-                            <div className="text-[10px] text-white/30">{ticket.session?.customer?.phone}</div>
+                          <td className="px-6 py-5">
+                            <div className="font-bold text-white uppercase italic text-xs">{ticket.session?.customer?.display_name || 'Desconocido'}</div>
+                            <div className="text-[9px] text-white/30">{ticket.session?.customer?.phone}</div>
                           </td>
-                          <td className="px-8 py-6 font-mono text-sm text-magical-gold">{ticket.folio}</td>
-                          <td className="px-8 py-6 font-black text-xl text-white">${ticket.amount}</td>
-                          <td className="px-8 py-6 font-bold text-magical-gold">{ticket.points_awarded || Math.floor(ticket.amount)}</td>
-                          <td className="px-8 py-6">
-                            <span className={`text-[9px] px-3 py-1 rounded-full uppercase font-black tracking-widest border ${
+                          <td className="px-6 py-5 font-mono text-xs text-magical-gold">{ticket.folio}</td>
+                          <td className="px-6 py-5 font-black text-lg text-white">${ticket.amount}</td>
+                          <td className="px-6 py-5 font-bold text-xs text-magical-gold">{ticket.points_awarded || Math.floor(ticket.amount)}</td>
+                          <td className="px-6 py-5">
+                            <span className={`text-[8px] px-2 py-0.5 rounded-full uppercase font-black tracking-widest border ${
                               ticket.status === 'approved' ? 'border-green-500/20 text-green-400 bg-green-500/5' :
                               ticket.status === 'pending' ? 'border-yellow-500/20 text-yellow-400 bg-yellow-500/5' :
                               'border-red-500/20 text-red-400 bg-red-500/5'
@@ -203,11 +203,11 @@ export default function AdminDashboard() {
                               {ticket.status}
                             </span>
                           </td>
-                          <td className="px-8 py-6 text-right">
+                          <td className="px-6 py-5 text-right">
                             {ticket.status === 'pending' && (
-                              <div className="flex justify-end gap-3 opacity-0 group-hover:opacity-100 transition-opacity">
-                                <button onClick={() => handleTicket(ticket.id, 'approved', ticket.amount, ticket.customer_id)} className="p-3 bg-green-500/10 text-green-400 rounded-xl hover:bg-green-500/20"><Check className="w-5 h-5" /></button>
-                                <button onClick={() => { const reason = prompt('Razón:'); if (reason) handleTicket(ticket.id, 'rejected', ticket.amount, ticket.customer_id, reason) }} className="p-3 bg-red-500/10 text-red-400 rounded-xl hover:bg-red-500/20"><X className="w-5 h-5" /></button>
+                              <div className="flex justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                                <button onClick={() => handleTicket(ticket.id, 'approved', ticket.amount, ticket.customer_id)} className="p-2 bg-green-500/10 text-green-400 rounded-lg hover:bg-green-500/20"><Check className="w-4 h-4" /></button>
+                                <button onClick={() => { const reason = prompt('Razón:'); if (reason) handleTicket(ticket.id, 'rejected', ticket.amount, ticket.customer_id, reason) }} className="p-2 bg-red-500/10 text-red-400 rounded-lg hover:bg-red-500/20"><X className="w-4 h-4" /></button>
                               </div>
                             )}
                           </td>

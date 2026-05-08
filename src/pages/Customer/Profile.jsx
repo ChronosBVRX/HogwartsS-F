@@ -82,51 +82,49 @@ export default function Profile() {
         </div>
 
         {house ? (
-          <div className="relative aspect-[1.6/1] w-full max-w-2xl mx-auto rounded-[2.5rem] overflow-hidden shadow-2xl group border border-white/10">
+          <div className="relative min-h-[380px] md:aspect-[1.6/1] w-full max-w-2xl mx-auto rounded-[2.5rem] overflow-hidden shadow-2xl group border border-white/10">
             <img src={idBg} className="absolute inset-0 w-full h-full object-cover" alt="" />
             <div className="absolute inset-0 bg-black/20" />
             
-            <div className="absolute inset-0 p-10 md:p-14 flex flex-col justify-between z-10 text-white">
+            <div className="absolute inset-0 p-6 md:p-14 flex flex-col justify-between z-10 text-white">
               <div className="flex justify-between items-start">
                 <div className="space-y-1">
-                  <h2 className="text-2xl md:text-3xl font-black uppercase italic tracking-tighter text-magical-gold">Hogwarts</h2>
-                  <p className="text-[9px] font-bold uppercase tracking-[0.3em] opacity-40">Snacks & Foods Oficial</p>
+                  <h2 className="text-xl md:text-3xl font-black uppercase italic tracking-tighter text-magical-gold">Hogwarts</h2>
+                  <p className="text-[8px] md:text-[9px] font-bold uppercase tracking-[0.3em] opacity-40">Snacks & Foods Oficial</p>
                 </div>
-                <img src={logo} className="w-12 md:w-16 grayscale opacity-80" alt="" />
+                <img src={logo} className="w-10 md:w-16 grayscale opacity-80" alt="" />
               </div>
 
-              <div className="flex items-center gap-10 md:gap-16">
-                <div className="w-24 h-24 md:w-36 md:h-36 rounded-3xl bg-black/40 backdrop-blur-md border border-white/10 p-5 shadow-2xl flex items-center justify-center">
+              <div className="flex flex-col md:flex-row items-center gap-6 md:gap-16 my-4 md:my-0">
+                <div className="w-20 h-20 md:w-36 md:h-36 rounded-2xl md:rounded-3xl bg-black/40 backdrop-blur-md border border-white/10 p-3 md:p-5 shadow-2xl flex items-center justify-center">
                    <img src={house.logo} className="w-full h-full object-contain" alt={house.name} />
                 </div>
 
-                <div className="space-y-6">
+                <div className="space-y-3 md:space-y-6 text-center md:text-left">
                   <div className="space-y-1">
-                    <p className="text-[9px] font-bold text-white/40 uppercase tracking-widest">Nombre del Mago</p>
-                    <h3 className="text-2xl md:text-4xl font-black uppercase italic tracking-tighter leading-none">
+                    <p className="text-[8px] md:text-[9px] font-bold text-white/40 uppercase tracking-widest">Nombre del Mago</p>
+                    <h3 className="text-xl md:text-4xl font-black uppercase italic tracking-tighter leading-none">
                       {profile?.display_name}
                     </h3>
                   </div>
 
-                  <div className="flex gap-10">
-                    <div className="space-y-1">
-                      <p className="text-[9px] font-bold text-white/40 uppercase tracking-widest">Casa</p>
-                      <h4 className={`text-xl md:text-3xl font-black uppercase tracking-widest ${house.text}`}>
-                        {house.name}
-                      </h4>
-                    </div>
+                  <div className="space-y-1">
+                    <p className="text-[8px] md:text-[9px] font-bold text-white/40 uppercase tracking-widest">Casa</p>
+                    <h4 className={`text-lg md:text-3xl font-black uppercase tracking-widest ${house.text}`}>
+                      {house.name}
+                    </h4>
                   </div>
                 </div>
               </div>
 
-              <div className="flex justify-between items-end border-t border-white/10 pt-6">
+              <div className="flex justify-between items-end border-t border-white/10 pt-4 md:pt-6">
                 <div className="flex items-center gap-3">
-                  <Wand2 className="w-4 h-4 text-magical-gold/40" />
-                  <p className="text-[10px] md:text-xs font-bold uppercase tracking-[0.1em] text-white/60">{house.quote}</p>
+                  <Wand2 className="w-3 h-3 md:w-4 md:h-4 text-magical-gold/40" />
+                  <p className="text-[8px] md:text-xs font-bold uppercase tracking-[0.1em] text-white/60">{house.quote}</p>
                 </div>
                 <div className="flex items-center gap-2 text-white/30">
-                  <Hash className="w-3 h-3" />
-                  <span className="text-[10px] font-black tracking-widest uppercase">ID #{profile?.user_id?.slice(0, 8).toUpperCase()}</span>
+                  <Hash className="w-2 h-2 md:w-3 md:h-3" />
+                  <span className="text-[8px] md:text-[10px] font-black tracking-widest uppercase">ID #{profile?.user_id?.slice(0, 8).toUpperCase()}</span>
                 </div>
               </div>
             </div>
