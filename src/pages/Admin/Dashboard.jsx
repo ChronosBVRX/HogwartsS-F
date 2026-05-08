@@ -121,10 +121,10 @@ export default function AdminDashboard() {
           <p className="text-[10px] text-white/40 uppercase font-bold tracking-[0.3em]">Administración Central de Hogwarts</p>
         </div>
         
-        <div className="flex bg-white/5 p-1.5 rounded-2xl border border-white/10">
+        <div className="flex bg-white/5 p-1.5 rounded-2xl border border-white/10 overflow-x-auto custom-scrollbar scrollbar-hide max-w-full">
           <button
             onClick={() => setActiveTab('tickets')}
-            className={`px-6 py-3 rounded-xl text-xs font-black uppercase tracking-widest transition-all flex items-center gap-2 ${
+            className={`px-6 py-3 rounded-xl text-xs font-black uppercase tracking-widest transition-all flex items-center gap-2 whitespace-nowrap ${
               activeTab === 'tickets' ? 'bg-magical-gold text-magical-navy' : 'text-white/40 hover:text-white'
             }`}
           >
@@ -133,7 +133,7 @@ export default function AdminDashboard() {
           </button>
           <button
             onClick={() => setActiveTab('users')}
-            className={`px-6 py-3 rounded-xl text-xs font-black uppercase tracking-widest transition-all flex items-center gap-2 ${
+            className={`px-6 py-3 rounded-xl text-xs font-black uppercase tracking-widest transition-all flex items-center gap-2 whitespace-nowrap ${
               activeTab === 'users' ? 'bg-magical-gold text-magical-navy' : 'text-white/40 hover:text-white'
             }`}
           >
@@ -142,7 +142,7 @@ export default function AdminDashboard() {
           </button>
           <button
             onClick={() => setActiveTab('menu')}
-            className={`px-6 py-3 rounded-xl text-xs font-black uppercase tracking-widest transition-all flex items-center gap-2 ${
+            className={`px-6 py-3 rounded-xl text-xs font-black uppercase tracking-widest transition-all flex items-center gap-2 whitespace-nowrap ${
               activeTab === 'menu' ? 'bg-magical-gold text-magical-navy' : 'text-white/40 hover:text-white'
             }`}
           >

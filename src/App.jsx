@@ -27,7 +27,7 @@ function App() {
   return (
     <AuthProvider>
       <Router>
-        <div className="min-h-screen flex flex-col">
+        <div className="min-h-screen flex flex-col max-w-full overflow-x-hidden">
           <Navbar />
           <Routes>
             {/* Public Routes */}
