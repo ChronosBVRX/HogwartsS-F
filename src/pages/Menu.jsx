@@ -1,4 +1,5 @@
 import { useState, useMemo, useEffect } from 'react'
+import { useSearchParams } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
 import { Search, Sparkles, Flame, Coffee, Wine, UtensilsCrossed, Star, Zap, ChevronLeft } from 'lucide-react'
 
@@ -99,8 +100,10 @@ const SECTION_ICONS = {
   "Nuevos Hechizos": <Sparkles className="w-5 h-5" />
 }
 export default function Menu() {
-  const [viewMode, setViewMode] = useState('categories') // 'categories' or 'products'
-  const [activeCategory, setActiveCategory] = useState(null)
+  const [searchParams, setSearchParams] = useSearchParams()
+  const activeCategory = searchParams.get('category')
+  const viewMode = activeCategory ? 'products' : 'categories'
+  
   const [searchQuery, setSearchQuery] = useState("")
   const [menuItems, setMenuItems] = useState([])
   const [categories, setCategories] = useState([])
@@ -111,13 +114,12 @@ export default function Menu() {
   }, [])
 
   const handleCategoryClick = (categoryName) => {
-    setActiveCategory(categoryName)
-    setViewMode('products')
+    setSearchParams({ category: categoryName })
     window.scrollTo({ top: 0, behavior: 'smooth' })
   }
 
   const handleBackToCategories = () => {
-    setViewMode('categories')
+    setSearchParams({})
     window.scrollTo({ top: 0, behavior: 'smooth' })
   }
 
@@ -136,9 +138,6 @@ export default function Menu() {
         img: STOCK_IMAGES[c.name] || STOCK_IMAGES["default"]
       }))
       setCategories(dynamicCats)
-      if (dynamicCats.length > 0 && !activeCategory) {
-        setActiveCategory(dynamicCats[0].name)
-      }
     }
 
     if (!itemRes.error && itemRes.data) {
