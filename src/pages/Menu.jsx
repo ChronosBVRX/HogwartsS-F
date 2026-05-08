@@ -321,7 +321,7 @@ function ProductCard({ item, index }) {
                   </span>
                 )}
               </div>
-              <h3 className="text-base md:text-2xl font-black text-white group-hover:text-magical-gold transition-colors leading-tight line-clamp-2">
+              <h3 className="text-base md:text-2xl font-black text-white group-hover:text-magical-gold transition-colors leading-tight">
                 {item.nombre}
               </h3>
               <p className="text-[8px] md:text-[10px] text-magical-gold/60 font-black uppercase tracking-widest md:tracking-[0.2em]">
@@ -334,7 +334,7 @@ function ProductCard({ item, index }) {
           </div>
           
           {item.descripcion && (
-            <p className="text-[10px] md:text-sm text-white/60 leading-relaxed font-medium italic border-l-2 border-magical-gold/20 pl-3 md:pl-4 py-1 line-clamp-3">
+            <p className="text-[10px] md:text-sm text-white/60 leading-snug md:leading-relaxed font-medium italic border-l-2 border-magical-gold/20 pl-3 md:pl-4 py-1">
               "{item.descripcion}"
             </p>
           )}
