@@ -17,29 +17,35 @@ const InstallPWA = () => {
     
     // Show only on mobile and if NOT installed
     if (isMobile && !isStandalone) {
-      // Delay to ensure smooth loading
-      const timer = setTimeout(() => setIsVisible(true), 2000);
-      
       const handler = (e) => {
+        console.log('✅ PWA Install Prompt detected');
         e.preventDefault();
         setDeferredPrompt(e);
+        setIsVisible(true); // Show the bar only when we actually have the prompt
       };
 
+      // For iOS, we show it after a delay anyway since there is no event
+      if (isIosDevice) {
+        const timer = setTimeout(() => setIsVisible(true), 3000);
+        return () => clearTimeout(timer);
+      }
+
       window.addEventListener('beforeinstallprompt', handler);
-      return () => {
-        clearTimeout(timer);
-        window.removeEventListener('beforeinstallprompt', handler);
-      };
+      return () => window.removeEventListener('beforeinstallprompt', handler);
     }
   }, []);
 
   const handleInstallClick = async () => {
-    if (isIOS) return; // iOS users see the instructions
-    if (!deferredPrompt) return;
+    if (!deferredPrompt) {
+        console.log('❌ No install prompt available');
+        return;
+    }
     
+    setIsVisible(false);
     deferredPrompt.prompt();
+    
     const { outcome } = await deferredPrompt.userChoice;
-    if (outcome === 'accepted') setIsVisible(false);
+    console.log(`👤 User response to install: ${outcome}`);
     setDeferredPrompt(null);
   };
 
