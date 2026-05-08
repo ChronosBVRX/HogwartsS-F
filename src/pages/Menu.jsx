@@ -38,7 +38,23 @@ const STOCK_IMAGES = {
   "Cajitas Mágicas y Ensaladas": "https://images.unsplash.com/photo-1512621776951-a57141f2eefd?auto=format&fit=crop&q=80&w=400",
   "default": "https://images.unsplash.com/photo-1561043433-9265f73e685f?auto=format&fit=crop&q=80&w=400"
 }
+const SUPER_CATEGORY_MAP = {
+  "Banquetes y Hechizos": ["Hamburguesas", "Alitas de Fénix", "Boneless de Hipogrifo", "Pollo", "Snacks", "Tacos, Burritos, Gringas, Fajitas", "Cajitas Mágicas y Ensaladas"],
+  "Pociones Frías": ["Cold Brew (Bebidas de café heladas)", "Frappes", "Malteadas"],
+  "Calderos Calientes": ["Cafés Calientes", "Expresos", "Infusiones"],
+  "Brebajes Mágicos": ["Bebidas con Alcohol", "Carajillos (Café Helado con Alcohol)"],
+  "Elixires Refrescantes": ["Bebidas sin Alcohol"],
+  "Dulces de Honeydukes": ["Postres"]
+}
 
+const SECTION_ICONS = {
+  "Banquetes y Hechizos": <Flame className="w-5 h-5" />,
+  "Pociones Frías": <Zap className="w-5 h-5" />,
+  "Calderos Calientes": <Coffee className="w-5 h-5" />,
+  "Brebajes Mágicos": <Wine className="w-5 h-5" />,
+  "Elixires Refrescantes": <Sparkles className="w-5 h-5" />,
+  "Dulces de Honeydukes": <Star className="w-5 h-5" />
+}
 export default function Menu() {
   const [viewMode, setViewMode] = useState('categories') // 'categories' or 'products'
   const [activeCategory, setActiveCategory] = useState(null)
@@ -127,26 +143,44 @@ export default function Menu() {
             </div>
           </header>
 
-          <div className="max-w-7xl mx-auto px-6 -mt-20 relative z-20">
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
-              {categories.map((cat, idx) => (
-                <button
-                  key={cat.name}
-                  onClick={() => handleCategoryClick(cat.name)}
-                  className="relative h-64 md:h-72 rounded-[2.5rem] overflow-hidden group border border-white/10 shadow-2xl transition-all hover:scale-[1.02] hover:border-magical-gold/50"
-                  style={{ animationDelay: `${idx * 100}ms` }}
-                >
-                  <img src={cat.img} className="absolute inset-0 w-full h-full object-cover transition-transform duration-1000 group-hover:scale-110" alt="" />
-                  <div className="absolute inset-0 bg-gradient-to-t from-magical-navy via-magical-navy/20 to-transparent" />
-                  <div className="absolute inset-0 p-8 flex flex-col items-center justify-end text-center space-y-3">
-                    <div className="p-4 rounded-2xl bg-white/10 backdrop-blur-md border border-white/10 text-magical-gold shadow-2xl group-hover:bg-magical-gold group-hover:text-magical-navy transition-all">
-                      {cat.icon}
+          <div className="max-w-7xl mx-auto px-6 -mt-20 relative z-20 space-y-16">
+            {Object.entries(SUPER_CATEGORY_MAP).map(([sectionName, catNames]) => {
+              const sectionCategories = categories.filter(c => catNames.includes(c.name))
+              if (sectionCategories.length === 0) return null
+
+              return (
+                <div key={sectionName} className="space-y-8 animate-in fade-in slide-in-from-bottom-8 duration-700">
+                  <div className="flex items-center gap-4 px-2">
+                    <div className="p-3 bg-magical-gold/10 rounded-2xl border border-magical-gold/20 text-magical-gold">
+                      {SECTION_ICONS[sectionName]}
                     </div>
-                    <span className="text-xl font-black uppercase tracking-[0.2em] text-white drop-shadow-2xl">{cat.name}</span>
+                    <div className="flex-1 h-[1px] bg-gradient-to-r from-magical-gold/40 to-transparent" />
+                    <h2 className="text-xl md:text-3xl font-black italic tracking-tighter text-white uppercase drop-shadow-lg">
+                      {sectionName}
+                    </h2>
                   </div>
-                </button>
-              ))}
-            </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                    {sectionCategories.map((cat) => (
+                      <button
+                        key={cat.name}
+                        onClick={() => handleCategoryClick(cat.name)}
+                        className="relative h-56 md:h-64 rounded-[2.5rem] overflow-hidden group border border-white/10 shadow-2xl transition-all hover:scale-[1.02] hover:border-magical-gold/50"
+                      >
+                        <img src={cat.img} className="absolute inset-0 w-full h-full object-cover transition-transform duration-1000 group-hover:scale-110" alt="" />
+                        <div className="absolute inset-0 bg-gradient-to-t from-magical-navy via-magical-navy/20 to-transparent" />
+                        <div className="absolute inset-0 p-8 flex flex-col items-center justify-end text-center space-y-3">
+                          <div className="p-4 rounded-2xl bg-white/10 backdrop-blur-md border border-white/10 text-magical-gold shadow-2xl group-hover:bg-magical-gold group-hover:text-magical-navy transition-all">
+                            {cat.icon}
+                          </div>
+                          <span className="text-lg font-black uppercase tracking-[0.2em] text-white drop-shadow-2xl">{cat.name}</span>
+                        </div>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )
+            })}
           </div>
         </div>
       )}
