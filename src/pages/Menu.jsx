@@ -340,16 +340,7 @@ function ProductCard({ item, index }) {
           )}
         </div>
         
-        {/* Card Footer */}
-        <div className="px-8 py-5 bg-white/5 border-t border-white/5 flex justify-between items-center group-hover:bg-magical-gold/5 transition-colors">
-          <div className="flex items-center gap-2">
-            <div className="w-1.5 h-1.5 rounded-full bg-magical-gold animate-pulse" />
-            <span className="text-[10px] text-white/40 font-bold uppercase tracking-widest">Hogwarts S&F</span>
-          </div>
-          <button className="p-2 bg-white/5 rounded-lg text-magical-gold hover:bg-magical-gold hover:text-magical-navy transition-all duration-300">
-            <Sparkles className="w-4 h-4" />
-          </button>
-        </div>
+
       </div>
     </div>
   )
