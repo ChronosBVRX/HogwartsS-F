@@ -302,9 +302,9 @@ function ProductCard({ item, index }) {
 
         {/* Card Content */}
         <div className={`px-4 md:px-8 pb-4 md:pb-8 space-y-3 md:space-y-5 flex-1 ${item.image_url ? 'pt-4' : 'pt-6 md:pt-8'}`}>
-          <div className="flex justify-between items-start gap-4">
-            <div className="space-y-1.5">
-              <div className="flex flex-wrap gap-2 mb-3">
+          <div className="flex justify-between items-start gap-2 md:gap-4">
+            <div className="flex-1 space-y-1.5 min-w-0">
+              <div className="flex flex-wrap gap-1.5 md:gap-2 mb-2 md:mb-3">
                 {isNew && (
                   <span className="px-2 py-0.5 md:px-2.5 md:py-1 bg-green-500/10 text-green-400 text-[7px] md:text-[9px] font-black uppercase tracking-widest rounded-lg border border-green-500/20">
                     Nuevo
@@ -321,14 +321,14 @@ function ProductCard({ item, index }) {
                   </span>
                 )}
               </div>
-              <h3 className="text-base md:text-2xl font-black text-white group-hover:text-magical-gold transition-colors leading-tight">
+              <h3 className="text-sm md:text-2xl font-black text-white group-hover:text-magical-gold transition-colors leading-tight break-words">
                 {item.nombre}
               </h3>
               <p className="text-[8px] md:text-[10px] text-magical-gold/60 font-black uppercase tracking-widest md:tracking-[0.2em]">
                 {item.categoria}
               </p>
             </div>
-            <div className="text-lg md:text-2xl font-black text-magical-gold drop-shadow-[0_0_10px_rgba(212,175,55,0.2)]">
+            <div className="flex-shrink-0 text-base md:text-2xl font-black text-magical-gold drop-shadow-[0_0_10px_rgba(212,175,55,0.2)] text-right">
               {item.precio > 0 ? `$${item.precio}` : <span className="text-[10px] md:text-sm italic opacity-50">TBA</span>}
             </div>
           </div>
