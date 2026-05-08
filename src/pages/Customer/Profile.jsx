@@ -15,11 +15,11 @@ import mapBg from '../../assets/map_bg.png'
 
 const MAP_THRESHOLDS = [
   { steps: 0, name: "Entrada Principal", icon: "🚪" },
-  { steps: 100, name: "Gran Comedor", icon: "🍽️" },
-  { steps: 300, name: "Pasillos y Aulas", icon: "📜" },
-  { steps: 600, name: "Cabaña de Hagrid", icon: "🛖" },
-  { steps: 1000, name: "Bosque Prohibido", icon: "🌲" },
-  { steps: 1500, name: "Sala de Menesteres", icon: "✨" }
+  { steps: 500, name: "Gran Comedor", icon: "🍽️" },
+  { steps: 1500, name: "Pasillos y Aulas", icon: "📜" },
+  { steps: 3000, name: "Cabaña de Hagrid", icon: "🛖" },
+  { steps: 6000, name: "Bosque Prohibido", icon: "🌲" },
+  { steps: 10000, name: "Sala de Menesteres", icon: "✨" }
 ]
 
 
@@ -112,7 +112,7 @@ export default function Profile() {
     )
   }
 
-  const currentSteps = profile?.pasos_mapa_mes || 0
+  const currentSteps = profile?.points || 0
   
   // Calculate map progress
   const nextMilestoneIndex = MAP_THRESHOLDS.findIndex(m => m.steps > currentSteps)
@@ -335,10 +335,10 @@ export default function Profile() {
             </div>
 
             <div className="bg-[#5c3a21]/5 border border-[#5c3a21]/10 rounded-2xl p-4 flex flex-col items-center text-center mt-12">
-               <p className="text-[10px] uppercase font-black tracking-widest text-[#5c3a21]/60">Tus pasos este mes</p>
-               <p className="text-3xl font-black text-[#5c3a21] italic tracking-tighter">{currentSteps}</p>
+               <p className="text-[10px] uppercase font-black tracking-widest text-[#5c3a21]/60">Tu Poder Mágico Acumulado</p>
+               <p className="text-3xl font-black text-[#5c3a21] italic tracking-tighter">{currentSteps} pts</p>
                {nextMilestone && (
-                 <p className="text-[9px] font-bold text-[#5c3a21]/50 mt-1">Faltan {nextMilestone.steps - currentSteps} pasos para {nextMilestone.name}</p>
+                 <p className="text-[9px] font-bold text-[#5c3a21]/50 mt-1">Te faltan {nextMilestone.steps - currentSteps} puntos para llegar al {nextMilestone.name}</p>
                )}
             </div>
           </div>
