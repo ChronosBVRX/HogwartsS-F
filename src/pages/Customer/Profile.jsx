@@ -24,15 +24,13 @@ export default function Profile() {
   const [activeSession, setActiveSession] = useState(null)
   const [loading, setLoading] = useState(true)
 
-  useEffect(() => {
-    if (profile) fetchActiveSession()
-  }, [profile])
-
   const fetchActiveSession = async () => {
+    if (!profile) return
     const { data, error } = await supabase
       .from('hsf_visit_sessions')
       .select('*')
       .in('status', ['qr_generated', 'seated', 'closed_waiting_ticket', 'ticket_submitted'])
+      .eq('customer_id', profile.user_id)
       .order('created_at', { ascending: false })
       .limit(1)
       .maybeSingle()
@@ -40,6 +38,27 @@ export default function Profile() {
     if (!error) setActiveSession(data)
     setLoading(false)
   }
+
+  useEffect(() => {
+    if (profile) {
+      fetchActiveSession()
+
+      const channel = supabase
+        .channel(`session_updates_${profile.user_id}`)
+        .on(
+          'postgres_changes', 
+          { 
+            event: '*', 
+            table: 'hsf_visit_sessions', 
+            filter: `customer_id=eq.${profile.user_id}` 
+          }, 
+          () => fetchActiveSession()
+        )
+        .subscribe()
+
+      return () => supabase.removeChannel(channel)
+    }
+  }, [profile])
 
   const handleEndVisit = async () => {
     if (!activeSession) return
@@ -57,6 +76,16 @@ export default function Profile() {
   }
 
   const house = profile?.house_slug ? HOUSE_CONFIG[profile.house_slug] : null
+
+  if (loading && !activeSession) {
+    return (
+      <div className="flex-1 flex items-center justify-center">
+        <div className="animate-pulse text-magical-gold font-black uppercase tracking-widest text-xs">
+          Cargando pergaminos...
+        </div>
+      </div>
+    )
+  }
 
   return (
     <div className="flex-1 max-w-5xl mx-auto w-full p-6 pb-20 space-y-12 animate-in fade-in duration-700">
