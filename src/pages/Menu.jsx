@@ -243,7 +243,7 @@ export default function Menu() {
                 <ChevronLeft className="w-4 h-4 text-magical-gold" />
                 Regresar al Mapa
               </button>
-              <h2 className="text-4xl md:text-7xl font-black text-magical-gold uppercase italic tracking-tighter drop-shadow-2xl">
+              <h2 className="text-2xl md:text-7xl font-black text-magical-gold uppercase italic tracking-tighter drop-shadow-2xl">
                 {activeCategory}
               </h2>
             </div>
@@ -301,40 +301,40 @@ function ProductCard({ item, index }) {
         )}
 
         {/* Card Content */}
-        <div className={`px-8 pb-8 space-y-5 flex-1 ${item.image_url ? 'pt-4' : 'pt-8'}`}>
+        <div className={`px-4 md:px-8 pb-4 md:pb-8 space-y-3 md:space-y-5 flex-1 ${item.image_url ? 'pt-4' : 'pt-6 md:pt-8'}`}>
           <div className="flex justify-between items-start gap-4">
             <div className="space-y-1.5">
               <div className="flex flex-wrap gap-2 mb-3">
                 {isNew && (
-                  <span className="px-2.5 py-1 bg-green-500/10 text-green-400 text-[9px] font-black uppercase tracking-widest rounded-lg border border-green-500/20 shadow-[0_0_10px_rgba(34,197,94,0.1)]">
-                    Nuevo Hechizo
+                  <span className="px-2 py-0.5 md:px-2.5 md:py-1 bg-green-500/10 text-green-400 text-[7px] md:text-[9px] font-black uppercase tracking-widest rounded-lg border border-green-500/20">
+                    Nuevo
                   </span>
                 )}
                 {isAlcohol && (
-                  <span className="px-2.5 py-1 bg-red-500/10 text-red-400 text-[9px] font-black uppercase tracking-widest rounded-lg border border-red-500/20 shadow-[0_0_10px_rgba(239,68,68,0.1)]">
-                    Poción 18+
+                  <span className="px-2 py-0.5 md:px-2.5 md:py-1 bg-red-500/10 text-red-400 text-[7px] md:text-[9px] font-black uppercase tracking-widest rounded-lg border border-red-500/20">
+                    18+
                   </span>
                 )}
                 {isPremium && (
-                  <span className="px-2.5 py-1 bg-magical-gold/10 text-magical-gold text-[9px] font-black uppercase tracking-widest rounded-lg border border-magical-gold/20 shadow-[0_0_10px_rgba(212,175,55,0.1)]">
-                    Calidad Épica
+                  <span className="px-2 py-0.5 md:px-2.5 md:py-1 bg-magical-gold/10 text-magical-gold text-[7px] md:text-[9px] font-black uppercase tracking-widest rounded-lg border border-magical-gold/20">
+                    Épico
                   </span>
                 )}
               </div>
-              <h3 className="text-2xl font-black text-white group-hover:text-magical-gold transition-colors leading-tight">
+              <h3 className="text-base md:text-2xl font-black text-white group-hover:text-magical-gold transition-colors leading-tight line-clamp-2">
                 {item.nombre}
               </h3>
-              <p className="text-[10px] text-magical-gold/60 font-black uppercase tracking-[0.2em]">
+              <p className="text-[8px] md:text-[10px] text-magical-gold/60 font-black uppercase tracking-widest md:tracking-[0.2em]">
                 {item.categoria}
               </p>
             </div>
-            <div className="text-2xl font-black text-magical-gold drop-shadow-[0_0_10px_rgba(212,175,55,0.2)]">
-              {item.precio > 0 ? `$${item.precio}` : <span className="text-sm italic opacity-50">TBA</span>}
+            <div className="text-lg md:text-2xl font-black text-magical-gold drop-shadow-[0_0_10px_rgba(212,175,55,0.2)]">
+              {item.precio > 0 ? `$${item.precio}` : <span className="text-[10px] md:text-sm italic opacity-50">TBA</span>}
             </div>
           </div>
           
           {item.descripcion && (
-            <p className="text-sm text-white/60 leading-relaxed font-medium italic border-l-2 border-magical-gold/20 pl-4 py-1">
+            <p className="text-[10px] md:text-sm text-white/60 leading-relaxed font-medium italic border-l-2 border-magical-gold/20 pl-3 md:pl-4 py-1 line-clamp-3">
               "{item.descripcion}"
             </p>
           )}
