@@ -12,21 +12,20 @@ export default function WaiterScanner() {
   const [isCameraActive, setIsCameraActive] = useState(false)
   const navigate = useNavigate()
   
-  // Refs to manage scanner outside of React's render cycle
   const scannerRef = useRef(null)
-  const readerRef = useRef(null)
 
   useEffect(() => {
-    // Cleanup on unmount
     return () => {
       stopScanner()
     }
   }, [])
 
   const stopScanner = async () => {
-    if (scannerRef.current && scannerRef.current.isScanning) {
+    if (scannerRef.current) {
       try {
-        await scannerRef.current.stop()
+        if (scannerRef.current.isScanning) {
+          await scannerRef.current.stop()
+        }
       } catch (err) {
         console.warn("Scanner stop warning:", err)
       }
@@ -39,7 +38,7 @@ export default function WaiterScanner() {
     setScanResult(null)
     
     try {
-      // Always create a fresh instance on the stable ref node
+      // Html5Qrcode needs an empty div. We ensure it's empty by logic.
       const html5QrCode = new Html5Qrcode("reader")
       scannerRef.current = html5QrCode
       
@@ -59,8 +58,8 @@ export default function WaiterScanner() {
       )
       setIsCameraActive(true)
     } catch (err) {
-      setError("No se pudo acceder a la cámara. Revisa los permisos del navegador.")
-      console.error("Scanner Error:", err)
+      setError("Error de cámara: Asegúrate de dar permisos y no tener otras apps usándola.")
+      console.error(err)
     }
   }
 
@@ -114,61 +113,60 @@ export default function WaiterScanner() {
         </div>
 
         <div className="p-6 md:p-8 space-y-8">
-          {/* STABLE READER NODE - React won't touch its children */}
-          <div className="relative group">
+          <div className="relative aspect-square w-full max-w-[400px] mx-auto">
+            {/* 
+                CRITICAL: The #reader div MUST BE EMPTY for React. 
+                Html5Qrcode will inject a video element here. 
+                React should never render children inside this div.
+            */}
             <div 
               id="reader" 
-              ref={readerRef}
-              className={`rounded-3xl overflow-hidden bg-black/40 aspect-square border-2 border-dashed transition-all duration-500 ${
+              className={`w-full h-full rounded-3xl overflow-hidden bg-black/40 border-2 border-dashed transition-all duration-500 ${
                 isCameraActive ? 'border-magical-gold/50 shadow-[0_0_50px_rgba(212,175,55,0.1)]' : 'border-white/10'
               }`}
-            >
-              {!isCameraActive && !scanResult && (
-                <div className="absolute inset-0 flex flex-col items-center justify-center p-8 text-center space-y-6">
-                  <div className="p-6 bg-magical-gold/10 rounded-full animate-pulse">
-                    <Camera className="w-12 h-12 text-magical-gold/60" />
-                  </div>
-                  <div className="space-y-2">
-                    <p className="text-xs font-bold text-white/60">Cámara Inactiva</p>
-                    <p className="text-[10px] text-white/30 uppercase tracking-widest">Presiona el botón para iniciar</p>
-                  </div>
-                  <button 
-                    onClick={startScanner}
-                    className="btn-gold px-10 py-4 text-xs font-black uppercase tracking-widest flex items-center gap-2"
-                  >
-                    <RefreshCw className="w-4 h-4" />
-                    Iniciar Cámara
-                  </button>
-                </div>
-              )}
+            ></div>
 
-              {scanResult && (
-                <div className="absolute inset-0 bg-magical-navy/90 backdrop-blur-sm flex flex-col items-center justify-center p-8 text-center space-y-4 animate-in fade-in zoom-in duration-500">
-                  <div className="p-4 bg-green-500/20 rounded-full">
-                    <CheckCircle2 className="w-12 h-12 text-green-400" />
-                  </div>
-                  <h2 className="text-xl font-black uppercase italic text-white">¡Escaneado!</h2>
-                  <button 
-                    onClick={startScanner}
-                    className="text-[10px] font-black text-magical-gold uppercase tracking-widest hover:underline"
-                  >
-                    Escanear otro código
-                  </button>
+            {/* OVERLAYS: These are siblings to #reader, so React and the library don't fight */}
+            {!isCameraActive && !scanResult && (
+              <div className="absolute inset-0 flex flex-col items-center justify-center p-8 text-center space-y-6 z-10">
+                <div className="p-6 bg-magical-gold/10 rounded-full animate-pulse">
+                  <Camera className="w-12 h-12 text-magical-gold/60" />
                 </div>
-              )}
-            </div>
-            
+                <button 
+                  onClick={startScanner}
+                  className="btn-gold px-10 py-4 text-xs font-black uppercase tracking-widest flex items-center gap-2"
+                >
+                  <RefreshCw className="w-4 h-4" />
+                  Iniciar Cámara
+                </button>
+              </div>
+            )}
+
+            {scanResult && (
+              <div className="absolute inset-0 bg-magical-navy/95 backdrop-blur-md flex flex-col items-center justify-center p-8 text-center space-y-4 z-20 animate-in fade-in zoom-in duration-500 rounded-3xl">
+                <div className="p-4 bg-green-500/20 rounded-full">
+                  <CheckCircle2 className="w-12 h-12 text-green-400" />
+                </div>
+                <h2 className="text-xl font-black uppercase italic text-white">¡Escaneado!</h2>
+                <button 
+                  onClick={() => { setScanResult(null); startScanner(); }}
+                  className="text-[10px] font-black text-magical-gold uppercase tracking-widest hover:underline"
+                >
+                  Escanear otro
+                </button>
+              </div>
+            )}
+
             {isCameraActive && (
               <button 
                 onClick={stopScanner}
-                className="absolute bottom-4 right-4 bg-black/60 backdrop-blur-md text-white/60 hover:text-white px-4 py-2 rounded-xl text-[9px] font-black uppercase tracking-widest border border-white/10 z-20"
+                className="absolute bottom-4 right-4 bg-black/60 backdrop-blur-md text-white/60 hover:text-white px-4 py-2 rounded-xl text-[9px] font-black uppercase tracking-widest border border-white/10 z-30"
               >
                 Detener
               </button>
             )}
           </div>
 
-          {/* Form & Info */}
           <div className="space-y-8">
             {scanResult ? (
               <form onSubmit={handleAssignTable} className="space-y-6 animate-in slide-in-from-bottom duration-500">
@@ -184,14 +182,6 @@ export default function WaiterScanner() {
                     autoFocus
                   />
                 </div>
-
-                {error && (
-                  <div className="flex items-center gap-3 bg-red-400/10 p-5 rounded-2xl border border-red-400/20 text-red-400">
-                    <AlertCircle className="w-5 h-5" />
-                    <p className="text-[10px] font-bold uppercase">{error}</p>
-                  </div>
-                )}
-
                 <button 
                   type="submit" 
                   className="btn-gold w-full py-5 text-sm font-black uppercase italic tracking-tighter"
@@ -206,13 +196,13 @@ export default function WaiterScanner() {
                 <div className="space-y-1">
                   <p className="text-xs text-white/80 font-bold uppercase tracking-widest">Instrucciones</p>
                   <p className="text-[10px] text-white/40 leading-relaxed italic">
-                    Pide al cliente su Pase de Entrada y apunta la cámara al código QR. Asegúrate de estar en un área iluminada.
+                    Apunta al QR del Pase de Entrada del cliente. Asegúrate de tener buena luz.
                   </p>
                 </div>
               </div>
             )}
 
-            {error && !isCameraActive && !scanResult && (
+            {error && (
                <div className="flex items-center gap-3 bg-red-400/10 p-5 rounded-2xl border border-red-400/20 text-red-400">
                  <AlertCircle className="w-5 h-5" />
                  <p className="text-[10px] font-bold uppercase">{error}</p>
