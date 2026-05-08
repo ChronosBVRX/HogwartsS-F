@@ -7,15 +7,13 @@ const InstallPWA = () => {
   const [isIOS, setIsIOS] = useState(false);
 
   useEffect(() => {
-    // Basic mobile detection
-    const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
     const isIosDevice = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
     setIsIOS(isIosDevice);
 
     // Check if already installed
     const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone;
     
-    // 1. Listen for the magical prompt (Android/Chrome)
+    // 1. Listen for the magical prompt (Android/Chrome/Desktop)
     const handlePrompt = (e) => {
       console.log('🪄 Hogwarts App is ready to be summoned (Prompt captured)');
       e.preventDefault();
@@ -24,9 +22,9 @@ const InstallPWA = () => {
 
     window.addEventListener('beforeinstallprompt', handlePrompt);
 
-    // 2. Definitive Solution: ALWAYS show the banner on mobile if not installed
-    if (isMobile && !isStandalone) {
-      const timer = setTimeout(() => setIsVisible(true), 2500); // 2.5s delay
+    // 2. Definitive Solution: ALWAYS show the banner if not installed (Desktop & Mobile)
+    if (!isStandalone) {
+      const timer = setTimeout(() => setIsVisible(true), 1000); // 1s delay
       return () => {
         clearTimeout(timer);
         window.removeEventListener('beforeinstallprompt', handlePrompt);
