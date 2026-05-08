@@ -62,7 +62,8 @@ export default function Menu() {
         categoria: i.category?.name || 'Otros',
         descripcion: i.description,
         precio: parseFloat(i.price),
-        tags: i.is_featured ? ['premium'] : []
+        tags: i.is_featured ? ['premium'] : [],
+        image_url: i.image_url
       }))
       setMenuItems(mappedItems)
     }
@@ -180,8 +181,16 @@ function ProductCard({ item, index }) {
       <div className="absolute inset-0 bg-magical-gold/5 blur-2xl rounded-3xl opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
       <div className="glass-card overflow-hidden transition-all duration-500 group-hover:-translate-y-2 border-white/5 group-hover:border-magical-gold/30 flex flex-col h-full relative z-10">
         
+        {/* Real Food Image if uploaded */}
+        {item.image_url && (
+          <div className="w-full h-48 relative overflow-hidden border-b border-white/10">
+             <img src={item.image_url} alt={item.nombre} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" />
+             <div className="absolute inset-0 bg-gradient-to-t from-magical-navy via-transparent to-transparent" />
+          </div>
+        )}
+
         {/* Card Content */}
-        <div className="p-8 space-y-5 flex-1">
+        <div className={`px-8 pb-8 space-y-5 flex-1 ${item.image_url ? 'pt-4' : 'pt-8'}`}>
           <div className="flex justify-between items-start gap-4">
             <div className="space-y-1.5">
               <div className="flex flex-wrap gap-2 mb-3">

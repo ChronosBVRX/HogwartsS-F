@@ -25,16 +25,42 @@ export default function AdminMenuManager() {
     setLoading(false)
   }
 
+  const [uploading, setUploading] = useState(false)
+
   const handleSaveItem = async (e) => {
     e.preventDefault()
+    setUploading(true)
     const formData = new FormData(e.target)
+    
+    let imageUrl = editingItem?.image_url || null
+    const imageFile = formData.get('image')
+
+    if (imageFile && imageFile.size > 0) {
+      const fileExt = imageFile.name.split('.').pop()
+      const fileName = `${Math.random()}.${fileExt}`
+
+      const { error: uploadError } = await supabase.storage
+        .from('menu-images')
+        .upload(fileName, imageFile)
+
+      if (uploadError) {
+        alert("Error al subir imagen. Asegúrate de haber creado el bucket 'menu-images'. Detalles: " + uploadError.message)
+        setUploading(false)
+        return
+      }
+
+      const { data: urlData } = supabase.storage.from('menu-images').getPublicUrl(fileName)
+      imageUrl = urlData.publicUrl
+    }
+
     const data = {
       name: formData.get('name'),
       description: formData.get('description'),
       price: parseFloat(formData.get('price')),
       category_id: formData.get('category_id'),
       is_featured: formData.get('is_featured') === 'on',
-      active: formData.get('active') === 'on'
+      active: formData.get('active') === 'on',
+      image_url: imageUrl
     }
 
     if (editingItem?.id) {
@@ -47,6 +73,7 @@ export default function AdminMenuManager() {
 
     setIsFormOpen(false)
     setEditingItem(null)
+    setUploading(false)
     fetchData()
   }
 
@@ -96,6 +123,16 @@ export default function AdminMenuManager() {
               <textarea name="description" defaultValue={editingItem?.description} className="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-white focus:border-magical-gold outline-none" rows="2" />
             </div>
 
+            <div className="space-y-2">
+              <label className="text-[10px] uppercase font-black tracking-widest text-white/40">Fotografía del Platillo (Opcional)</label>
+              <div className="flex items-center gap-4">
+                {editingItem?.image_url && (
+                  <img src={editingItem.image_url} alt="Current" className="w-12 h-12 rounded-lg object-cover border border-white/10" />
+                )}
+                <input type="file" accept="image/*" name="image" className="w-full bg-white/5 border border-white/10 rounded-xl p-2 text-white text-sm file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-xs file:font-black file:uppercase file:tracking-widest file:bg-magical-gold file:text-magical-navy hover:file:bg-magical-gold/80" />
+              </div>
+            </div>
+
             <div className="grid md:grid-cols-2 gap-4">
                <div className="space-y-2">
                  <label className="text-[10px] uppercase font-black tracking-widest text-white/40">Categoría</label>
@@ -120,9 +157,9 @@ export default function AdminMenuManager() {
             </div>
 
             <div className="flex justify-end pt-4">
-              <button type="submit" className="px-6 py-3 bg-magical-gold text-magical-navy rounded-xl text-xs font-black uppercase tracking-widest flex items-center gap-2">
+              <button type="submit" disabled={uploading} className="px-6 py-3 bg-magical-gold text-magical-navy rounded-xl text-xs font-black uppercase tracking-widest flex items-center gap-2 disabled:opacity-50">
                 <Save className="w-4 h-4" />
-                {editingItem ? 'Guardar Cambios' : 'Crear Platillo'}
+                {uploading ? 'Guardando...' : (editingItem ? 'Guardar Cambios' : 'Crear Platillo')}
               </button>
             </div>
           </form>
@@ -149,10 +186,19 @@ export default function AdminMenuManager() {
               ) : (
                 items.map(item => (
                   <tr key={item.id} className={`hover:bg-white/5 transition-colors group ${!item.active ? 'opacity-50' : ''}`}>
-                    <td className="px-6 py-4">
-                      <div className="font-bold text-white uppercase italic text-sm">{item.name}</div>
-                      <div className="text-[10px] text-white/40 truncate max-w-[250px]">{item.description}</div>
-                      {item.is_featured && <span className="text-[8px] text-magical-gold uppercase tracking-widest border border-magical-gold/20 px-1.5 rounded bg-magical-gold/10 mt-1 inline-block">Premium</span>}
+                    <td className="px-6 py-4 flex items-center gap-4">
+                      {item.image_url ? (
+                        <img src={item.image_url} alt={item.name} className="w-12 h-12 rounded-lg object-cover border border-white/10" />
+                      ) : (
+                        <div className="w-12 h-12 rounded-lg bg-white/5 border border-white/10 flex items-center justify-center">
+                          <Sparkles className="w-5 h-5 text-white/20" />
+                        </div>
+                      )}
+                      <div>
+                        <div className="font-bold text-white uppercase italic text-sm">{item.name}</div>
+                        <div className="text-[10px] text-white/40 truncate max-w-[200px]">{item.description}</div>
+                        {item.is_featured && <span className="text-[8px] text-magical-gold uppercase tracking-widest border border-magical-gold/20 px-1.5 rounded bg-magical-gold/10 mt-1 inline-block">Premium</span>}
+                      </div>
                     </td>
                     <td className="px-6 py-4 font-black text-[10px] uppercase text-white/60 tracking-widest">{item.category?.name}</td>
                     <td className="px-6 py-4 font-black text-lg text-magical-gold">${item.price}</td>
