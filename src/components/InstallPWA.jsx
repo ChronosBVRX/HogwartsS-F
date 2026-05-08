@@ -18,20 +18,19 @@ const InstallPWA = () => {
     // 1. Listen for the magical prompt (Android/Chrome)
     const handlePrompt = (e) => {
       console.log('🪄 Hogwarts App is ready to be summoned (Prompt captured)');
-      // Prevent Chrome from showing its own boring banner
       e.preventDefault();
-      // Save the event for later
       setDeferredPrompt(e);
-      // Now it's safe to show our premium button
-      if (!isStandalone) setIsVisible(true);
     };
 
     window.addEventListener('beforeinstallprompt', handlePrompt);
 
-    // 2. iOS Logic (Since Apple doesn't fire the event)
-    if (isIosDevice && !isStandalone) {
-      const timer = setTimeout(() => setIsVisible(true), 4000);
-      return () => clearTimeout(timer);
+    // 2. Definitive Solution: ALWAYS show the banner on mobile if not installed
+    if (isMobile && !isStandalone) {
+      const timer = setTimeout(() => setIsVisible(true), 2500); // 2.5s delay
+      return () => {
+        clearTimeout(timer);
+        window.removeEventListener('beforeinstallprompt', handlePrompt);
+      }
     }
 
     return () => window.removeEventListener('beforeinstallprompt', handlePrompt);
@@ -50,6 +49,9 @@ const InstallPWA = () => {
       // Clean up and hide
       setDeferredPrompt(null);
       setIsVisible(false);
+    } else {
+      // Fallback si el navegador no disparó el evento (Pasa mucho en Android)
+      alert("Para instalar: Toca el menú de tu navegador (los tres puntos ⋮ arriba a la derecha) y selecciona 'Instalar aplicación' o 'Añadir a la pantalla de inicio'.");
     }
   };
 
