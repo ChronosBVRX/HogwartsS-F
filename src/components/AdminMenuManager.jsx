@@ -8,6 +8,7 @@ export default function AdminMenuManager() {
   const [loading, setLoading] = useState(true)
 
   const [editingItem, setEditingItem] = useState(null)
+  const [previewUrl, setPreviewUrl] = useState(null)
   const [isFormOpen, setIsFormOpen] = useState(false)
 
   useEffect(() => {
@@ -36,27 +37,29 @@ export default function AdminMenuManager() {
     const imageFile = formData.get('image')
 
     if (imageFile && imageFile.size > 0) {
-      const fileExt = imageFile.name.split('.').pop()
-      const fileName = `${Math.random()}.${fileExt}`
+      try {
+        const fileExt = imageFile.name.split('.').pop()
+        const fileName = `item-${Date.now()}.${fileExt}` // Nombre único basado en tiempo
 
-      const { error: uploadError } = await supabase.storage
-        .from('menu-images')
-        .upload(fileName, imageFile)
+        const { error: uploadError } = await supabase.storage
+          .from('menu-images')
+          .upload(fileName, imageFile)
 
-      if (uploadError) {
-        alert("Error al subir imagen. Asegúrate de haber creado el bucket 'menu-images'. Detalles: " + uploadError.message)
+        if (uploadError) throw uploadError
+
+        const { data: urlData } = supabase.storage.from('menu-images').getPublicUrl(fileName)
+        imageUrl = urlData.publicUrl
+      } catch (err) {
+        alert("¡Error Mágico! No se pudo subir la imagen. Verifica que el bucket 'menu-images' sea PÚBLICO en Supabase. Detalles: " + err.message)
         setUploading(false)
         return
       }
-
-      const { data: urlData } = supabase.storage.from('menu-images').getPublicUrl(fileName)
-      imageUrl = urlData.publicUrl
     }
 
     const data = {
       name: formData.get('name'),
       description: formData.get('description'),
-      price: parseFloat(formData.get('price')),
+      price: parseFloat(formData.get('price')) || 0,
       category_id: formData.get('category_id'),
       is_featured: formData.get('is_featured') === 'on',
       active: formData.get('active') === 'on',
@@ -73,6 +76,7 @@ export default function AdminMenuManager() {
 
     setIsFormOpen(false)
     setEditingItem(null)
+    setPreviewUrl(null)
     setUploading(false)
     fetchData()
   }
@@ -90,7 +94,7 @@ export default function AdminMenuManager() {
           <h2 className="text-sm font-black uppercase tracking-[0.4em] text-white/60">Gestión de Menú</h2>
         </div>
         <button 
-          onClick={() => { setEditingItem(null); setIsFormOpen(true); }}
+          onClick={() => { setEditingItem(null); setPreviewUrl(null); setIsFormOpen(true); }}
           className="px-4 py-2 bg-magical-gold text-magical-navy rounded-lg text-xs font-black uppercase tracking-widest flex items-center gap-2 hover:scale-105 transition-transform"
         >
           <Plus className="w-4 h-4" />
@@ -100,7 +104,7 @@ export default function AdminMenuManager() {
 
       {isFormOpen && (
         <div className="glass-card p-6 border border-magical-gold/30 relative">
-          <button onClick={() => setIsFormOpen(false)} className="absolute top-4 right-4 text-white/40 hover:text-white">
+          <button onClick={() => { setIsFormOpen(false); setPreviewUrl(null); }} className="absolute top-4 right-4 text-white/40 hover:text-white">
             <X className="w-5 h-5" />
           </button>
           <h3 className="text-xl font-black italic uppercase text-magical-gold mb-6">
@@ -125,11 +129,27 @@ export default function AdminMenuManager() {
 
             <div className="space-y-2">
               <label className="text-[10px] uppercase font-black tracking-widest text-white/40">Fotografía del Platillo (Opcional)</label>
-              <div className="flex items-center gap-4">
-                {editingItem?.image_url && (
-                  <img src={editingItem.image_url} alt="Current" className="w-12 h-12 rounded-lg object-cover border border-white/10" />
+              <div className="flex flex-col gap-4">
+                {(editingItem?.image_url || previewUrl) && (
+                  <div className="relative w-full h-48 rounded-2xl overflow-hidden border border-white/10 bg-white/5">
+                    <img 
+                      src={previewUrl || editingItem.image_url} 
+                      alt="Preview" 
+                      className="w-full h-full object-contain" 
+                    />
+                    <div className="absolute top-2 left-2 px-2 py-1 bg-black/60 rounded text-[8px] font-black uppercase text-white tracking-widest">Vista Previa</div>
+                  </div>
                 )}
-                <input type="file" accept="image/*" name="image" className="w-full bg-white/5 border border-white/10 rounded-xl p-2 text-white text-sm file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-xs file:font-black file:uppercase file:tracking-widest file:bg-magical-gold file:text-magical-navy hover:file:bg-magical-gold/80" />
+                <input 
+                  type="file" 
+                  accept="image/*" 
+                  name="image" 
+                  onChange={(e) => {
+                    const file = e.target.files[0];
+                    if (file) setPreviewUrl(URL.createObjectURL(file));
+                  }}
+                  className="w-full bg-white/5 border border-white/10 rounded-xl p-2 text-white text-sm file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-xs file:font-black file:uppercase file:tracking-widest file:bg-magical-gold file:text-magical-navy hover:file:bg-magical-gold/80" 
+                />
               </div>
             </div>
 
@@ -213,7 +233,7 @@ export default function AdminMenuManager() {
                     </td>
                     <td className="px-6 py-4 text-right">
                       <button 
-                        onClick={() => { setEditingItem(item); setIsFormOpen(true); }}
+                        onClick={() => { setEditingItem(item); setPreviewUrl(null); setIsFormOpen(true); }}
                         className="p-2 bg-white/10 text-white/60 rounded-lg hover:bg-magical-gold hover:text-magical-navy transition-colors inline-flex"
                       >
                         <Edit2 className="w-4 h-4" />
