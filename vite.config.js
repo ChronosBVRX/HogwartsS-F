@@ -13,6 +13,7 @@ export default defineConfig({
       registerType: 'autoUpdate',
       includeAssets: ['favicon.ico', 'logo.png', 'background.png', 'pwa-192x192.png', 'pwa-512x512.png'],
       manifest: {
+        id: '/',
         name: "Hogwarts Snacks & Foods",
         short_name: "HogwartsSF",
         description: "El Menú Mágico de Hogwarts Snacks & Foods",
@@ -21,6 +22,7 @@ export default defineConfig({
         display: 'standalone',
         orientation: 'portrait',
         start_url: '/',
+        scope: '/',
         icons: [
           {
             src: '/pwa-192x192.png',
