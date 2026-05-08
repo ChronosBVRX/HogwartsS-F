@@ -40,6 +40,7 @@ const STOCK_IMAGES = {
 }
 
 export default function Menu() {
+  const [viewMode, setViewMode] = useState('categories') // 'categories' or 'products'
   const [activeCategory, setActiveCategory] = useState(null)
   const [searchQuery, setSearchQuery] = useState("")
   const [menuItems, setMenuItems] = useState([])
@@ -49,6 +50,17 @@ export default function Menu() {
   useEffect(() => {
     fetchMenuData()
   }, [])
+
+  const handleCategoryClick = (categoryName) => {
+    setActiveCategory(categoryName)
+    setViewMode('products')
+    window.scrollTo({ top: 0, behavior: 'smooth' })
+  }
+
+  const handleBackToCategories = () => {
+    setViewMode('categories')
+    window.scrollTo({ top: 0, behavior: 'smooth' })
+  }
 
   const fetchMenuData = async () => {
     setLoading(true)
@@ -88,7 +100,7 @@ export default function Menu() {
 
   const filteredMenu = useMemo(() => {
     return menuItems.filter(item => {
-      const matchesCategory = activeCategory === "Todos" || item.categoria === activeCategory
+      const matchesCategory = !activeCategory || item.categoria === activeCategory
       const matchesSearch = item.nombre.toLowerCase().includes(searchQuery.toLowerCase()) || 
                            item.categoria.toLowerCase().includes(searchQuery.toLowerCase())
       return matchesCategory && matchesSearch
@@ -98,114 +110,95 @@ export default function Menu() {
   const currentCategoryData = categories.find(c => c.name === activeCategory)
 
   return (
-    <div className="flex-1 pb-20">
-      {/* Dynamic Hero based on Category */}
-      <header className="relative h-[50vh] md:h-[65vh] flex items-center justify-center overflow-hidden">
-        <div className="absolute inset-0 z-0">
-          <img 
-            src={currentCategoryData?.img || defaultBg} 
-            className="w-full h-full object-cover transition-all duration-1000 scale-100"
-            alt="Fondo" 
-          />
-          {/* Subtle vignette instead of heavy gradient */}
-          <div className="absolute inset-0 bg-gradient-to-t from-magical-navy via-transparent to-black/20" />
-        </div>
-        
-        <div className="relative z-10 text-center space-y-4 px-4 mt-10">
-          <div className="inline-flex items-center gap-2 px-4 py-1.5 bg-magical-gold/20 backdrop-blur-md border border-magical-gold/30 rounded-full mb-4 animate-bounce-slow">
-            {currentCategoryData?.icon}
-            <span className="text-[10px] font-black uppercase tracking-[0.3em] text-magical-gold">Colección Mágica</span>
-          </div>
-          <h1 className="text-5xl md:text-8xl font-black text-white tracking-tighter uppercase italic drop-shadow-[0_15px_30px_rgba(0,0,0,0.8)]">
-            <span className="text-magical-gold drop-shadow-[0_0_20px_rgba(212,175,55,0.4)]">{activeCategory === "Todos" ? "El Gran Menú" : activeCategory}</span>
-          </h1>
-          <p className="text-white max-w-xl mx-auto font-bold text-lg md:text-xl drop-shadow-[0_2px_4px_rgba(0,0,0,0.5)] bg-black/20 backdrop-blur-sm p-2 rounded-xl">
-            {activeCategory === "Todos" 
-              ? "Explora nuestra selección de platillos y pociones preparadas con ingredientes del mundo mágico."
-              : `Descubre los secretos de nuestra sección de ${activeCategory}.`}
-          </p>
-        </div>
-      </header>
+    <div className="flex-1 pb-20 min-h-screen bg-magical-navy">
+      {/* 1. CATEGORY HUB VIEW */}
+      {viewMode === 'categories' && (
+        <div className="animate-in fade-in duration-700">
+          <header className="relative h-[40vh] flex items-center justify-center overflow-hidden">
+            <div className="absolute inset-0">
+              <img src={defaultBg} className="w-full h-full object-cover opacity-40" alt="Hogwarts" />
+              <div className="absolute inset-0 bg-gradient-to-t from-magical-navy to-transparent" />
+            </div>
+            <div className="relative z-10 text-center space-y-4 px-4">
+              <h1 className="text-5xl md:text-7xl font-black text-white tracking-tighter uppercase italic drop-shadow-2xl">
+                El Gran <span className="text-magical-gold">Menú</span>
+              </h1>
+              <p className="text-white/60 font-bold text-sm md:text-base tracking-widest uppercase">Explora las delicias del mundo mágico</p>
+            </div>
+          </header>
 
-      <div className="max-w-7xl mx-auto px-4 -mt-12 relative z-20">
-        {/* Search and Filter Bar */}
-        <div className="p-3 mb-12 flex flex-col md:flex-row gap-3 items-center sticky top-4 z-40 bg-magical-navy border border-white/10 rounded-2xl shadow-[0_20px_50px_rgba(0,0,0,0.8)]">
-          <div className="relative flex-1 w-full">
-            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-white/40" />
-            <input 
-              type="text"
-              placeholder="Busca un hechizo o platillo..."
-              className="w-full bg-white/5 border border-white/10 rounded-xl py-3 pl-12 pr-4 text-white placeholder:text-white/30 focus:outline-none focus:border-magical-gold/50 transition-all"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-            />
-          </div>
-          <div className="grid grid-cols-2 md:flex md:items-center gap-3 w-full">
-            {categories.map(cat => (
-              <button
-                key={cat.name}
-                onClick={() => setActiveCategory(cat.name)}
-                className={`relative overflow-hidden group rounded-2xl transition-all border h-28 md:h-20 flex-1 ${
-                  activeCategory === cat.name 
-                    ? 'border-magical-gold shadow-[0_0_30px_rgba(212,175,55,0.4)] scale-[1.02]' 
-                    : 'border-white/10 hover:border-white/30'
-                }`}
-              >
-                {/* Category Image Background */}
-                <img 
-                  src={cat.img} 
-                  className={`absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-110 ${
-                    activeCategory === cat.name ? 'opacity-100' : 'opacity-40 grayscale'
-                  }`}
-                  alt="" 
-                />
-                
-                {/* Dark Overlay */}
-                <div className={`absolute inset-0 transition-colors duration-500 ${
-                  activeCategory === cat.name 
-                    ? 'bg-magical-navy/40' 
-                    : 'bg-black/60 group-hover:bg-black/40'
-                }`} />
-
-                {/* Selection border/glow */}
-                {activeCategory === cat.name && (
-                   <div className="absolute inset-0 border-2 border-magical-gold/50 rounded-2xl animate-pulse" />
-                )}
-                
-                <div className="relative z-10 flex flex-col md:flex-row items-center justify-center gap-2 p-3 text-center">
-                  <div className={`p-1.5 rounded-lg transition-colors ${activeCategory === cat.name ? 'text-magical-gold drop-shadow-[0_0_8px_rgba(212,175,55,0.8)]' : 'text-white/60'}`}>
-                    {cat.icon}
+          <div className="max-w-7xl mx-auto px-6 -mt-20 relative z-20">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
+              {categories.map((cat, idx) => (
+                <button
+                  key={cat.name}
+                  onClick={() => handleCategoryClick(cat.name)}
+                  className="relative h-64 md:h-72 rounded-[2.5rem] overflow-hidden group border border-white/10 shadow-2xl transition-all hover:scale-[1.02] hover:border-magical-gold/50"
+                  style={{ animationDelay: `${idx * 100}ms` }}
+                >
+                  <img src={cat.img} className="absolute inset-0 w-full h-full object-cover transition-transform duration-1000 group-hover:scale-110" alt="" />
+                  <div className="absolute inset-0 bg-gradient-to-t from-magical-navy via-magical-navy/20 to-transparent" />
+                  <div className="absolute inset-0 p-8 flex flex-col items-center justify-end text-center space-y-3">
+                    <div className="p-4 rounded-2xl bg-white/10 backdrop-blur-md border border-white/10 text-magical-gold shadow-2xl group-hover:bg-magical-gold group-hover:text-magical-navy transition-all">
+                      {cat.icon}
+                    </div>
+                    <span className="text-xl font-black uppercase tracking-[0.2em] text-white drop-shadow-2xl">{cat.name}</span>
                   </div>
-                  <span className={`text-[10px] md:text-xs font-black uppercase tracking-[0.15em] drop-shadow-lg ${
-                    activeCategory === cat.name ? 'text-white' : 'text-white/60'
-                  }`}>
-                    {cat.name}
-                  </span>
-                </div>
-              </button>
-            ))}
+                </button>
+              ))}
+            </div>
           </div>
         </div>
+      )}
 
-        {/* Menu Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {loading ? (
-            <div className="col-span-full py-20 text-center">
-              <Sparkles className="w-12 h-12 text-magical-gold/20 mx-auto mb-4 animate-pulse" />
-              <p className="text-white/40 text-lg font-medium">Invocando platillos mágicos...</p>
+      {/* 2. PRODUCTS VIEW (Drill-down) */}
+      {viewMode === 'products' && (
+        <div className="animate-in slide-in-from-right-8 fade-in duration-500">
+          <header className="relative h-[30vh] md:h-[40vh] flex items-center justify-center overflow-hidden">
+            <img src={currentCategoryData?.img} className="absolute inset-0 w-full h-full object-cover" alt="" />
+            <div className="absolute inset-0 bg-magical-navy/60 backdrop-blur-sm" />
+            <div className="absolute inset-0 bg-gradient-to-t from-magical-navy to-transparent" />
+            
+            <div className="relative z-10 text-center px-4 space-y-4">
+              <button 
+                onClick={handleBackToCategories}
+                className="inline-flex items-center gap-2 px-4 py-2 bg-white/10 hover:bg-white/20 border border-white/20 rounded-full text-[10px] font-black uppercase tracking-widest text-white transition-all mb-4"
+              >
+                <ChevronLeft className="w-4 h-4 text-magical-gold" />
+                Regresar al Mapa
+              </button>
+              <h2 className="text-4xl md:text-7xl font-black text-magical-gold uppercase italic tracking-tighter drop-shadow-2xl">
+                {activeCategory}
+              </h2>
             </div>
-          ) : filteredMenu.length > 0 ? (
-            filteredMenu.map((item, index) => (
-              <ProductCard key={item.id} item={item} index={index} />
-            ))
-          ) : (
-            <div className="col-span-full py-20 text-center">
-              <Sparkles className="w-12 h-12 text-magical-gold/20 mx-auto mb-4" />
-              <p className="text-white/40 text-lg font-medium">No se encontraron hechizos con ese nombre.</p>
+          </header>
+
+          <div className="max-w-7xl mx-auto px-6 py-12 space-y-12">
+            {/* Search within category */}
+            <div className="relative max-w-md mx-auto">
+              <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-white/30" />
+              <input 
+                type="text" 
+                placeholder={`Buscar en ${activeCategory}...`}
+                className="w-full bg-white/5 border border-white/10 rounded-2xl py-4 pl-12 pr-6 text-white focus:outline-none focus:border-magical-gold/50 transition-all"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+              />
             </div>
-          )}
+
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+              {filteredMenu.map((item, index) => (
+                <ProductCard key={item.id} item={item} index={index} />
+              ))}
+              {filteredMenu.length === 0 && (
+                <div className="col-span-full py-20 text-center bg-white/5 rounded-[3rem] border border-dashed border-white/10">
+                  <p className="text-white/40 font-bold uppercase tracking-widest">No se encontraron productos en esta sección</p>
+                </div>
+              )}
+            </div>
+          </div>
         </div>
-      </div>
+      )}
     </div>
   )
 }
