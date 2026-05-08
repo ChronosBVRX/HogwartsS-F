@@ -2,11 +2,12 @@ import React, { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import { Sparkles, Utensils, Award, Flame, Star, Zap, ShoppingBag, Scroll, UserPlus, ArrowRight } from 'lucide-react'
 import { supabase } from '../lib/supabase'
-import logo from '../assets/logo.png'
-import heroImg from '../assets/illustrations/hero.png'
-import invitationImg from '../assets/illustrations/invitation.png'
-import shopImg from '../assets/illustrations/shop.png'
-import collectiblesImg from '../assets/illustrations/collectibles.png'
+
+// Stable absolute paths from /public
+const logo = '/logo.png'
+const heroImg = '/hero.png'
+const invitationImg = '/invitation.png'
+const shopImg = '/shop.png'
 
 export default function Home() {
   const [featuredProducts, setFeaturedProducts] = useState([])

@@ -7,7 +7,7 @@ import burgerImg from '../assets/illustrations/burgers.png'
 import wingsImg from '../assets/illustrations/wings.png'
 import drinksImg from '../assets/illustrations/drinks.png'
 import coffeeImg from '../assets/illustrations/coffee.png'
-import defaultBg from '../assets/background.png'
+const defaultBg = '/background.png'
 import { MENU_ASSETS } from '../data/menuAssets'
 
 const ICON_MAP = {
