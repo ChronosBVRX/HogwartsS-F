@@ -13,9 +13,9 @@ export default defineConfig({
       registerType: 'autoUpdate',
       includeAssets: ['favicon.ico', 'logo.png', 'background.png'],
       manifest: {
-        name: "Howard's Snacks & Foods",
-        short_name: "HowardsSF",
-        description: "El Menú Mágico de Howard's Snacks & Foods",
+        name: "Hogwarts Snacks & Foods",
+        short_name: "HogwartsSF",
+        description: "El Menú Mágico de Hogwarts Snacks & Foods",
         theme_color: '#0a0e1a',
         background_color: '#0a0e1a',
         display: 'standalone',
