@@ -1,6 +1,6 @@
 import { useState, useMemo, useEffect } from 'react'
 import { supabase } from '../lib/supabase'
-import { Search, Sparkles, Flame, Coffee, Wine, UtensilsCrossed, Star } from 'lucide-react'
+import { Search, Sparkles, Flame, Coffee, Wine, UtensilsCrossed, Star, Zap, ChevronLeft } from 'lucide-react'
 
 // Import illustrations
 import burgerImg from '../assets/illustrations/burgers.png'
