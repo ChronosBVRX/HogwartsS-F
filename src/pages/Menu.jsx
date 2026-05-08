@@ -8,6 +8,7 @@ import wingsImg from '../assets/illustrations/wings.png'
 import drinksImg from '../assets/illustrations/drinks.png'
 import coffeeImg from '../assets/illustrations/coffee.png'
 import defaultBg from '../assets/background.png'
+import { MENU_ASSETS } from '../data/menuAssets'
 
 const ICON_MAP = {
   "Sparkles": <Sparkles className="w-4 h-4" />,
@@ -63,7 +64,7 @@ export default function Menu() {
         descripcion: i.description,
         precio: parseFloat(i.price),
         tags: i.is_featured ? ['premium'] : [],
-        image_url: i.image_url
+        image_url: i.image_url || MENU_ASSETS[i.name] || null
       }))
       setMenuItems(mappedItems)
     }
