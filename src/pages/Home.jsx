@@ -1,15 +1,29 @@
-import React from 'react'
+import React, { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import { Sparkles, Utensils, Award, Flame, Star, Zap, ShoppingBag, Scroll, UserPlus, ArrowRight } from 'lucide-react'
+import { supabase } from '../lib/supabase'
 import logo from '../assets/logo.png'
 import heroImg from '../assets/illustrations/hero.png'
 import invitationImg from '../assets/illustrations/invitation.png'
 import shopImg from '../assets/illustrations/shop.png'
 import collectiblesImg from '../assets/illustrations/collectibles.png'
-import { menuData } from '../data/menuData'
 
 export default function Home() {
-  const featuredProducts = menuData.filter(item => item.tags?.includes('popular') || item.tags?.includes('icónico')).slice(0, 3)
+  const [featuredProducts, setFeaturedProducts] = useState([])
+
+  useEffect(() => {
+    async function fetchFeatured() {
+      const { data } = await supabase
+        .from('hsf_menu_items')
+        .select('*')
+        .eq('active', true)
+        .eq('is_featured', true)
+        .limit(3)
+      
+      if (data) setFeaturedProducts(data)
+    }
+    fetchFeatured()
+  }, [])
 
   return (
     <div className="flex-1 flex flex-col items-center">
@@ -75,12 +89,14 @@ export default function Home() {
               <div className="p-8 space-y-6 relative z-10">
                 <div className="flex justify-between items-start">
                   <Star className="text-magical-gold fill-magical-gold w-6 h-6" />
-                  <span className="text-2xl font-black text-magical-gold">${item.precio}</span>
+                  <span className="text-2xl font-black text-magical-gold">
+                    {Number(item.price) === 0 ? "TBA" : `$${item.price}`}
+                  </span>
                 </div>
                 <div className="space-y-2">
-                  <h3 className="text-3xl font-black group-hover:text-magical-gold transition-colors">{item.nombre}</h3>
+                  <h3 className="text-3xl font-black group-hover:text-magical-gold transition-colors">{item.name}</h3>
                   <p className="text-white/50 text-sm leading-relaxed italic border-l-2 border-magical-gold/20 pl-4">
-                    "{item.descripcion}"
+                    "{item.description}"
                   </p>
                 </div>
                 <Link to="/menu" className="btn-gold w-full flex justify-center items-center gap-2 py-3">

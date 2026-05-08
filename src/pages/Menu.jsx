@@ -21,31 +21,72 @@ const ICON_MAP = {
 
 const STOCK_IMAGES = {
   "Hamburguesas": "https://images.unsplash.com/photo-1568901346375-23c9450c58cd?auto=format&fit=crop&q=80&w=400",
-  "Alitas de Fénix": "https://images.unsplash.com/photo-1567620905732-2d1ec7bb7445?auto=format&fit=crop&q=80&w=400",
+  "Alitas de Fenix": "https://images.unsplash.com/photo-1567620905732-2d1ec7bb7445?auto=format&fit=crop&q=80&w=400",
   "Boneless de Hipogrifo": "https://images.unsplash.com/photo-1562967914-608f82629710?auto=format&fit=crop&q=80&w=400",
-  "Pollo": "https://images.unsplash.com/photo-1606755962773-d324e0a13086?auto=format&fit=crop&q=80&w=400",
-  "Bebidas con Alcohol": "https://images.unsplash.com/photo-1514362545857-3bc16c4c7d1b?auto=format&fit=crop&q=80&w=400",
-  "Bebidas sin Alcohol": "https://images.unsplash.com/photo-1536935338788-846bb9981813?auto=format&fit=crop&q=80&w=400",
-  "Cafés Calientes": "https://images.unsplash.com/photo-1541167760496-162955ed8a9f?auto=format&fit=crop&q=80&w=400",
-  "Cold Brew (Bebidas de café heladas)": "https://images.unsplash.com/photo-1461023058943-07fcbe16d735?auto=format&fit=crop&q=80&w=400",
-  "Postres": "https://images.unsplash.com/photo-1563729784474-d77dbb933a9e?auto=format&fit=crop&q=80&w=400",
-  "Tacos, Burritos, Gringas, Fajitas": "https://images.unsplash.com/photo-1565299585323-38d6b0865b47?auto=format&fit=crop&q=80&w=400",
   "Snacks": "https://images.unsplash.com/photo-1599487488170-d11ec9c172f0?auto=format&fit=crop&q=80&w=400",
-  "Frappes": "https://images.unsplash.com/photo-1543644574-19750f5194fd?auto=format&fit=crop&q=80&w=400",
-  "Malteadas": "https://images.unsplash.com/photo-1579954115545-a95591f28bee?auto=format&fit=crop&q=80&w=400",
-  "Carajillos (Café Helado con Alcohol)": "https://images.unsplash.com/photo-1594631252845-29fc4586d517?auto=format&fit=crop&q=80&w=400",
-  "Expresos": "https://images.unsplash.com/photo-1510591509098-f4fdc6d0ff04?auto=format&fit=crop&q=80&w=400",
-  "Infusiones": "https://images.unsplash.com/photo-1576092768241-dec231879fc3?auto=format&fit=crop&q=80&w=400",
-  "Cajitas Mágicas y Ensaladas": "https://images.unsplash.com/photo-1512621776951-a57141f2eefd?auto=format&fit=crop&q=80&w=400",
+  "Comida Mexicana": "https://images.unsplash.com/photo-1565299585323-38d6b0865b47?auto=format&fit=crop&q=80&w=400",
+  "Cajitas Mágicas": "https://images.unsplash.com/photo-1543352634-a1c51d9f1fa7?auto=format&fit=crop&q=80&w=400",
+  "Ensaladas": "https://images.unsplash.com/photo-1512621776951-a57141f2eefd?auto=format&fit=crop&q=80&w=400",
+
+  "Cold Brew": "https://images.unsplash.com/photo-1461023058943-07fcbe16d735?auto=format&fit=crop&q=80&w=400",
+  "Frappes y Malteadas": "https://images.unsplash.com/photo-1579954115545-a95591f28bee?auto=format&fit=crop&q=80&w=400",
+
+  "Infusiones (Café)": "https://images.unsplash.com/photo-1541167760496-162955ed8a9f?auto=format&fit=crop&q=80&w=400",
+  "Café Expreso": "https://images.unsplash.com/photo-1510591509098-f4fdc6d0ff04?auto=format&fit=crop&q=80&w=400",
+  "Tés y Postres": "https://images.unsplash.com/photo-1576092768241-dec231879fc3?auto=format&fit=crop&q=80&w=400",
+
+  "Carajillos (Bebidas heladas)": "https://images.unsplash.com/photo-1594631252845-29fc4586d517?auto=format&fit=crop&q=80&w=400",
+  "Bebidas con Alcohol": "https://images.unsplash.com/photo-1514362545857-3bc16c4c7d1b?auto=format&fit=crop&q=80&w=400",
+  "Especial de las casas": "https://images.unsplash.com/photo-1536935338788-846bb9981813?auto=format&fit=crop&q=80&w=400",
+  "Clericot": "https://images.unsplash.com/photo-1510812431401-41d2bd2722f3?auto=format&fit=crop&q=80&w=400",
+  "En copa": "https://images.unsplash.com/photo-1510812431401-41d2bd2722f3?auto=format&fit=crop&q=80&w=400",
+  "Cerveza y Cocteles": "https://images.unsplash.com/photo-1608270586620-248524c67de9?auto=format&fit=crop&q=80&w=400",
+
+  "Refrescos y Aguas": "https://images.unsplash.com/photo-1544145945-f90425340c7e?auto=format&fit=crop&q=80&w=400",
+
+  "Crepas Delux": "https://images.unsplash.com/photo-1519676867240-f03562e64548?auto=format&fit=crop&q=80&w=400",
+  "Crepas Clásicas": "https://images.unsplash.com/photo-1519676867240-f03562e64548?auto=format&fit=crop&q=80&w=400",
+  "Nuevos Productos": "https://images.unsplash.com/photo-1561043433-9265f73e685f?auto=format&fit=crop&q=80&w=400",
+
   "default": "https://images.unsplash.com/photo-1561043433-9265f73e685f?auto=format&fit=crop&q=80&w=400"
 }
 const SUPER_CATEGORY_MAP = {
-  "Banquetes y Hechizos": ["Hamburguesas", "Alitas de Fénix", "Boneless de Hipogrifo", "Pollo", "Snacks", "Tacos, Burritos, Gringas, Fajitas", "Cajitas Mágicas y Ensaladas"],
-  "Pociones Frías": ["Cold Brew (Bebidas de café heladas)", "Frappes", "Malteadas"],
-  "Calderos Calientes": ["Cafés Calientes", "Expresos", "Infusiones"],
-  "Brebajes Mágicos": ["Bebidas con Alcohol", "Carajillos (Café Helado con Alcohol)"],
-  "Elixires Refrescantes": ["Bebidas sin Alcohol"],
-  "Dulces de Honeydukes": ["Postres"]
+  "Banquetes y Hechizos": [
+    "Boneless de Hipogrifo",
+    "Alitas de Fenix",
+    "Hamburguesas",
+    "Snacks",
+    "Comida Mexicana",
+    "Cajitas Mágicas",
+    "Ensaladas"
+  ],
+  "Pociones Frías": [
+    "Cold Brew",
+    "Frappes y Malteadas"
+  ],
+  "Calderos Calientes": [
+    "Infusiones (Café)",
+    "Café Expreso",
+    "Tés y Postres"
+  ],
+  "Brebajes Mágicos": [
+    "Carajillos (Bebidas heladas)",
+    "Bebidas con Alcohol",
+    "Especial de las casas",
+    "Clericot",
+    "En copa",
+    "Cerveza y Cocteles"
+  ],
+  "Elixires Refrescantes": [
+    "Refrescos y Aguas"
+  ],
+  "Dulces de Honeydukes": [
+    "Crepas Delux",
+    "Crepas Clásicas"
+  ],
+  "Nuevos Hechizos": [
+    "Nuevos Productos"
+  ]
 }
 
 const SECTION_ICONS = {
@@ -54,7 +95,8 @@ const SECTION_ICONS = {
   "Calderos Calientes": <Coffee className="w-5 h-5" />,
   "Brebajes Mágicos": <Wine className="w-5 h-5" />,
   "Elixires Refrescantes": <Sparkles className="w-5 h-5" />,
-  "Dulces de Honeydukes": <Star className="w-5 h-5" />
+  "Dulces de Honeydukes": <Star className="w-5 h-5" />,
+  "Nuevos Hechizos": <Sparkles className="w-5 h-5" />
 }
 export default function Menu() {
   const [viewMode, setViewMode] = useState('categories') // 'categories' or 'products'
