@@ -82,12 +82,17 @@ export default function AdminDashboard() {
 
     if (status === 'approved') {
       const pointsToAdd = Math.floor(amount)
-      await supabase.rpc('process_ticket_approval', { 
+      const { error: rpcError } = await supabase.rpc('process_ticket_approval', { 
         claim_id: ticketId,
         user_uuid: userId, 
         points_to_add: pointsToAdd,
         admin_uuid: adminId
       })
+
+      if (rpcError) {
+        console.error("RPC Error:", rpcError)
+        alert('Ticket aprobado, pero hubo un error al sumar los puntos: ' + rpcError.message + '\nPor favor, asegúrate de haber ejecutado el SQL de process_ticket_approval en Supabase.')
+      }
     }
 
     fetchData()

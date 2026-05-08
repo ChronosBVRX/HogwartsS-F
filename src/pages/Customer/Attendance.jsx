@@ -12,8 +12,31 @@ export default function Attendance() {
   const navigate = useNavigate()
 
   useEffect(() => {
-    if (user) fetchOrCreateSession()
-  }, [user])
+    if (user) {
+      fetchOrCreateSession()
+
+      const channel = supabase
+        .channel(`attendance_updates_${user.id}`)
+        .on(
+          'postgres_changes',
+          {
+            event: 'UPDATE',
+            table: 'hsf_visit_sessions',
+            filter: `customer_id=eq.${user.id}`
+          },
+          (payload) => {
+            if (payload.new.status === 'seated') {
+              navigate('/perfil')
+            } else {
+              fetchOrCreateSession()
+            }
+          }
+        )
+        .subscribe()
+
+      return () => supabase.removeChannel(channel)
+    }
+  }, [user, navigate])
 
   const fetchOrCreateSession = async () => {
     setLoading(true)
