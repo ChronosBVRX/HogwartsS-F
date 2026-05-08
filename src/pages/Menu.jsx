@@ -27,10 +27,10 @@ const IMG_MAP = {
 }
 
 export default function Menu() {
-  const [activeCategory, setActiveCategory] = useState("Todos")
+  const [activeCategory, setActiveCategory] = useState(null)
   const [searchQuery, setSearchQuery] = useState("")
   const [menuItems, setMenuItems] = useState([])
-  const [categories, setCategories] = useState([{ name: "Todos", icon: <Sparkles className="w-4 h-4" /> }])
+  const [categories, setCategories] = useState([])
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
@@ -48,11 +48,13 @@ export default function Menu() {
       const dynamicCats = catRes.data.map(c => ({
         id: c.id,
         name: c.name,
-        // We'll use hardcoded mappings for now if description contains hints, or default to Sparkles
         icon: ICON_MAP[c.description?.split('|')[0]] || <Sparkles className="w-4 h-4" />,
         img: IMG_MAP[c.description?.split('|')[1]] || null
       }))
-      setCategories([{ name: "Todos", icon: <Sparkles className="w-4 h-4" /> }, ...dynamicCats])
+      setCategories(dynamicCats)
+      if (dynamicCats.length > 0 && !activeCategory) {
+        setActiveCategory(dynamicCats[0].name)
+      }
     }
 
     if (!itemRes.error && itemRes.data) {
@@ -125,22 +127,28 @@ export default function Menu() {
               onChange={(e) => setSearchQuery(e.target.value)}
             />
           </div>
-          <div className="flex items-center gap-3 overflow-x-auto w-full md:w-auto pb-2 md:pb-0 scrollbar-hide px-2">
+          <div className="grid grid-cols-2 md:flex md:items-center gap-3 w-full">
             {categories.map(cat => (
               <button
                 key={cat.name}
                 onClick={() => setActiveCategory(cat.name)}
-                className={`px-4 py-2 rounded-xl text-xs font-black whitespace-nowrap transition-all flex items-center gap-3 border h-12 ${
+                className={`relative overflow-hidden group px-4 py-4 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all flex flex-col items-center justify-center gap-2 border h-24 md:h-16 md:flex-row md:flex-1 ${
                   activeCategory === cat.name 
-                    ? 'bg-magical-gold text-magical-navy border-magical-gold shadow-[0_0_20px_rgba(212,175,55,0.4)]' 
-                    : 'bg-white/5 text-white/60 border-white/5 hover:bg-white/10 hover:border-white/20'
+                    ? 'bg-magical-gold text-magical-navy border-magical-gold shadow-[0_10px_30px_rgba(212,175,55,0.3)] scale-[1.02]' 
+                    : 'bg-white/5 text-white/40 border-white/10 hover:bg-white/10'
                 }`}
               >
-                {cat.img && (
-                  <img src={cat.img} className="w-6 h-6 rounded-md object-cover border border-white/20" alt="" />
+                {/* Background Glow for active */}
+                {activeCategory === cat.name && (
+                  <div className="absolute inset-0 bg-white/20 animate-pulse" />
                 )}
-                {!cat.img && cat.icon}
-                {cat.name}
+                
+                <div className={`p-2 rounded-xl transition-colors ${activeCategory === cat.name ? 'bg-magical-navy/10' : 'bg-white/5'}`}>
+                  {cat.img ? (
+                    <img src={cat.img} className="w-6 h-6 rounded-md object-cover" alt="" />
+                  ) : cat.icon}
+                </div>
+                <span className="relative z-10 text-center">{cat.name}</span>
               </button>
             ))}
           </div>
