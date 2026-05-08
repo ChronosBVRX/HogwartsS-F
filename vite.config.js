@@ -11,7 +11,7 @@ export default defineConfig({
     tailwindcss(),
     VitePWA({
       registerType: 'autoUpdate',
-      includeAssets: ['favicon.ico', 'logo.png', 'background.png'],
+      includeAssets: ['favicon.ico', 'logo.png', 'background.png', 'pwa-192x192.png', 'pwa-512x512.png'],
       manifest: {
         name: "Hogwarts Snacks & Foods",
         short_name: "HogwartsSF",
@@ -23,16 +23,16 @@ export default defineConfig({
         start_url: '/',
         icons: [
           {
-            src: '/logo.png',
+            src: '/pwa-192x192.png',
             sizes: '192x192',
             type: 'image/png',
-            purpose: 'any'
+            purpose: 'any maskable'
           },
           {
-            src: '/logo.png',
+            src: '/pwa-512x512.png',
             sizes: '512x512',
             type: 'image/png',
-            purpose: 'maskable'
+            purpose: 'any maskable'
           }
         ]
       },
