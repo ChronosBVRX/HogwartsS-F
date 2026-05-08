@@ -17,36 +17,35 @@ const InstallPWA = () => {
     
     // Show only on mobile and if NOT installed
     if (isMobile && !isStandalone) {
+      // FORCE visibility after a short delay
+      const timer = setTimeout(() => setIsVisible(true), 3000);
+      
       const handler = (e) => {
-        console.log('✅ PWA Install Prompt detected');
+        console.log('✅ PWA Install Prompt captured');
         e.preventDefault();
         setDeferredPrompt(e);
-        setIsVisible(true); // Show the bar only when we actually have the prompt
       };
 
-      // For iOS, we show it after a delay anyway since there is no event
-      if (isIosDevice) {
-        const timer = setTimeout(() => setIsVisible(true), 3000);
-        return () => clearTimeout(timer);
-      }
-
       window.addEventListener('beforeinstallprompt', handler);
-      return () => window.removeEventListener('beforeinstallprompt', handler);
+      return () => {
+        clearTimeout(timer);
+        window.removeEventListener('beforeinstallprompt', handler);
+      };
     }
   }, []);
 
   const handleInstallClick = async () => {
-    if (!deferredPrompt) {
-        console.log('❌ No install prompt available');
-        return;
+    if (isIOS) return; // iOS has its own visual hint in the UI
+    
+    if (deferredPrompt) {
+      deferredPrompt.prompt();
+      const { outcome } = await deferredPrompt.userChoice;
+      if (outcome === 'accepted') setIsVisible(false);
+      setDeferredPrompt(null);
+    } else {
+      // Fallback if prompt is not yet ready
+      alert('Para instalar: Toca los tres puntos (⋮) de tu navegador y selecciona "Instalar aplicación" o "Añadir a la pantalla de inicio".');
     }
-    
-    setIsVisible(false);
-    deferredPrompt.prompt();
-    
-    const { outcome } = await deferredPrompt.userChoice;
-    console.log(`👤 User response to install: ${outcome}`);
-    setDeferredPrompt(null);
   };
 
   if (!isVisible) return null;
