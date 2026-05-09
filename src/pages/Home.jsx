@@ -33,12 +33,12 @@ export default function Home() {
               alt="Hogwarts Logo" 
               className="w-48 md:w-64 mx-auto mb-6 drop-shadow-[0_0_40px_rgba(212,175,55,0.5)] animate-bounce-slow" 
             />
-            <h1 className="text-5xl md:text-9xl font-black tracking-tighter uppercase italic">
+            <h1 className="text-4xl md:text-9xl font-black tracking-tighter uppercase italic">
               <span className="bg-gradient-to-b from-white via-magical-gold to-magical-gold bg-clip-text text-transparent">
                 Hogwarts
               </span>
               <br />
-              <span className="text-3xl md:text-5xl opacity-90 block mt-2 text-white drop-shadow-lg">Snacks & Foods</span>
+              <span className="text-xl md:text-5xl opacity-90 block mt-2 text-white drop-shadow-lg">Snacks & Foods</span>
             </h1>
           </div>
           
