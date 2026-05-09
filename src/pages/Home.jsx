@@ -16,7 +16,7 @@ export default function Home() {
   return (
     <div className="flex-1 flex flex-col items-center">
       {/* Hero Section */}
-      <header className="w-full min-h-screen flex flex-col items-center justify-center p-6 text-center relative overflow-hidden">
+      <header className="w-full min-h-[80vh] md:min-h-screen flex flex-col items-center justify-center p-6 text-center relative overflow-hidden">
         <div className="absolute inset-0 z-0">
           <img 
             src={heroImg} 
@@ -26,19 +26,19 @@ export default function Home() {
           <div className="absolute inset-0 bg-gradient-to-b from-magical-navy/40 via-magical-navy/80 to-magical-navy" />
         </div>
         
-        <div className="max-w-4xl space-y-8 animate-in fade-in slide-in-from-bottom-8 duration-1000 relative z-10">
-          <div className="space-y-4">
+        <div className="max-w-4xl space-y-6 md:space-y-8 animate-in fade-in slide-in-from-bottom-8 duration-1000 relative z-10 -mt-16 md:-mt-0">
+          <div className="space-y-2 md:space-y-4">
             <img 
               src={logo} 
               alt="Hogwarts Logo" 
-              className="w-48 md:w-64 mx-auto mb-6 drop-shadow-[0_0_40px_rgba(212,175,55,0.5)] animate-bounce-slow" 
+              className="w-32 md:w-64 mx-auto mb-2 md:mb-6 drop-shadow-[0_0_40px_rgba(212,175,55,0.5)] animate-bounce-slow" 
             />
             <h1 className="text-4xl md:text-9xl font-black tracking-tighter uppercase italic">
               <span className="bg-gradient-to-b from-white via-magical-gold to-magical-gold bg-clip-text text-transparent">
                 Hogwarts
               </span>
               <br />
-              <span className="text-xl md:text-5xl opacity-90 block mt-2 text-white drop-shadow-lg">Snacks & Foods</span>
+              <span className="text-xl md:text-5xl opacity-90 block mt-1 md:mt-2 text-white drop-shadow-lg">Snacks & Foods</span>
             </h1>
           </div>
           
