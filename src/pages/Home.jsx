@@ -110,6 +110,25 @@ export default function Home() {
         </div>
       </section>
 
+      {/* Galería Premium de Momentos Mágicos */}
+      <section className="w-full max-w-7xl px-6 py-20 relative">
+        <div className="absolute inset-0 bg-magical-gold/5 blur-[100px] pointer-events-none" />
+        <div className="flex flex-col items-center text-center space-y-4 mb-12 relative z-10">
+          <div className="inline-flex items-center gap-2 px-4 py-1.5 bg-white/5 rounded-full border border-white/10">
+            <Camera className="w-4 h-4 text-magical-gold" />
+            <span className="text-[10px] font-black uppercase tracking-[0.3em] text-white/60">Recuerdos Vivos</span>
+          </div>
+          <h2 className="text-3xl md:text-5xl font-black uppercase italic tracking-tighter">
+            Nuestro <span className="text-magical-gold">Lugar Mágico</span>
+          </h2>
+          <p className="text-white/50 max-w-xl mx-auto">
+            Revive los momentos más espectaculares que magos y brujas han compartido en nuestro comedor.
+          </p>
+        </div>
+        
+        <MagicalMoments />
+      </section>
+
       {/* Membership / Registration Invitation */}
       <section className="w-full px-6 py-20 bg-magical-navy relative overflow-hidden">
         <div className="max-w-7xl mx-auto glass-card overflow-hidden flex flex-col md:flex-row min-h-[500px]">
@@ -183,25 +202,6 @@ export default function Home() {
           </div>
         </div>
 
-      </section>
-
-      {/* Galería Premium de Momentos Mágicos */}
-      <section className="w-full max-w-7xl px-6 py-20 relative">
-        <div className="absolute inset-0 bg-magical-gold/5 blur-[100px] pointer-events-none" />
-        <div className="flex flex-col items-center text-center space-y-4 mb-12 relative z-10">
-          <div className="inline-flex items-center gap-2 px-4 py-1.5 bg-white/5 rounded-full border border-white/10">
-            <Camera className="w-4 h-4 text-magical-gold" />
-            <span className="text-[10px] font-black uppercase tracking-[0.3em] text-white/60">Recuerdos Vivos</span>
-          </div>
-          <h2 className="text-3xl md:text-5xl font-black uppercase italic tracking-tighter">
-            Nuestro <span className="text-magical-gold">Lugar Mágico</span>
-          </h2>
-          <p className="text-white/50 max-w-xl mx-auto">
-            Revive los momentos más espectaculares que magos y brujas han compartido en nuestro comedor.
-          </p>
-        </div>
-        
-        <MagicalMoments />
       </section>
 
       {/* Trust Badges */}
