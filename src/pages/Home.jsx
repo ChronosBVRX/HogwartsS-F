@@ -11,21 +11,7 @@ const invitationImg = '/invitation.png'
 const shopImg = '/shop.png'
 
 export default function Home() {
-  const [featuredProducts, setFeaturedProducts] = useState([])
 
-  useEffect(() => {
-    async function fetchFeatured() {
-      const { data } = await supabase
-        .from('hsf_menu_items')
-        .select('*')
-        .eq('active', true)
-        .eq('is_featured', true)
-        .limit(3)
-      
-      if (data) setFeaturedProducts(data)
-    }
-    fetchFeatured()
-  }, [])
 
   return (
     <div className="flex-1 flex flex-col items-center">
@@ -69,46 +55,7 @@ export default function Home() {
         </div>
       </header>
 
-      {/* Featured Menu Section */}
-      <section className="w-full max-w-7xl px-6 py-32 space-y-16">
-        <div className="flex flex-col items-center text-center space-y-6">
-          <div className="inline-flex items-center gap-3 px-4 py-2 bg-magical-gold/10 rounded-full border border-magical-gold/20">
-            <Flame className="text-magical-gold w-5 h-5 animate-pulse" />
-            <span className="text-[10px] font-black uppercase tracking-[0.3em] text-magical-gold">Hechizos del Mes</span>
-          </div>
-          <h2 className="text-4xl md:text-6xl font-black uppercase italic tracking-tighter">
-            Favoritos del <span className="text-magical-gold">Gran Comedor</span>
-          </h2>
-          <p className="text-white/60 max-w-2xl mx-auto text-lg">
-            Nuestros platillos más aclamados por magos y brujas de todas las casas.
-          </p>
-        </div>
 
-        <div className="grid md:grid-cols-3 gap-10">
-          {featuredProducts.map(item => (
-            <div key={item.id} className="glass-card group relative overflow-hidden">
-              <div className="absolute inset-0 bg-magical-gold/5 opacity-0 group-hover:opacity-100 transition-opacity" />
-              <div className="p-8 space-y-6 relative z-10">
-                <div className="flex justify-between items-start">
-                  <Star className="text-magical-gold fill-magical-gold w-6 h-6" />
-                  <span className="text-2xl font-black text-magical-gold">
-                    {Number(item.price) === 0 ? "TBA" : `$${item.price}`}
-                  </span>
-                </div>
-                <div className="space-y-2">
-                  <h3 className="text-3xl font-black group-hover:text-magical-gold transition-colors">{item.name}</h3>
-                  <p className="text-white/50 text-sm leading-relaxed italic border-l-2 border-magical-gold/20 pl-4">
-                    "{item.description}"
-                  </p>
-                </div>
-                <Link to="/menu" className="btn-gold w-full flex justify-center items-center gap-2 py-3">
-                  Pedir Hechizo <ArrowRight className="w-4 h-4" />
-                </Link>
-              </div>
-            </div>
-          ))}
-        </div>
-      </section>
 
       {/* Galería Premium de Momentos Mágicos */}
       <section className="w-full max-w-7xl px-6 py-20 relative">
