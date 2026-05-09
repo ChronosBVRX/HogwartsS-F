@@ -112,7 +112,7 @@ export default function Profile() {
     )
   }
 
-  const currentSteps = profile?.points || 0
+  const currentSteps = profile?.loyalty_points || 0
   
   // Calculate map progress
   const nextMilestoneIndex = MAP_THRESHOLDS.findIndex(m => m.steps > currentSteps)
