@@ -9,8 +9,10 @@ export default function Navbar() {
   return (
     <nav className="glass-card m-4 px-6 py-4 flex justify-between items-center z-50">
       <Link to="/" className="flex items-center gap-2">
-        <img src={logo} alt="Logo" className="w-8 h-8 object-contain" />
-        <span className="text-xl font-bold text-magical-gold tracking-tighter">Hogwarts Snacks & Foods</span>
+        <img src={logo} alt="Logo" className="w-8 h-8 object-contain shrink-0" />
+        <span className="text-xs sm:text-sm md:text-xl font-bold text-magical-gold tracking-tighter leading-tight max-w-[120px] sm:max-w-none">
+          Hogwarts <span className="hidden sm:inline">Snacks & Foods</span>
+        </span>
       </Link>
 
       <div className="flex items-center gap-6">
