@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Sparkles, Camera } from 'lucide-react';
+import { Wand2, Camera } from 'lucide-react';
 
 const MagicalMoments = () => {
   const [photos, setPhotos] = useState([]);
@@ -45,7 +45,7 @@ const MagicalMoments = () => {
   if (loading) {
     return (
       <div className="w-full max-w-lg mx-auto aspect-[4/3] rounded-3xl overflow-hidden glass-card border border-magical-gold/10 relative animate-pulse flex items-center justify-center">
-         <Sparkles className="w-8 h-8 text-magical-gold/50 animate-spin-slow" />
+         <Wand2 className="w-8 h-8 text-magical-gold/50 animate-spin-slow" />
       </div>
     );
   }
@@ -83,7 +83,7 @@ const MagicalMoments = () => {
 
         {/* Decoraciones Estéticas */}
         <div className="absolute top-4 right-4 z-20 opacity-0 group-hover:opacity-100 transition-opacity">
-          <Sparkles className="w-5 h-5 text-white/50" />
+          <Wand2 className="w-5 h-5 text-white/50" />
         </div>
         
         {/* Indicadores de progreso (Puntos) */}

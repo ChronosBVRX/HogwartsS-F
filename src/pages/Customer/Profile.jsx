@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useAuth } from '../../context/AuthContext'
 import { supabase } from '../../lib/supabase'
-import { Award, QrCode, LogOut, Sparkles, Star, Shield, Zap, Wand2, Hash, Settings as SettingsIcon, Map, Footprints, Ticket, CheckCircle2, XCircle, Clock } from 'lucide-react'
+import { Award, QrCode, LogOut, Star, Shield, Zap, Wand2, Hash, Settings as SettingsIcon, Map, Footprints, Ticket, CheckCircle2, XCircle, Clock } from 'lucide-react'
 
 // House assets
 import gryffindorLogo from '../../assets/houses/gryffindor.png'
@@ -133,7 +133,7 @@ export default function Profile() {
       <header className="flex justify-between items-center bg-white/5 p-4 md:p-6 rounded-[2rem] border border-white/5 backdrop-blur-sm">
         <div className="flex items-center gap-4">
           <div className="w-10 h-10 md:w-12 md:h-12 rounded-full bg-magical-gold/10 flex items-center justify-center border border-magical-gold/20">
-            <Sparkles className="text-magical-gold w-5 h-5 md:w-6 md:h-6" />
+            <Wand2 className="text-magical-gold w-5 h-5 md:w-6 md:h-6" />
           </div>
           <div>
             <h1 className="text-xl md:text-2xl font-black text-white tracking-tighter uppercase italic">{profile?.display_name}</h1>

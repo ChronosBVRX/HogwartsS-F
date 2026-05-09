@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { supabase } from '../../lib/supabase'
 import { useAuth } from '../../context/AuthContext'
-import { ChevronLeft, Ticket, Send, Sparkles, AlertCircle } from 'lucide-react'
+import { ChevronLeft, Ticket, Send, Wand2, AlertCircle } from 'lucide-react'
 
 export default function ClaimTicket() {
   const { user } = useAuth()
@@ -71,7 +71,7 @@ export default function ClaimTicket() {
       <div className="flex-1 flex items-center justify-center p-6 text-center animate-in zoom-in duration-500">
         <div className="glass-card p-12 space-y-6">
           <div className="p-4 bg-green-500/20 rounded-full w-fit mx-auto">
-            <Sparkles className="w-12 h-12 text-green-400" />
+            <Wand2 className="w-12 h-12 text-green-400" />
           </div>
           <h1 className="text-3xl font-black uppercase italic tracking-tighter text-white">¡Ticket Enviado!</h1>
           <p className="text-white/60">Tu solicitud está siendo revisada por los duendes de Gringotts. <br /> Recibirás tus puntos pronto.</p>
@@ -126,7 +126,7 @@ export default function ClaimTicket() {
 
           <div className="bg-white/5 p-6 rounded-3xl border border-white/5 flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <Sparkles className="w-5 h-5 text-magical-gold" />
+              <Wand2 className="w-5 h-5 text-magical-gold" />
               <span className="text-xs font-bold text-white/60">Recompensa Estimada</span>
             </div>
             <div className="text-2xl font-black text-magical-gold">

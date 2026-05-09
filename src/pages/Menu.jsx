@@ -1,7 +1,7 @@
 import React, { useState, useMemo, useEffect } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
-import { Search, Sparkles, Flame, Coffee, Wine, UtensilsCrossed, Star, Zap, ChevronLeft } from 'lucide-react'
+import { Search, Wand2, Flame, Coffee, Wine, UtensilsCrossed, Star, Zap, ChevronLeft } from 'lucide-react'
 
 // Import illustrations
 import burgerImg from '../assets/illustrations/burgers.png'
@@ -12,7 +12,7 @@ const defaultBg = '/background.png'
 import { MENU_ASSETS } from '../data/menuAssets'
 
 const ICON_MAP = {
-  "Sparkles": <Sparkles className="w-4 h-4" />,
+  "Sparkles": <Wand2 className="w-4 h-4" />,
   "UtensilsCrossed": <UtensilsCrossed className="w-4 h-4" />,
   "Flame": <Flame className="w-4 h-4" />,
   "Star": <Star className="w-4 h-4" />,
@@ -95,9 +95,9 @@ const SECTION_ICONS = {
   "Pociones Frías": <Zap className="w-5 h-5" />,
   "Calderos Calientes": <Coffee className="w-5 h-5" />,
   "Brebajes Mágicos": <Wine className="w-5 h-5" />,
-  "Elixires Refrescantes": <Sparkles className="w-5 h-5" />,
+  "Elixires Refrescantes": <Wand2 className="w-5 h-5" />,
   "Dulces de Honeydukes": <Star className="w-5 h-5" />,
-  "Nuevos Hechizos": <Sparkles className="w-5 h-5" />
+  "Nuevos Hechizos": <Wand2 className="w-5 h-5" />
 }
 export default function Menu() {
   const [searchParams, setSearchParams] = useSearchParams()
@@ -134,7 +134,7 @@ export default function Menu() {
       const dynamicCats = catRes.data.map(c => ({
         id: c.id,
         name: c.name,
-        icon: ICON_MAP[c.description?.split('|')[0]] || <Sparkles className="w-4 h-4" />,
+        icon: ICON_MAP[c.description?.split('|')[0]] || <Wand2 className="w-4 h-4" />,
         img: c.image_url || STOCK_IMAGES[c.name] || STOCK_IMAGES["default"]
       }))
       setCategories(dynamicCats)

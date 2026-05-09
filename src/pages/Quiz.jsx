@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import { supabase } from '../lib/supabase'
-import { Sparkles, Skull, Eye, Heart, Zap, Shield, Wand2, Moon } from 'lucide-react'
+import {  Skull, Eye, Heart, Zap, Shield, Wand2, Moon } from 'lucide-react'
 
 const questions = [
   {
@@ -10,7 +10,7 @@ const questions = [
     options: [
       { text: "Desenvainas tu varita y avanzas hacia el sonido.", house: "red", icon: <Shield className="w-5 h-5" /> },
       { text: "Lanzas un hechizo desilusionador para observar sin ser visto.", house: "green", icon: <Eye className="w-5 h-5" /> },
-      { text: "Intentas descifrar si el susurro es un idioma antiguo.", house: "blue", icon: <Sparkles className="w-5 h-5" /> },
+      { text: "Intentas descifrar si el susurro es un idioma antiguo.", house: "blue", icon: <Wand2 className="w-5 h-5" /> },
       { text: "Buscas huellas para ver si alguien necesita ayuda.", house: "yellow", icon: <Heart className="w-5 h-5" /> }
     ]
   },
@@ -28,7 +28,7 @@ const questions = [
     options: [
       { text: "La magia de combate y defensa.", house: "red", icon: <Shield className="w-5 h-5" /> },
       { text: "Las artes oscuras y la transmutación.", house: "green", icon: <Skull className="w-5 h-5" /> },
-      { text: "La alquimia y la astronomía.", house: "blue", icon: <Sparkles className="w-5 h-5" /> },
+      { text: "La alquimia y la astronomía.", house: "blue", icon: <Wand2 className="w-5 h-5" /> },
       { text: "La herbología y el cuidado de criaturas.", house: "yellow", icon: <Heart className="w-5 h-5" /> }
     ]
   },
@@ -88,7 +88,7 @@ export default function Quiz() {
         <div className="glass-card w-full max-w-2xl p-12 text-center space-y-8 relative overflow-hidden">
           <div className={`absolute inset-0 bg-gradient-to-br ${house.color} opacity-20`} />
           <div className="relative z-10 space-y-6">
-            <Sparkles className="w-16 h-16 text-magical-gold mx-auto animate-bounce-slow" />
+            <Wand2 className="w-16 h-16 text-magical-gold mx-auto animate-bounce-slow" />
             <h1 className="text-2xl font-black uppercase tracking-[0.5em] text-white/60">El Sombrero ha hablado</h1>
             <h2 className={`text-6xl md:text-8xl font-black uppercase italic tracking-tighter text-transparent bg-clip-text bg-gradient-to-b ${house.color} drop-shadow-2xl`}>
               {house.name}
@@ -125,7 +125,7 @@ export default function Quiz() {
             </div>
             <button onClick={handleStart} className="btn-gold text-xl px-12 py-5 w-full flex justify-center items-center gap-3 group">
               Ponerme el Sombrero
-              <Sparkles className="w-6 h-6 group-hover:rotate-12 transition-transform" />
+              <Wand2 className="w-6 h-6 group-hover:rotate-12 transition-transform" />
             </button>
           </>
         ) : (
@@ -148,7 +148,7 @@ export default function Quiz() {
                   className="w-full text-left p-6 bg-white/5 border border-white/10 rounded-2xl hover:bg-magical-gold hover:text-magical-navy transition-all group flex items-center gap-4"
                 >
                   <div className="p-3 bg-white/5 rounded-xl group-hover:bg-magical-navy/20 transition-colors">
-                    {opt.icon || <Sparkles className="w-5 h-5" />}
+                    {opt.icon || <Wand2 className="w-5 h-5" />}
                   </div>
                   <span className="text-lg font-bold">
                     {opt.text}

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import { supabase } from '../lib/supabase'
-import { Sparkles, Plus, Edit2, Trash2, Save, X, Eye, EyeOff } from 'lucide-react'
+import { Wand2, Plus, Edit2, Trash2, Save, X, Eye, EyeOff } from 'lucide-react'
 
 export default function AdminMenuManager() {
   const [categories, setCategories] = useState([])
@@ -90,7 +90,7 @@ export default function AdminMenuManager() {
     <div className="space-y-8">
       <div className="flex justify-between items-center px-2">
         <div className="flex items-center gap-3">
-          <Sparkles className="w-5 h-5 text-magical-gold" />
+          <Wand2 className="w-5 h-5 text-magical-gold" />
           <h2 className="text-sm font-black uppercase tracking-[0.4em] text-white/60">Gestión de Menú</h2>
         </div>
         <button 
@@ -211,7 +211,7 @@ export default function AdminMenuManager() {
                         <img src={item.image_url} alt={item.name} className="w-12 h-12 rounded-lg object-cover border border-white/10" />
                       ) : (
                         <div className="w-12 h-12 rounded-lg bg-white/5 border border-white/10 flex items-center justify-center">
-                          <Sparkles className="w-5 h-5 text-white/20" />
+                          <Wand2 className="w-5 h-5 text-white/20" />
                         </div>
                       )}
                       <div>

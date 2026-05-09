@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
-import { Sparkles, Utensils, Award, Flame, Star, Zap, ShoppingBag, Scroll, UserPlus, ArrowRight, Camera } from 'lucide-react'
+import { Wand2, Utensils, Award, Flame, Star, Zap, ShoppingBag, Scroll, UserPlus, ArrowRight, Camera } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import MagicalMoments from '../components/MagicalMoments'
 

@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react'
 import { supabase } from '../../lib/supabase'
 import { useAuth } from '../../context/AuthContext'
-import { Shield, Ticket, Check, X, Users, Star, TrendingUp, AlertCircle, Search, UserCog, UserPlus, Sparkles } from 'lucide-react'
+import { Shield, Ticket, Check, X, Users, Star, TrendingUp, AlertCircle, Search, UserCog, UserPlus, Wand2 } from 'lucide-react'
 import AdminMenuManager from '../../components/AdminMenuManager'
 
 export default function AdminDashboard() {
@@ -146,7 +146,7 @@ export default function AdminDashboard() {
               activeTab === 'menu' ? 'bg-magical-gold text-magical-navy' : 'text-white/40 hover:text-white'
             }`}
           >
-            <Sparkles className="w-4 h-4" />
+            <Wand2 className="w-4 h-4" />
             Menú
           </button>
         </div>

@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { supabase } from '../../lib/supabase'
 import { useAuth } from '../../context/AuthContext'
-import { ChevronLeft, User, Lock, LogOut, Save, Sparkles, CheckCircle2 } from 'lucide-react'
+import { ChevronLeft, User, Lock, LogOut, Save, Wand2, CheckCircle2 } from 'lucide-react'
 
 export default function Settings() {
   const { user, profile, signOut } = useAuth()
@@ -136,7 +136,7 @@ export default function Settings() {
             />
           </div>
           <button type="submit" disabled={loading} className="btn-gold px-8 py-3 flex items-center gap-2 text-sm font-black uppercase italic">
-            <Sparkles className="w-4 h-4" />
+            <Wand2 className="w-4 h-4" />
             Actualizar Contraseña
           </button>
         </form>
