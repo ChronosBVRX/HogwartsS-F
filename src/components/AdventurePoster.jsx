@@ -116,17 +116,17 @@ export default function AdventurePoster({ zone }) {
           <QRCodeSVG value={qrUrl} size={280} level="H" includeMargin={true} />
         </div>
 
-        <p className="text-white/40 text-xs leading-relaxed max-w-sm mx-auto">
-          Abre tu perfil, toca “Aventura Mágica” y escanea este código para desbloquear el siguiente acertijo.
+        <p className="text-white/60 text-sm leading-relaxed max-w-lg">
+          Para participar, regístrate en nuestra página e inicia desde tu perfil la <strong>Aventura Mágica</strong>. Luego, escanea este código. Si este es el portal correcto, recibirás el siguiente acertijo en tu celular.
         </p>
       </div>
 
       <div className="relative z-10 text-center flex flex-col items-center gap-2">
-        <p className="text-yellow-300 font-black uppercase tracking-[0.4em] text-[10px]">
-          Explora · Resuelve · Gana
+        <p className="text-yellow-300 font-black uppercase tracking-[0.4em] text-[11px]">
+          Regístrate · Inicia Aventura · Escanea y Gana
         </p>
         <p className="text-white/10 text-[9px] font-mono tracking-widest uppercase">
-          Ref: {zone.slug?.toUpperCase()}
+          Portal: {zone.slug?.toUpperCase()}
         </p>
       </div>
     </div>
