@@ -147,11 +147,20 @@ export default function Profile() {
             <Wand2 className="text-magical-gold w-5 h-5 md:w-6 md:h-6" />
           </div>
           <div>
-            <h1 className="text-xl md:text-2xl font-black text-white tracking-tighter uppercase italic">{profile?.display_name}</h1>
+            <div className="flex items-center gap-2">
+              <h1 className="text-xl md:text-2xl font-black text-white tracking-tighter uppercase italic">{profile?.display_name}</h1>
+              <span className="md:hidden px-2 py-0.5 bg-magical-gold/10 border border-magical-gold/20 rounded-full text-[8px] font-black text-magical-gold">
+                {profile?.loyalty_points || 0} pts
+              </span>
+            </div>
             <p className="text-[9px] text-white/30 uppercase font-bold tracking-[0.2em]">Miembro de Hogwarts</p>
           </div>
         </div>
-        <div className="flex gap-2">
+        <div className="flex items-center gap-3">
+          <div className="hidden md:flex flex-col items-end px-4 py-2 bg-white/5 border border-white/10 rounded-2xl">
+            <p className="text-[8px] font-black uppercase tracking-widest text-magical-gold/60">Puntos Totales</p>
+            <p className="text-sm font-black text-white">{profile?.loyalty_points || 0} ✨</p>
+          </div>
           <Link to="/ajustes" className="p-3 bg-white/5 rounded-xl border border-white/5 hover:bg-white/10 transition-colors">
             <SettingsIcon className="w-5 h-5 text-white/40" />
           </Link>
