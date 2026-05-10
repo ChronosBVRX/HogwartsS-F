@@ -33,18 +33,11 @@ const InstallPWA = () => {
     window.addEventListener('beforeinstallprompt', handlePrompt);
     window.addEventListener('appinstalled', handleInstalled);
 
-    // En iOS no existe beforeinstallprompt, mostramos instrucciones manuales tras 1.5s
-    if (isIosDevice) {
-      const timer = setTimeout(() => setIsVisible(true), 1500);
-
-      return () => {
-        clearTimeout(timer);
-        window.removeEventListener('beforeinstallprompt', handlePrompt);
-        window.removeEventListener('appinstalled', handleInstalled);
-      };
-    }
+    // Mostrar instrucciones manuales después de unos segundos en TODOS los dispositivos si no se dispara el prompt nativo
+    const timer = setTimeout(() => setIsVisible(true), 2500);
 
     return () => {
+      clearTimeout(timer);
       window.removeEventListener('beforeinstallprompt', handlePrompt);
       window.removeEventListener('appinstalled', handleInstalled);
     };
@@ -76,7 +69,9 @@ const InstallPWA = () => {
         {!isIOS ? (
           <p className="text-sm font-medium text-white leading-tight flex items-center gap-2">
             <span className="text-lg">📱</span>
-            Instala la app para entrar más rápido.
+            {canInstall
+              ? 'Instala la app para entrar más rápido.'
+              : 'Abre el menú de Chrome ⋮ y toca Instalar aplicación.'}
           </p>
         ) : (
           <div className="space-y-0.5">
@@ -91,12 +86,21 @@ const InstallPWA = () => {
       </div>
 
       <div className="flex items-center gap-3">
-        {!isIOS && (
+        {!isIOS && canInstall && (
           <button
             onClick={handleInstallClick}
             className="bg-green-600 text-white px-3 py-1.5 rounded text-sm font-bold shadow-md hover:bg-green-500 transition-colors"
           >
             Instalar
+          </button>
+        )}
+
+        {!isIOS && !canInstall && (
+          <button
+            onClick={() => alert("En Chrome Android: toca el menú ⋮ y elige 'Instalar aplicación' o 'Agregar a pantalla principal'. Si no aparece, navega unos 30 segundos dentro de la app y vuelve a intentarlo.")}
+            className="bg-yellow-600 text-white px-3 py-1.5 rounded text-sm font-bold shadow-md hover:bg-yellow-500 transition-colors"
+          >
+            Ver cómo
           </button>
         )}
 
