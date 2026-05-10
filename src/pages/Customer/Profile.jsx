@@ -327,7 +327,7 @@ export default function Profile() {
                   const isPast = index <= currentMilestoneIndex
                   const isCurrent = index === currentMilestoneIndex
                   return (
-                    <div key={index} className="flex flex-col items-center gap-3 relative">
+                    <div key={index} className="flex flex-col items-center gap-2 relative flex-1 min-w-0">
                       <div className={`w-8 h-8 md:w-12 md:h-12 rounded-full flex items-center justify-center border-2 transition-all z-10
                         ${isPast ? 'bg-[#5c3a21] border-[#5c3a21] text-[#e6c9a8]' : 'bg-[#e6c9a8] border-[#8b5a2b]/30 text-[#8b5a2b]/50'}
                         ${isCurrent ? 'ring-4 ring-[#8b5a2b]/30 scale-110 shadow-xl' : ''}
@@ -335,12 +335,12 @@ export default function Profile() {
                         {isCurrent ? <Footprints className="w-4 h-4 md:w-6 md:h-6 animate-pulse" /> : <span className="text-xs md:text-sm">{milestone.icon}</span>}
                       </div>
                       
-                      <div className="absolute top-14 w-24 text-center">
-                        <p className={`text-[8px] md:text-[10px] font-black uppercase tracking-widest ${isPast ? 'text-[#5c3a21]' : 'text-[#8b5a2b]/50'}`}>
+                      <div className="text-center px-1">
+                        <p className={`text-[7px] md:text-[10px] font-black uppercase tracking-tight md:tracking-widest leading-tight ${isPast ? 'text-[#5c3a21]' : 'text-[#8b5a2b]/50'}`}>
                           {milestone.name}
                         </p>
-                        <p className={`text-[7px] md:text-[8px] font-bold ${isPast ? 'text-[#5c3a21]/60' : 'text-[#8b5a2b]/30'}`}>
-                          {milestone.steps} pasos
+                        <p className={`text-[6px] md:text-[8px] font-bold mt-0.5 ${isPast ? 'text-[#5c3a21]/60' : 'text-[#8b5a2b]/30'}`}>
+                          {milestone.steps} pts
                         </p>
                       </div>
                     </div>
