@@ -25,7 +25,7 @@ export default function Home() {
           <div className="absolute inset-0 bg-gradient-to-b from-magical-navy/60 via-magical-navy/80 to-magical-navy" />
         </div>
         
-        <div className="max-w-4xl space-y-6 md:space-y-8 animate-in fade-in slide-in-from-bottom-8 duration-1000 relative z-10 -mt-16 md:-mt-0">
+        <div className="max-w-4xl space-y-6 md:space-y-8 animate-in fade-in slide-in-from-bottom-8 duration-1000 relative z-10 pt-4 md:pt-0">
           <img 
             src={logo} 
             alt="Hogwarts Logo" 
