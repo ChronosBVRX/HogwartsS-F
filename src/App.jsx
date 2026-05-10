@@ -15,6 +15,11 @@ import Settings from './pages/Customer/Settings'
 import ForgotPassword from './pages/ForgotPassword'
 import Navbar from './components/layout/Navbar'
 import InstallPWA from './components/InstallPWA'
+import AdventureHome from './pages/Customer/AdventureHome'
+import AdventureScanner from './pages/Customer/AdventureScanner'
+import AdventurePlay from './pages/Customer/AdventurePlay'
+import AdventureReward from './pages/Customer/AdventureReward'
+
 
 const ProtectedRoute = ({ children, role }) => {
   const { user, profile } = useAuth()
@@ -45,6 +50,10 @@ function App() {
             <Route path="/ajustes" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
             <Route path="/asistencia" element={<ProtectedRoute><Attendance /></ProtectedRoute>} />
             <Route path="/registrar-ticket" element={<ProtectedRoute><ClaimTicket /></ProtectedRoute>} />
+            <Route path="/aventura" element={<ProtectedRoute><AdventureHome /></ProtectedRoute>} />
+            <Route path="/aventura/escanear" element={<ProtectedRoute><AdventureScanner /></ProtectedRoute>} />
+            <Route path="/aventura/jugar/:runId" element={<ProtectedRoute><AdventurePlay /></ProtectedRoute>} />
+            <Route path="/aventura/recompensa/:runId" element={<ProtectedRoute><AdventureReward /></ProtectedRoute>} />
 
             {/* Waiter Routes */}
             <Route path="/mesero" element={<ProtectedRoute role="waiter"><WaiterDashboard /></ProtectedRoute>} />

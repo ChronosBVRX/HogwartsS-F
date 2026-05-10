@@ -1,8 +1,9 @@
 import React, { useEffect, useState } from 'react'
 import { supabase } from '../../lib/supabase'
 import { useAuth } from '../../context/AuthContext'
-import { Shield, Ticket, Check, X, Users, Star, TrendingUp, AlertCircle, Search, UserCog, UserPlus, Wand2 } from 'lucide-react'
+import { Shield, Ticket, Check, X, Users, Star, TrendingUp, AlertCircle, Search, UserCog, UserPlus, Wand2, Map } from 'lucide-react'
 import AdminMenuManager from '../../components/AdminMenuManager'
+import AdminAdventureManager from '../../components/AdminAdventureManager'
 
 export default function AdminDashboard() {
   const [stats, setStats] = useState({ users: 0, points: 0, pendingTickets: 0 })
@@ -149,10 +150,20 @@ export default function AdminDashboard() {
             <Wand2 className="w-4 h-4" />
             Menú
           </button>
+          <button
+            onClick={() => setActiveTab('adventures')}
+            className={`px-6 py-3 rounded-xl text-xs font-black uppercase tracking-widest transition-all flex items-center gap-2 whitespace-nowrap ${
+              activeTab === 'adventures' ? 'bg-magical-gold text-magical-navy' : 'text-white/40 hover:text-white'
+            }`}
+          >
+            <Map className="w-4 h-4" />
+            Aventuras
+          </button>
         </div>
       </header>
 
       {activeTab === 'menu' && <AdminMenuManager />}
+      {activeTab === 'adventures' && <AdminAdventureManager />}
 
       {activeTab === 'tickets' && (
         <>

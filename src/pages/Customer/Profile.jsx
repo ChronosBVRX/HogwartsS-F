@@ -246,6 +246,10 @@ export default function Profile() {
                 <QrCode className="w-6 h-6" />
                 Obtener Pase de Entrada
               </Link>
+              <Link to="/aventura" className="btn-gold w-full flex items-center justify-center gap-3 py-5 text-sm font-black uppercase">
+                <Wand2 className="w-5 h-5" />
+                Iniciar Aventura Mágica
+              </Link>
             </div>
           ) : (
             <div className="flex-1 flex flex-col justify-center space-y-6">
@@ -270,6 +274,11 @@ export default function Profile() {
                   Registrar Consumo
                 </Link>
               )}
+
+              <Link to="/aventura" className="btn-gold w-full flex items-center justify-center gap-3 py-5 text-sm font-black uppercase">
+                <Wand2 className="w-5 h-5" />
+                Iniciar Aventura Mágica
+              </Link>
 
               <Link to="/asistencia" className="text-center block text-[9px] font-black text-white/20 uppercase tracking-[0.3em] hover:text-white/40 transition-colors">
                 Abrir Escáner QR
