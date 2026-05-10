@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { supabase } from '../../lib/supabase'
-import { Wand2, QrCode, Gift, Map, AlertCircle, Sparkles } from 'lucide-react'
+import { Wand2, QrCode, Gift, Map, AlertCircle, Sparkles, XCircle } from 'lucide-react'
 
 export default function AdventureHome() {
   const [state, setState] = useState(null)
@@ -9,8 +9,34 @@ export default function AdventureHome() {
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    fetchAdventure()
-    fetchRewards()
+    let channel;
+
+    const setupRealtime = async () => {
+      fetchAdventure()
+      fetchRewards()
+
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user) return
+
+      channel = supabase
+        .channel('adventure_home_updates')
+        .on(
+          'postgres_changes',
+          {
+            event: '*',
+            table: 'hsf_adventure_runs',
+            filter: `customer_id=eq.${user.id}`
+          },
+          () => fetchAdventure()
+        )
+        .subscribe()
+    }
+
+    setupRealtime()
+
+    return () => {
+      if (channel) supabase.removeChannel(channel)
+    }
   }, [])
 
   const fetchAdventure = async () => {

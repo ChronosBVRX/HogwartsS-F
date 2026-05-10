@@ -20,6 +20,21 @@ export default function AdventurePlay() {
       } catch {}
     }
     fetchStep()
+
+    const channel = supabase
+      .channel(`adventure_play_${runId}`)
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          table: 'hsf_adventure_runs',
+          filter: `id=eq.${runId}`
+        },
+        () => fetchStep()
+      )
+      .subscribe()
+
+    return () => supabase.removeChannel(channel)
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [runId])
 
