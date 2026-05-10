@@ -86,8 +86,12 @@ export default function Attendance() {
 
       <div className="glass-card overflow-hidden">
         <div className="p-10 text-center bg-magical-gold/5 border-b border-white/5 space-y-2">
-          <h1 className="text-3xl font-black uppercase italic tracking-tighter text-white">Pase de <span className="text-magical-gold">Entrada</span></h1>
-          <p className="text-xs text-white/40 uppercase font-bold tracking-[0.3em]">Presenta este código al llegar</p>
+          <h1 className="text-2xl md:text-3xl font-black uppercase italic tracking-tighter text-white">
+            Iniciar aventura mágica y <span className="text-magical-gold">registrar visita</span>
+          </h1>
+          <p className="text-[10px] text-white/50 uppercase font-black tracking-[0.2em] leading-relaxed max-w-sm mx-auto">
+            Genera un QR que tendrás que mostrar a los meseros para que validen tu visita
+          </p>
         </div>
 
         <div className="p-10 flex flex-col items-center space-y-10">

@@ -231,7 +231,7 @@ export default function Profile() {
 
         <div className="bg-white/5 rounded-[2.5rem] p-8 md:p-10 border border-white/5 space-y-8 flex flex-col">
           <div className="flex items-center justify-between">
-            <p className="text-[10px] font-black text-white/30 uppercase tracking-[0.3em]">Estado de Visita</p>
+            <p className="text-[10px] font-black text-magical-gold uppercase tracking-[0.25em]">Iniciar aventura mágica y registrar visita</p>
             {activeSession && (
                <span className="px-3 py-1 bg-white/10 rounded-full text-[9px] font-black uppercase tracking-widest text-white/60">
                  {activeSession.status.replace(/_/g, ' ')}
@@ -239,52 +239,55 @@ export default function Profile() {
             )}
           </div>
 
-          {!activeSession || activeSession.status === 'ticket_submitted' ? (
-            <div className="flex-1 flex flex-col justify-center items-center text-center space-y-6">
-              <p className="text-sm text-white/40 font-medium italic">Bienvenido a los terrenos de la escuela.</p>
-              <Link to="/asistencia" className="btn-gold w-full flex items-center justify-center gap-3 py-5 text-sm font-black uppercase">
-                <QrCode className="w-6 h-6" />
-                Obtener Pase de Entrada
-              </Link>
-              <Link to="/aventura" className="btn-gold w-full flex items-center justify-center gap-3 py-5 text-sm font-black uppercase">
+          <div className="flex-1 flex flex-col justify-center space-y-6">
+            {/* Si está sentado, mostrar mesa arriba */}
+            {activeSession?.status === 'seated' && (
+              <div className="text-center space-y-1 pb-4">
+                <p className="text-4xl font-black text-white italic tracking-tighter">Mesa {activeSession.table_number}</p>
+                <p className="text-[10px] text-magical-gold font-black uppercase tracking-widest">Disfruta tu banquete</p>
+              </div>
+            )}
+
+            {/* Los dos botones principales que pidió el usuario */}
+            <div className="space-y-6">
+              <Link to="/aventura" className="btn-gold w-full flex items-center justify-center gap-3 py-5 text-sm font-black uppercase shadow-[0_0_30px_rgba(212,175,55,0.2)]">
                 <Wand2 className="w-5 h-5" />
                 Iniciar Aventura Mágica
               </Link>
+
+              <div className="space-y-3 text-center">
+                <p className="text-[10px] text-white/50 uppercase font-black tracking-widest leading-relaxed max-w-[240px] mx-auto">
+                  Genera un QR que tendrás que mostrar a los meseros para que validen tu visita
+                </p>
+                <Link to="/asistencia" className="btn-gold w-full flex items-center justify-center gap-3 py-5 text-sm font-black uppercase bg-white/10 border-white/20 hover:bg-white/20">
+                  <QrCode className="w-6 h-6" />
+                  Registrar Visita Mágica
+                </Link>
+                <p className="text-[10px] text-white/40 uppercase font-black tracking-widest leading-relaxed max-w-[280px] mx-auto italic">
+                  Muestra tu QR al personal para validar tu asistencia y acumular puntos
+                </p>
+              </div>
             </div>
-          ) : (
-            <div className="flex-1 flex flex-col justify-center space-y-6">
-              {activeSession.status === 'seated' && (
-                <div className="space-y-6">
-                  <div className="text-center space-y-1">
-                    <p className="text-4xl font-black text-white italic tracking-tighter">Mesa {activeSession.table_number}</p>
-                    <p className="text-[10px] text-magical-gold font-black uppercase tracking-widest">Disfruta tu banquete</p>
-                  </div>
-                  <button 
-                    onClick={handleEndVisit}
-                    className="w-full bg-white/5 border border-white/10 text-white/60 hover:bg-white/10 hover:text-white py-4 rounded-2xl text-xs font-black uppercase tracking-widest transition-all"
-                  >
-                    Terminar Visita
-                  </button>
-                </div>
+
+            {/* Acciones secundarias según el estado */}
+            <div className="pt-4 space-y-4">
+              {activeSession?.status === 'seated' && (
+                <button 
+                  onClick={handleEndVisit}
+                  className="w-full text-white/20 hover:text-white/40 text-[10px] font-black uppercase tracking-widest transition-all"
+                >
+                  Terminar Visita
+                </button>
               )}
 
-              {activeSession.status === 'closed_waiting_ticket' && (
-                <Link to="/registrar-ticket" className="btn-gold w-full flex items-center justify-center gap-3 py-5 text-sm font-black uppercase">
+              {activeSession?.status === 'closed_waiting_ticket' && (
+                <Link to="/registrar-ticket" className="btn-gold w-full flex items-center justify-center gap-3 py-5 text-sm font-black uppercase bg-magical-gold text-magical-navy">
                   <Star className="w-5 h-5" />
                   Registrar Consumo
                 </Link>
               )}
-
-              <Link to="/aventura" className="btn-gold w-full flex items-center justify-center gap-3 py-5 text-sm font-black uppercase">
-                <Wand2 className="w-5 h-5" />
-                Iniciar Aventura Mágica
-              </Link>
-
-              <Link to="/asistencia" className="text-center block text-[9px] font-black text-white/20 uppercase tracking-[0.3em] hover:text-white/40 transition-colors">
-                Abrir Escáner QR
-              </Link>
             </div>
-          )}
+          </div>
         </div>
       </div>
 
