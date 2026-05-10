@@ -91,73 +91,83 @@ export default function AdminAdventureManager() {
             Cargando aventuras...
           </div>
         ) : (
-          <div className="grid lg:grid-cols-[340px_1fr] gap-6 items-start">
-            <div className="glass-card p-4 rounded-[2rem] border border-white/10 space-y-3">
+          <div className="flex flex-col lg:grid lg:grid-cols-[340px_1fr] gap-6 items-start">
+            {/* Zone Selector - Scrollable horizontally on mobile, list on desktop */}
+            <div className="w-full flex lg:flex-col gap-3 overflow-x-auto lg:overflow-visible pb-4 lg:pb-0 scrollbar-hide">
               {zones.map((zone) => (
                 <button
                   key={zone.id}
                   onClick={() => setSelectedZone(zone)}
-                  className={`w-full text-left p-4 rounded-2xl border transition-all ${
+                  className={`shrink-0 lg:shrink lg:w-full text-left p-4 rounded-2xl border transition-all min-w-[200px] lg:min-w-0 ${
                     selectedZone?.id === zone.id
-                      ? 'bg-magical-gold text-magical-navy border-magical-gold'
+                      ? 'bg-magical-gold text-magical-navy border-magical-gold shadow-[0_0_20px_rgba(212,175,55,0.3)]'
                       : 'bg-white/5 text-white/60 border-white/10 hover:bg-white/10'
                   }`}
                 >
-                  <p className="font-black uppercase italic">{zone.name}</p>
-                  <p className="text-[10px] uppercase font-bold opacity-60">Piso {zone.floor_number || '-'}</p>
+                  <p className="font-black uppercase italic text-sm">{zone.name}</p>
+                  <p className="text-[9px] uppercase font-bold opacity-60">Piso {zone.floor_number || '-'}</p>
                 </button>
               ))}
             </div>
 
-            <div className="space-y-4">
-                <div className="flex flex-wrap gap-3">
-                  <button
-                    onClick={() => {
-                      const printWindow = window.open('', '_blank');
-                      const posterHtml = document.querySelector('.adventure-poster-root').outerHTML;
-                      const styles = document.head.innerHTML;
-                      
-                      printWindow.document.write(`
-                        <html>
-                          <head>
-                            ${styles}
-                            <style>
-                              body { margin: 0; padding: 0; background: #0a0e1a !important; }
-                              .adventure-poster-root { 
-                                width: 8.5in !important; 
-                                height: 11in !important; 
-                                border-radius: 0 !important;
-                                margin: 0 !important;
-                                position: relative !important;
-                                display: flex !important;
-                                visibility: visible !important;
-                                -webkit-print-color-adjust: exact !important;
-                                print-color-adjust: exact !important;
-                              }
+            {/* Preview and Actions */}
+            <div className="w-full space-y-6">
+              <div className="flex flex-col sm:flex-row gap-3">
+                <button
+                  onClick={() => {
+                    const printWindow = window.open('', '_blank');
+                    if (!printWindow) {
+                      alert('Por favor, permite las ventanas emergentes para generar el PDF.');
+                      return;
+                    }
+                    const posterHtml = document.querySelector('.adventure-poster-root').outerHTML;
+                    const styles = document.head.innerHTML;
+                    
+                    printWindow.document.write(`
+                      <html>
+                        <head>
+                          <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                          ${styles}
+                          <style>
+                            body { margin: 0; padding: 0; background: #0a0e1a !important; }
+                            .adventure-poster-root { 
+                              width: 8.5in !important; 
+                              height: 11in !important; 
+                              border-radius: 0 !important;
+                              margin: 0 !important;
+                              position: relative !important;
+                              display: flex !important;
+                              visibility: visible !important;
+                              -webkit-print-color-adjust: exact !important;
+                              print-color-adjust: exact !important;
+                            }
+                            @media print {
                               @page { size: letter; margin: 0; }
-                            </style>
-                          </head>
-                          <body>${posterHtml}</body>
-                        </html>
-                      `);
-                      
-                      printWindow.document.close();
-                      printWindow.focus();
-                      setTimeout(() => {
-                        printWindow.print();
-                        printWindow.close();
-                      }, 1000);
-                    }}
-                    className="btn-gold flex items-center gap-2 px-5 py-3 text-xs font-black uppercase"
-                  >
-                    <Printer className="w-4 h-4" />
-                    Imprimir / Guardar PDF
-                  </button>
+                            }
+                          </style>
+                        </head>
+                        <body>${posterHtml}</body>
+                      </html>
+                    `);
+                    
+                    printWindow.document.close();
+                    printWindow.focus();
+                    setTimeout(() => {
+                      printWindow.print();
+                      // On some mobile browsers, closing too early breaks the print dialog
+                      setTimeout(() => printWindow.close(), 1000);
+                    }, 1500);
+                  }}
+                  className="btn-gold flex-1 flex items-center justify-center gap-2 py-4 text-xs font-black uppercase shadow-lg"
+                >
+                  <Printer className="w-4 h-4" />
+                  Imprimir / Guardar PDF
+                </button>
 
                 {selectedZone && (
                   <button
                     onClick={() => regenerateZone(selectedZone.id)}
-                    className="px-5 py-3 bg-white/5 border border-white/10 rounded-xl text-white/50 hover:text-white hover:bg-white/10 text-xs font-black uppercase flex items-center gap-2"
+                    className="flex-1 px-5 py-4 bg-white/5 border border-white/10 rounded-2xl text-white/50 hover:text-white hover:bg-white/10 text-xs font-black uppercase flex items-center justify-center gap-2 transition-all"
                   >
                     <RefreshCw className="w-4 h-4" />
                     Regenerar QR
@@ -165,8 +175,9 @@ export default function AdminAdventureManager() {
                 )}
               </div>
 
-              <div className="overflow-auto bg-black/20 p-4 rounded-[2rem] border border-white/10 max-h-[80vh]">
-                <div className="origin-top-left scale-[0.45] md:scale-[0.62] lg:scale-[0.72] w-[8.5in]">
+              {/* Poster Preview Container */}
+              <div className="relative overflow-hidden bg-black/40 p-4 sm:p-8 rounded-[2.5rem] border border-white/10 flex justify-center min-h-[400px]">
+                <div className="origin-top scale-[0.35] sm:scale-[0.5] md:scale-[0.6] lg:scale-[0.7] w-[8.5in] transition-transform duration-500">
                   <AdventurePoster zone={selectedZone} />
                 </div>
               </div>
