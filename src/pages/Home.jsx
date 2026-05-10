@@ -25,23 +25,23 @@ export default function Home() {
           <div className="absolute inset-0 bg-gradient-to-b from-magical-navy/60 via-magical-navy/80 to-magical-navy" />
         </div>
         
-        <div className="max-w-4xl space-y-6 md:space-y-8 animate-in fade-in slide-in-from-bottom-8 duration-1000 relative z-10 pt-4 md:pt-0">
+        <div className="max-w-4xl space-y-6 md:space-y-8 relative z-10 pt-4 md:pt-0">
           <img 
             src={logo} 
             alt="Hogwarts Logo" 
-            className="w-48 md:w-64 object-contain mx-auto mb-2 md:mb-4 drop-shadow-[0_0_40px_rgba(212,175,55,0.5)] animate-bounce-slow" 
+            className="w-48 md:w-64 object-contain mx-auto mb-2 md:mb-4 animate-spell animate-glow" 
           />
           
-          <h1 className="text-4xl sm:text-5xl md:text-7xl font-black tracking-tighter uppercase italic text-white drop-shadow-lg leading-tight">
+          <h1 className="text-4xl sm:text-5xl md:text-7xl font-black tracking-tighter uppercase italic text-white drop-shadow-lg leading-tight animate-spell animation-delay-200">
             Celebra tu evento en un <br/>
-            <span className="bg-gradient-to-r from-magical-gold via-yellow-200 to-magical-gold bg-clip-text text-transparent pr-2 pb-1">mundo mágico</span>
+            <span className="bg-gradient-to-r from-magical-gold via-yellow-200 to-magical-gold bg-clip-text text-transparent pr-2 pb-1 inline-block animate-glow">mundo mágico</span>
           </h1>
           
-          <p className="text-lg md:text-2xl text-white/90 max-w-3xl mx-auto font-medium leading-relaxed px-4">
+          <p className="text-lg md:text-2xl text-white/90 max-w-3xl mx-auto font-medium leading-relaxed px-4 animate-spell animation-delay-400">
             Celebra tu cumpleaños, reunión familiar o evento especial en un lugar donde la magia se vive en cada rincón.
           </p>
 
-          <div className="flex flex-col sm:flex-row justify-center items-center gap-4 pt-6">
+          <div className="flex flex-col sm:flex-row justify-center items-center gap-4 pt-6 animate-spell animation-delay-600">
             <a href={whatsappUrl} target="_blank" rel="noopener noreferrer" className="btn-gold text-base md:text-lg px-8 py-4 flex items-center gap-3 w-full sm:w-auto justify-center shadow-[0_0_30px_rgba(212,175,55,0.4)]">
               <MessageCircle className="w-6 h-6" />
               Reserva por WhatsApp
@@ -53,7 +53,7 @@ export default function Home() {
           </div>
 
           {/* Quick Info */}
-          <div className="flex flex-wrap justify-center gap-6 pt-8 text-sm text-white/70">
+          <div className="flex flex-wrap justify-center gap-6 pt-8 text-sm text-white/70 animate-spell animation-delay-800">
             <div className="flex items-center gap-2"><MapPin className="w-4 h-4 text-magical-gold"/> Av. Tarascos #272, Lázaro Cárdenas</div>
             <div className="flex items-center gap-2"><CalendarClock className="w-4 h-4 text-magical-gold"/> Jue - Dom | 3:00 PM - 11:30 PM</div>
           </div>
@@ -64,7 +64,7 @@ export default function Home() {
       <section id="espacios" className="w-full px-6 py-16 bg-black/40 relative border-y border-white/5">
         <div className="max-w-7xl mx-auto space-y-12">
           <div className="text-center space-y-6">
-            <h2 className="text-3xl md:text-5xl font-black uppercase italic tracking-tighter">
+            <h2 className="text-3xl md:text-5xl font-black uppercase italic tracking-tighter animate-spell animation-delay-200">
               Haz de tu celebración una <span className="text-magical-gold">experiencia mágica</span>
             </h2>
             <p className="text-white/70 max-w-3xl mx-auto text-lg leading-relaxed">

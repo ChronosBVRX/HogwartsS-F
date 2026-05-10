@@ -112,3 +112,27 @@ html, body {
   animation: bounce-slow 4s ease-in-out infinite;
 }
 
+@keyframes spell-appear {
+  0% { opacity: 0; filter: blur(16px); transform: scale(0.9) translateY(30px); }
+  100% { opacity: 1; filter: blur(0); transform: scale(1) translateY(0); }
+}
+
+.animate-spell {
+  animation: spell-appear 1.5s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+  opacity: 0;
+}
+
+.animation-delay-200 { animation-delay: 200ms; }
+.animation-delay-400 { animation-delay: 400ms; }
+.animation-delay-600 { animation-delay: 600ms; }
+.animation-delay-800 { animation-delay: 800ms; }
+
+@keyframes glow-pulse {
+  0%, 100% { filter: drop-shadow(0 0 15px rgba(212,175,55,0.3)); }
+  50% { filter: drop-shadow(0 0 35px rgba(212,175,55,0.7)); }
+}
+
+.animate-glow {
+  animation: glow-pulse 3s ease-in-out infinite;
+}
+
