@@ -69,9 +69,7 @@ const InstallPWA = () => {
         {!isIOS ? (
           <p className="text-sm font-medium text-white leading-tight flex items-center gap-2">
             <span className="text-lg">📱</span>
-            {canInstall
-              ? 'Instala la app para entrar más rápido.'
-              : 'Abre el menú de Chrome ⋮ y toca Instalar aplicación.'}
+            Instala la app para entrar más rápido.
           </p>
         ) : (
           <div className="space-y-0.5">
@@ -86,21 +84,12 @@ const InstallPWA = () => {
       </div>
 
       <div className="flex items-center gap-3">
-        {!isIOS && canInstall && (
+        {!isIOS && (
           <button
             onClick={handleInstallClick}
             className="bg-green-600 text-white px-3 py-1.5 rounded text-sm font-bold shadow-md hover:bg-green-500 transition-colors"
           >
             Instalar
-          </button>
-        )}
-
-        {!isIOS && !canInstall && (
-          <button
-            onClick={() => alert("En Chrome Android: toca el menú ⋮ y elige 'Instalar aplicación' o 'Agregar a pantalla principal'. Si no aparece, navega unos segundos dentro de la app y vuelve a intentarlo.")}
-            className="bg-magical-gold text-magical-navy px-3 py-1.5 rounded text-sm font-bold shadow-md hover:scale-105 transition-transform"
-          >
-            Ver cómo
           </button>
         )}
 
