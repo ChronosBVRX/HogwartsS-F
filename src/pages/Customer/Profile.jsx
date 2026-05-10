@@ -15,13 +15,13 @@ import mapBg from '../../assets/map_bg.png'
 
 const MAP_THRESHOLDS = [
   { steps: 0, name: "Entrada Principal", icon: "🚪" },
-  { steps: 500, name: "Gran Comedor", icon: "🍽️" },
-  { steps: 1500, name: "Pasillos y Aulas", icon: "📜" },
-  { steps: 3000, name: "Cabaña de Hagrid", icon: "🛖" },
-  { steps: 6000, name: "Bosque Prohibido", icon: "🌲" },
-  { steps: 10000, name: "Sala de Menesteres", icon: "✨" }
+  { steps: 150, name: "Primer Sello", icon: "✨" },
+  { steps: 300, name: "Gran Comedor", icon: "🍽️" },
+  { steps: 500, name: "Aulas Mágicas", icon: "📜" },
+  { steps: 750, name: "Cabaña Hagrid", icon: "🛖" },
+  { steps: 1000, name: "Bosque Prohibido", icon: "🌲" },
+  { steps: 1200, name: "Sala Menesteres", icon: "🎁" }
 ]
-
 
 const HOUSE_CONFIG = {
   red: { name: "Gryffindor", logo: gryffindorLogo, quote: "Valor y Caballerosidad", color: "from-red-500 to-amber-500", text: "text-red-400", reward: "Bebida de Mantequilla Gratis" },
@@ -34,6 +34,7 @@ export default function Profile() {
   const { profile, signOut } = useAuth()
   const [activeSession, setActiveSession] = useState(null)
   const [ticketHistory, setTicketHistory] = useState([])
+  const [monthlyPoints, setMonthlyPoints] = useState(0)
   const [loading, setLoading] = useState(true)
 
   const fetchActiveSession = async () => {
@@ -60,6 +61,21 @@ export default function Profile() {
       .limit(10)
 
     if (historyData) setTicketHistory(historyData)
+
+    // Fetch monthly approved points
+    const startOfMonth = new Date()
+    startOfMonth.setDate(1)
+    startOfMonth.setHours(0, 0, 0, 0)
+
+    const { data: monthlyData } = await supabase
+      .from('hsf_ticket_claims')
+      .select('points_awarded')
+      .eq('customer_id', profile.user_id)
+      .eq('status', 'approved')
+      .gte('created_at', startOfMonth.toISOString())
+
+    const total = monthlyData?.reduce((acc, curr) => acc + (curr.points_awarded || 0), 0) || 0
+    setMonthlyPoints(total)
     
     setLoading(false)
   }
@@ -112,20 +128,15 @@ export default function Profile() {
     )
   }
 
-  const currentSteps = profile?.loyalty_points || 0
+  const currentSteps = monthlyPoints
   
   // Calculate map progress
   const nextMilestoneIndex = MAP_THRESHOLDS.findIndex(m => m.steps > currentSteps)
   const currentMilestoneIndex = nextMilestoneIndex === -1 ? MAP_THRESHOLDS.length - 1 : nextMilestoneIndex - 1
-  const currentMilestone = MAP_THRESHOLDS[currentMilestoneIndex]
   const nextMilestone = nextMilestoneIndex === -1 ? null : MAP_THRESHOLDS[nextMilestoneIndex]
   
-  let progressPercentage = 100
-  if (nextMilestone) {
-    const range = nextMilestone.steps - currentMilestone.steps
-    const progressIntoRange = currentSteps - currentMilestone.steps
-    progressPercentage = (progressIntoRange / range) * 100
-  }
+  const finalGoal = MAP_THRESHOLDS[MAP_THRESHOLDS.length - 1].steps
+  const mapProgressPercentage = Math.min((currentSteps / finalGoal) * 100, 100)
 
   return (
     <div className="flex-1 max-w-5xl mx-auto w-full p-4 md:p-6 pb-24 space-y-8 md:space-y-12 animate-in fade-in duration-700 overflow-x-hidden">
@@ -314,10 +325,10 @@ export default function Profile() {
             {/* Progress Track */}
             <div className="relative py-10">
               {/* Line */}
-              <div className="absolute top-1/2 left-0 right-0 h-1 bg-[#8b5a2b]/20 -translate-y-1/2 rounded-full overflow-hidden">
+              <div className="absolute top-1/2 left-0 right-0 h-1 bg-[#5c3a21]/20 -translate-y-1/2 rounded-full overflow-hidden">
                  <div 
                    className="h-full bg-[#5c3a21] transition-all duration-1000 ease-out" 
-                   style={{ width: `${(currentMilestoneIndex / (MAP_THRESHOLDS.length - 1)) * 100}%` }}
+                   style={{ width: `${mapProgressPercentage}%` }}
                  />
               </div>
 
@@ -349,11 +360,16 @@ export default function Profile() {
               </div>
             </div>
 
-            <div className="bg-[#5c3a21]/5 border border-[#5c3a21]/10 rounded-2xl p-4 flex flex-col items-center text-center mt-12">
-               <p className="text-[10px] uppercase font-black tracking-widest text-[#5c3a21]/60">Tu Poder Mágico Acumulado</p>
-               <p className="text-3xl font-black text-[#5c3a21] italic tracking-tighter">{currentSteps} pts</p>
+            <div className="bg-[#5c3a21]/5 border border-[#5c3a21]/10 rounded-2xl p-4 flex flex-col items-center text-center mt-12 space-y-2">
+               <p className="text-[10px] uppercase font-black tracking-widest text-[#5c3a21]/60 italic">
+                 Junta 1,200 galeones durante el mes y desbloquea una hamburguesa clásica gratis.
+               </p>
+               <div className="py-2">
+                 <p className="text-[10px] uppercase font-black tracking-widest text-[#5c3a21]/40">Tu Poder Mágico Mensual</p>
+                 <p className="text-4xl font-black text-[#5c3a21] italic tracking-tighter">{currentSteps} pts</p>
+               </div>
                {nextMilestone && (
-                 <p className="text-[9px] font-bold text-[#5c3a21]/50 mt-1">Te faltan {nextMilestone.steps - currentSteps} puntos para llegar al {nextMilestone.name}</p>
+                 <p className="text-[9px] font-bold text-[#5c3a21]/50">Te faltan {nextMilestone.steps - currentSteps} puntos para llegar al {nextMilestone.name}</p>
                )}
             </div>
           </div>
