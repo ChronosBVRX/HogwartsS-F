@@ -52,7 +52,15 @@ export default function AdventurePlay() {
     }
 
     if (!data?.ok) {
+      // Handle failure limits
+      if (data?.out_of_attempts) {
+        setResult({ ok: false, message: data.message, outOfAttempts: true })
+        // Refresh state after a delay to show the blocked screen
+        setTimeout(() => fetchStep(), 3000)
+        return
+      }
       setResult({ ok: false, message: data?.message || 'Respuesta incorrecta.' })
+      fetchStep() // Refresh to update failed_attempts counter
       return
     }
 
@@ -115,12 +123,18 @@ export default function AdventurePlay() {
 
       <div className="glass-card rounded-[2.5rem] border border-white/10 overflow-hidden">
         <div className="p-8 bg-magical-gold/5 border-b border-white/5 space-y-3">
-          <div className="flex items-center justify-between gap-4">
-            <p className="text-[10px] font-black uppercase tracking-[0.3em] text-magical-gold">
-              Etapa {step.step_order} · {step.difficulty}
-            </p>
+            <div className="flex flex-col items-end gap-1">
+               <p className="text-[10px] font-black uppercase tracking-[0.3em] text-magical-gold">
+                Etapa {step.step_order} · {step.difficulty}
+              </p>
+              {state?.failed_attempts !== undefined && (
+                <div className="flex gap-1">
+                  <div className={`w-2 h-2 rounded-full ${state.failed_attempts >= 1 ? 'bg-red-500' : 'bg-white/20'}`} />
+                  <div className={`w-2 h-2 rounded-full ${state.failed_attempts >= 2 ? 'bg-red-500' : 'bg-white/20'}`} />
+                </div>
+              )}
+            </div>
             <Wand2 className="w-6 h-6 text-magical-gold" />
-          </div>
           <h1 className="text-2xl md:text-4xl font-black uppercase italic tracking-tighter text-white">
             {step.narrator_name}
           </h1>

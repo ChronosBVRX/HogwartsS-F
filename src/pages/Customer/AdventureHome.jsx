@@ -52,6 +52,19 @@ export default function AdventureHome() {
         <div className="p-16 text-center text-magical-gold uppercase font-black tracking-widest animate-pulse">
           Consultando el mapa...
         </div>
+      ) : state?.blocked ? (
+        <section className="glass-card p-8 rounded-[2.5rem] border border-red-500/20 space-y-6 text-center">
+          <div className="p-4 bg-red-500/10 rounded-full w-fit mx-auto text-red-500">
+            {state.reason === 'daily_limit' ? <Sparkles className="w-10 h-10" /> : <XCircle className="w-10 h-10" />}
+          </div>
+          <div className="space-y-2">
+            <h2 className="text-2xl font-black uppercase italic tracking-tighter text-white">Magia agotada</h2>
+            <p className="text-white/50 max-w-md mx-auto">{state.message}</p>
+          </div>
+          <div className="pt-4 border-t border-white/5">
+             <p className="text-[10px] font-black uppercase tracking-widest text-magical-gold/40 italic">Vuelve mañana para recuperar tu energía mágica</p>
+          </div>
+        </section>
       ) : state?.has_active ? (
         <section className="glass-card p-8 rounded-[2.5rem] border border-magical-gold/20 space-y-6">
           <div className="flex items-start gap-4">
