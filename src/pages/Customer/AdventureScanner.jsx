@@ -42,10 +42,13 @@ export default function AdventureScanner() {
   const [message, setMessage] = useState(null)
   const [isCameraActive, setIsCameraActive] = useState(false)
   const [loading, setLoading] = useState(false)
+  const [adventureState, setAdventureState] = useState(null)
   const scannerRef = useRef(null)
   const navigate = useNavigate()
 
   useEffect(() => {
+    fetchAdventureState()
+    
     const zone = searchParams.get('zone')
     const token = searchParams.get('token')
     if (zone && token) {
@@ -55,6 +58,11 @@ export default function AdventureScanner() {
     return () => stopScanner()
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
+
+  const fetchAdventureState = async () => {
+    const { data } = await supabase.rpc('hsf_get_active_adventure')
+    if (data?.ok) setAdventureState(data)
+  }
 
   const stopScanner = async () => {
     if (scannerRef.current) {
@@ -144,6 +152,18 @@ export default function AdventureScanner() {
         </div>
 
         <div className="p-6 md:p-8 space-y-8">
+          {adventureState?.clue && (
+            <div className="bg-magical-gold/10 border border-magical-gold/20 p-5 rounded-2xl flex items-start gap-4 animate-in slide-in-from-top duration-500">
+               <AlertCircle className="w-5 h-5 text-magical-gold shrink-0 mt-0.5" />
+               <div className="space-y-1">
+                 <p className="text-[10px] font-black uppercase tracking-widest text-magical-gold/60">Tu pista actual:</p>
+                 <p className="text-sm text-white italic leading-relaxed">
+                   “{adventureState.clue}”
+                 </p>
+               </div>
+            </div>
+          )}
+
           <div className="relative aspect-square w-full max-w-[400px] mx-auto">
             <div
               id="adventure-reader"
