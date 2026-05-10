@@ -23,7 +23,7 @@ export default function AdminAdventureManager() {
       supabase.from('hsf_adventures').select('*, steps:hsf_adventure_steps(id)').order('created_at', { ascending: true }),
       supabase
         .from('hsf_adventure_rewards')
-        .select('*, customer:hsf_profiles!customer_id(display_name, phone)')
+        .select('*')
         .order('created_at', { ascending: false })
         .limit(30)
     ])
@@ -202,7 +202,7 @@ export default function AdminAdventureManager() {
                 <p className="font-black text-white uppercase italic">{reward.reward_title}</p>
                 <p className="text-white/40 text-xs">{reward.reward_description}</p>
                 <p className="text-[10px] text-magical-gold mt-1 uppercase font-black">
-                  {reward.customer?.display_name || 'Cliente'} · {reward.customer?.phone || 'Sin teléfono'}
+                  Usuario ID: {reward.customer_id?.slice(0,8)}
                 </p>
               </div>
 
