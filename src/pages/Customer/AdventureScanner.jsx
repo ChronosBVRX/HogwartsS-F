@@ -6,24 +6,33 @@ import { Camera, QrCode, AlertCircle, ChevronLeft, RefreshCw } from 'lucide-reac
 
 function parseAdventureQR(rawText) {
   try {
-    const url = new URL(rawText)
-    return {
-      zone: url.searchParams.get('zone'),
-      token: url.searchParams.get('token')
-    }
-  } catch {
-    // Formato alterno por si algún día imprimes QR simple: zone|uuid
-    if (rawText.includes('|')) {
-      const [zone, token] = rawText.split('|')
-      return { zone, token }
+    // Si es una URL completa (con o sin hash)
+    if (rawText.includes('?')) {
+      const queryString = rawText.split('?')[1]
+      const urlParams = new URLSearchParams(queryString)
+      const zone = urlParams.get('zone')
+      const token = urlParams.get('token')
+      
+      if (zone && token) return { zone, token }
     }
 
+    // Formato alterno: zone|uuid
+    if (rawText.includes('|')) {
+      const [zone, token] = rawText.split('|')
+      if (zone && token) return { zone, token }
+    }
+
+    // Formato JSON
     try {
       const parsed = JSON.parse(rawText)
       return { zone: parsed.zone, token: parsed.token }
     } catch {
+      // Si nada funciona, devolver nulls
       return { zone: null, token: null }
     }
+  } catch (err) {
+    console.error('Error parsing QR:', err)
+    return { zone: null, token: null }
   }
 }
 
