@@ -33,18 +33,11 @@ const InstallPWA = () => {
     window.addEventListener('beforeinstallprompt', handlePrompt);
     window.addEventListener('appinstalled', handleInstalled);
 
-    // iOS no dispara beforeinstallprompt, por eso sí mostramos instrucciones manuales
-    if (isIosDevice) {
-      const timer = setTimeout(() => setIsVisible(true), 1500);
-
-      return () => {
-        clearTimeout(timer);
-        window.removeEventListener('beforeinstallprompt', handlePrompt);
-        window.removeEventListener('appinstalled', handleInstalled);
-      };
-    }
+    // Mostrar instrucciones manuales después de unos segundos en TODOS los dispositivos si no se dispara el prompt nativo
+    const timer = setTimeout(() => setIsVisible(true), 2500);
 
     return () => {
+      clearTimeout(timer);
       window.removeEventListener('beforeinstallprompt', handlePrompt);
       window.removeEventListener('appinstalled', handleInstalled);
     };

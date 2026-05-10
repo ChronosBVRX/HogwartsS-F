@@ -29,7 +29,7 @@ export default function Home() {
           <img 
             src={logo} 
             alt="Hogwarts Logo" 
-            className="w-48 md:w-64 object-contain mx-auto mb-2 md:mb-4 animate-spell animate-glow" 
+            className="w-48 md:w-64 object-contain mx-auto mb-2 md:mb-4 animate-spell drop-shadow-[0_0_40px_rgba(212,175,55,0.5)]" 
           />
           
           <h1 className="text-4xl sm:text-5xl md:text-7xl font-black tracking-tighter uppercase italic text-white drop-shadow-lg leading-tight animate-spell animation-delay-200">
