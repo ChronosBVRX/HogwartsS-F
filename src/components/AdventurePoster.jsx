@@ -7,39 +7,73 @@ export default function AdventurePoster({ zone }) {
   const qrUrl = `${window.location.origin}/#/aventura/escanear?zone=${zone.slug}&token=${zone.qr_token}`
 
   return (
-    <div className="poster-letter bg-[#0a0e1a] text-white relative overflow-hidden">
+    <div className="poster-letter-container bg-[#0a0e1a] text-white relative overflow-hidden">
       <style>{`
-        .poster-letter {
+        .poster-letter-container {
           width: 8.5in;
           min-height: 11in;
           padding: 0.55in;
           display: flex;
           flex-direction: column;
           justify-content: space-between;
+          background: #0a0e1a;
           border-radius: 24px;
-          background:
-            radial-gradient(circle at top, rgba(212,175,55,0.16), transparent 35%),
-            linear-gradient(135deg, #0a0e1a 0%, #101a2f 45%, #05070d 100%);
+        }
+
+        @media screen {
+          .poster-letter-container {
+            background: radial-gradient(circle at top, rgba(212,175,55,0.16), transparent 35%),
+                        linear-gradient(135deg, #0a0e1a 0%, #101a2f 45%, #05070d 100%);
+          }
         }
 
         @media print {
-          body * {
-            visibility: hidden !important;
+          html, body {
+            margin: 0 !important;
+            padding: 0 !important;
+            height: 100% !important;
+            background: #0a0e1a !important;
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
           }
 
-          .poster-letter,
-          .poster-letter * {
+          /* Hide everything except our poster */
+          body > * {
+            display: none !important;
+          }
+
+          #root {
+            display: block !important;
+          }
+
+          #root > * {
+            display: none !important;
+          }
+
+          /* Ensure the poster and its parents up to root are visible */
+          .poster-letter-container,
+          .poster-letter-container * {
+            display: flex !important;
             visibility: visible !important;
           }
+          
+          /* Specialized fix for QRCodeSVG which is usually a display: block or inline */
+          .poster-letter-container svg {
+             display: block !important;
+          }
 
-          .poster-letter {
-            position: fixed !important;
-            inset: 0 !important;
+          .poster-letter-container {
+            display: flex !important;
+            position: absolute !important;
+            left: 0 !important;
+            top: 0 !important;
             width: 8.5in !important;
             height: 11in !important;
-            min-height: 11in !important;
+            margin: 0 !important;
+            padding: 0.5in !important;
             border-radius: 0 !important;
-            box-shadow: none !important;
+            background-color: #0a0e1a !important;
+            z-index: 99999 !important;
           }
 
           @page {
