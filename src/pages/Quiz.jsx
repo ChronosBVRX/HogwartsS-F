@@ -15,48 +15,81 @@ const ASSETS = {
 
 const questions = [
   {
-    question: "En la penumbra del Bosque Prohibido, escuchas un susurro. ¿Qué haces?",
+    question: "Te encuentras frente a un laberinto encantado. El camino de la izquierda está lleno de niebla espesa, el de la derecha tiene un brillo plateado inquietante. ¿Cómo procedes?",
     options: [
-      { text: "Desenvainas tu varita y avanzas hacia el sonido.", house: "red", icon: <Shield className="w-5 h-5" /> },
-      { text: "Lanzas un hechizo desilusionador para observar sin ser visto.", house: "green", icon: <Eye className="w-5 h-5" /> },
-      { text: "Intentas descifrar si el susurro es un idioma antiguo.", house: "blue", icon: <Wand2 className="w-5 h-5" /> },
-      { text: "Buscas huellas para ver si alguien necesita ayuda.", house: "yellow", icon: <Heart className="w-5 h-5" /> }
+      { text: "Corro hacia la niebla; el peligro es solo una prueba de valor.", house: "red" },
+      { text: "Observo los patrones del brillo plateado para encontrar una salida lógica.", house: "blue" },
+      { text: "Busco una forma de usar el laberinto a mi favor para llegar primero.", house: "green" },
+      { text: "Espero a ver si alguien más necesita ayuda antes de entrar.", house: "yellow" }
     ]
   },
   {
-    question: "Un cofre antiguo aparece frente a ti. ¿Cómo decides abrirlo?",
+    question: "Un extraño te ofrece un cáliz con una poción que promete 'revelar tu verdadero potencial'. ¿Qué haces?",
     options: [
-      { text: "Con un hechizo de apertura audaz, pase lo que pase.", house: "red", icon: <Zap className="w-5 h-5" /> },
-      { text: "Manipulando los mecanismos ocultos con paciencia.", house: "green", icon: <Skull className="w-5 h-5" /> },
-      { text: "Analizando las runas grabadas en la tapa.", house: "blue", icon: <Wand2 className="w-5 h-5" /> },
-      { text: "Tocando suavemente para ver si el cofre tiene vida.", house: "yellow", icon: <Moon className="w-5 h-5" /> }
+      { text: "Lo bebo de inmediato; la aventura requiere riesgos.", house: "red" },
+      { text: "Pregunto por los ingredientes y el origen de la receta.", house: "blue" },
+      { text: "Acepto, pero solo si puedo usar ese potencial para ascender.", house: "green" },
+      { text: "Comparto la oferta con mis amigos; no quiero dejar a nadie atrás.", house: "yellow" }
     ]
   },
   {
-    question: "¿Qué tipo de magia te atrae más por su complejidad?",
+    question: "Si pudieras ser recordado por una sola cosa en la historia mágica, ¿cuál preferirías?",
     options: [
-      { text: "La magia de combate y defensa.", house: "red", icon: <Shield className="w-5 h-5" /> },
-      { text: "Las artes oscuras y la transmutación.", house: "green", icon: <Skull className="w-5 h-5" /> },
-      { text: "La alquimia y la astronomía.", house: "blue", icon: <Wand2 className="w-5 h-5" /> },
-      { text: "La herbología y el cuidado de criaturas.", house: "yellow", icon: <Heart className="w-5 h-5" /> }
+      { text: "Por haber defendido lo correcto sin importar las consecuencias.", house: "red" },
+      { text: "Por haber descubierto un conocimiento que cambiará el mundo.", house: "blue" },
+      { text: "Por haber alcanzado el poder que otros solo soñaron.", house: "green" },
+      { text: "Por haber sido el amigo más leal que alguien pudo tener.", house: "yellow" }
     ]
   },
   {
-    question: "Si pudieras crear un objeto mágico, ¿cuál sería su propósito?",
+    question: "Estás en un duelo y tu oponente baja la guardia por un segundo. ¿Qué es lo primero que piensas?",
     options: [
-      { text: "Proteger a los débiles de cualquier amenaza.", house: "red" },
-      { text: "Asegurar el éxito y la gloria de mi linaje.", house: "green" },
-      { text: "Revelar todas las verdades del universo.", house: "blue" },
-      { text: "Hacer que todos se sientan bienvenidos y seguros.", house: "yellow" }
+      { text: "Es mi oportunidad para un ataque directo y valiente.", house: "red" },
+      { text: "Analizo si es una trampa antes de lanzar mi siguiente hechizo.", house: "blue" },
+      { text: "Aprovecho su debilidad para asegurar mi victoria total.", house: "green" },
+      { text: "Le doy un momento para recuperarse; quiero un duelo justo.", house: "yellow" }
+    ]
+  },
+  {
+    question: "En un examen de magia difícil, notas que tu mejor amigo está cometiendo un error fatal. ¿Qué haces?",
+    options: [
+      { text: "Le advierto en voz alta, arriesgándome a ser castigado.", house: "red" },
+      { text: "Espero a que termine y luego le explico la teoría correcta.", house: "blue" },
+      { text: "Me aseguro de que mi examen sea perfecto primero; él debe aprender solo.", house: "green" },
+      { text: "Le paso discretamente una nota para que pueda corregirlo.", house: "yellow" }
     ]
   }
 ];
 
 const HOUSE_DATA = {
-  red: { name: "Gryffindor", color: "from-red-600 to-amber-600", reward: "Bebida de Mantequilla de Regalo", motto: "Donde habitan los valientes" },
-  green: { name: "Slytherin", color: "from-emerald-600 to-slate-800", reward: "Postre Mágico Gratis", motto: "Orgullo, ambición y astucia" },
-  blue: { name: "Ravenclaw", color: "from-blue-600 to-indigo-900", reward: "Upgrade a Bebida Grande", motto: "Una mente dispuesta siempre aprenderá" },
-  yellow: { name: "Hufflepuff", color: "from-yellow-500 to-orange-400", reward: "Snack de Bienvenida", motto: "Justos, leales y trabajadores" }
+  red: { 
+    name: "Gryffindor", 
+    color: "from-red-600 to-amber-600", 
+    reward: "Bebida de Mantequilla de Regalo", 
+    motto: "Donde habitan los valientes",
+    explanation: "Tu alma arde con un fuego que no conoce el miedo. Prefieres la acción a la duda y la justicia a la comodidad. El Sombrero ha visto que ante el peligro, tu instinto es proteger y liderar con el corazón."
+  },
+  green: { 
+    name: "Slytherin", 
+    color: "from-emerald-600 to-slate-800", 
+    reward: "Postre Mágico Gratis", 
+    motto: "Orgullo, ambición y astucia",
+    explanation: "Posees la chispa de la grandeza y la astucia para alcanzarla. No te conformas con lo ordinario; buscas el éxito y sabes que los fines a veces justifican los medios. Eres un líder nato que sabe cuándo actuar."
+  },
+  blue: { 
+    name: "Ravenclaw", 
+    color: "from-blue-600 to-indigo-900", 
+    reward: "Upgrade a Bebida Grande", 
+    motto: "Una mente dispuesta siempre aprenderá",
+    explanation: "Tu curiosidad es infinita y tu lógica, impecable. Para ti, el conocimiento es el tesoro más valioso. El Sombrero ha detectado que valoras la verdad por encima de todo y tu mente es tu arma más poderosa."
+  },
+  yellow: { 
+    name: "Hufflepuff", 
+    color: "from-yellow-500 to-orange-400", 
+    reward: "Snack de Bienvenida", 
+    motto: "Justos, leales y trabajadores",
+    explanation: "Tu corazón es puro y tu lealtad es inquebrantable. Entiendes que la verdadera magia reside en la bondad y el trabajo duro. No buscas la gloria personal, sino el bienestar de quienes te rodean."
+  }
 }
 
 export default function Quiz() {
@@ -66,12 +99,19 @@ export default function Quiz() {
   const [stage, setStage] = useState('welcome') // welcome, quiz, sorting, result
   const [result, setResult] = useState(null)
   const [sortingText, setSortingText] = useState("Difícil... muy difícil...")
+  const [shuffledOptions, setShuffledOptions] = useState([])
   const navigate = useNavigate()
 
-  const handleStart = () => {
-    setCurrentIndex(0)
-    setStage('quiz')
-  }
+  useEffect(() => {
+    if (currentIndex >= 0 && currentIndex < questions.length) {
+      const options = [...questions[currentIndex].options];
+      for (let i = options.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [options[i], options[j]] = [options[j], options[i]];
+      }
+      setShuffledOptions(options)
+    }
+  }, [currentIndex])
 
   const handleAnswer = async (house) => {
     const newScores = { ...scores, [house]: scores[house] + 1 }
@@ -148,12 +188,20 @@ export default function Quiz() {
               className="w-48 h-48 md:w-64 md:h-64 mx-auto object-contain drop-shadow-[0_0_30px_rgba(255,215,0,0.3)] animate-in slide-in-from-bottom duration-1000"
             />
             
-            <div className="space-y-2">
-              <p className="text-[10px] font-black uppercase tracking-[0.5em] text-white/50">¡Bienvenido a tu nueva casa!</p>
-              <h2 className={`text-6xl md:text-8xl font-black uppercase italic tracking-tighter text-transparent bg-clip-text bg-gradient-to-b ${house.color} drop-shadow-2xl`}>
-                {house.name}
-              </h2>
-              <p className="text-white/60 italic font-medium">{house.motto}</p>
+            <div className="space-y-4">
+              <div className="space-y-1">
+                <p className="text-[10px] font-black uppercase tracking-[0.5em] text-white/50">¡Bienvenido a tu nueva casa!</p>
+                <h2 className={`text-6xl md:text-8xl font-black uppercase italic tracking-tighter text-transparent bg-clip-text bg-gradient-to-b ${house.color} drop-shadow-2xl`}>
+                  {house.name}
+                </h2>
+                <p className="text-white/60 italic font-medium">{house.motto}</p>
+              </div>
+
+              <div className="max-w-md mx-auto bg-black/20 p-6 rounded-2xl border border-white/5">
+                <p className="text-white/70 text-sm leading-relaxed italic">
+                  “{house.explanation}”
+                </p>
+              </div>
             </div>
 
             <div className="bg-white/5 border border-white/10 p-6 rounded-[2rem] space-y-3 relative overflow-hidden group">
@@ -213,7 +261,7 @@ export default function Quiz() {
             </div>
 
             <div className="grid gap-4">
-              {questions[currentIndex].options.map((opt, idx) => (
+              {shuffledOptions.map((opt, idx) => (
                 <button
                   key={idx}
                   onClick={() => handleAnswer(opt.house)}
@@ -234,4 +282,5 @@ export default function Quiz() {
     </div>
   )
 }
+
 
