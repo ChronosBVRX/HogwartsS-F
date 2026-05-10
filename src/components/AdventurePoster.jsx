@@ -130,8 +130,5 @@ export default function AdventurePoster({ zone }) {
         </p>
       </div>
     </div>
-    </div>
-      </div>
-    </div>
   )
 }
