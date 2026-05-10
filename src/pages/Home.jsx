@@ -29,12 +29,12 @@ export default function Home() {
           <img 
             src={logo} 
             alt="Hogwarts Logo" 
-            className="w-32 md:w-56 mx-auto mb-2 md:mb-4 drop-shadow-[0_0_40px_rgba(212,175,55,0.5)] animate-bounce-slow" 
+            className="w-40 md:w-56 mx-auto mb-2 md:mb-4 drop-shadow-[0_0_40px_rgba(212,175,55,0.5)] animate-bounce-slow" 
           />
           
-          <h1 className="text-3xl sm:text-5xl md:text-7xl font-black tracking-tighter uppercase italic text-white drop-shadow-lg leading-tight">
+          <h1 className="text-4xl sm:text-5xl md:text-7xl font-black tracking-tighter uppercase italic text-white drop-shadow-lg leading-tight">
             Celebra tu evento en un <br/>
-            <span className="bg-gradient-to-r from-magical-gold via-yellow-200 to-magical-gold bg-clip-text text-transparent">mundo mágico</span>
+            <span className="bg-gradient-to-r from-magical-gold via-yellow-200 to-magical-gold bg-clip-text text-transparent pr-2 pb-1">mundo mágico</span>
           </h1>
           
           <p className="text-lg md:text-2xl text-white/90 max-w-3xl mx-auto font-medium leading-relaxed px-4">
