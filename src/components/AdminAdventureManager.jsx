@@ -110,14 +110,49 @@ export default function AdminAdventureManager() {
             </div>
 
             <div className="space-y-4">
-              <div className="flex flex-wrap gap-3">
-                <button
-                  onClick={() => window.print()}
-                  className="btn-gold flex items-center gap-2 px-5 py-3 text-xs font-black uppercase"
-                >
-                  <Printer className="w-4 h-4" />
-                  Imprimir / guardar PDF
-                </button>
+                <div className="flex flex-wrap gap-3">
+                  <button
+                    onClick={() => {
+                      const printWindow = window.open('', '_blank');
+                      const posterHtml = document.querySelector('.adventure-poster-root').outerHTML;
+                      const styles = document.head.innerHTML;
+                      
+                      printWindow.document.write(`
+                        <html>
+                          <head>
+                            ${styles}
+                            <style>
+                              body { margin: 0; padding: 0; background: #0a0e1a !important; }
+                              .adventure-poster-root { 
+                                width: 8.5in !important; 
+                                height: 11in !important; 
+                                border-radius: 0 !important;
+                                margin: 0 !important;
+                                position: relative !important;
+                                display: flex !important;
+                                visibility: visible !important;
+                                -webkit-print-color-adjust: exact !important;
+                                print-color-adjust: exact !important;
+                              }
+                              @page { size: letter; margin: 0; }
+                            </style>
+                          </head>
+                          <body>${posterHtml}</body>
+                        </html>
+                      `);
+                      
+                      printWindow.document.close();
+                      printWindow.focus();
+                      setTimeout(() => {
+                        printWindow.print();
+                        printWindow.close();
+                      }, 1000);
+                    }}
+                    className="btn-gold flex items-center gap-2 px-5 py-3 text-xs font-black uppercase"
+                  >
+                    <Printer className="w-4 h-4" />
+                    Imprimir / Guardar PDF
+                  </button>
 
                 {selectedZone && (
                   <button
