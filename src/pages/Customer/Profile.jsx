@@ -231,7 +231,7 @@ export default function Profile() {
 
         <div className="bg-white/5 rounded-[2.5rem] p-8 md:p-10 border border-white/5 space-y-8 flex flex-col">
           <div className="flex items-center justify-between">
-            <p className="text-[10px] font-black text-magical-gold uppercase tracking-[0.25em]">Iniciar aventura mágica y registrar visita</p>
+            <p className="text-[10px] font-black text-white/30 uppercase tracking-[0.3em]">Acciones Mágicas</p>
             {activeSession && (
                <span className="px-3 py-1 bg-white/10 rounded-full text-[9px] font-black uppercase tracking-widest text-white/60">
                  {activeSession.status.replace(/_/g, ' ')}
@@ -239,38 +239,41 @@ export default function Profile() {
             )}
           </div>
 
-          <div className="flex-1 flex flex-col justify-center space-y-6">
+          <div className="flex-1 flex flex-col justify-center space-y-10">
             {/* Si está sentado, mostrar mesa arriba */}
             {activeSession?.status === 'seated' && (
-              <div className="text-center space-y-1 pb-4">
+              <div className="text-center space-y-1 pb-2">
                 <p className="text-4xl font-black text-white italic tracking-tighter">Mesa {activeSession.table_number}</p>
                 <p className="text-[10px] text-magical-gold font-black uppercase tracking-widest">Disfruta tu banquete</p>
               </div>
             )}
 
-            {/* Los dos botones principales que pidió el usuario */}
-            <div className="space-y-6">
-              <Link to="/aventura" className="btn-gold w-full flex items-center justify-center gap-3 py-5 text-sm font-black uppercase shadow-[0_0_30px_rgba(212,175,55,0.2)]">
-                <Wand2 className="w-5 h-5" />
-                Iniciar Aventura Mágica
-              </Link>
-
+            <div className="space-y-10">
+              {/* Botón de Aventura */}
               <div className="space-y-3 text-center">
-                <p className="text-[10px] text-white/50 uppercase font-black tracking-widest leading-relaxed max-w-[240px] mx-auto">
-                  Genera un QR que tendrás que mostrar a los meseros para que validen tu visita
+                <Link to="/aventura" className="btn-gold w-full flex items-center justify-center gap-3 py-5 text-sm font-black uppercase shadow-[0_0_40px_rgba(212,175,55,0.3)] bg-green-600 border-green-500 hover:bg-green-500">
+                  <Wand2 className="w-5 h-5" />
+                  Iniciar Aventura Mágica
+                </Link>
+                <p className="text-[10px] text-white/40 uppercase font-black tracking-widest leading-relaxed max-w-[280px] mx-auto italic">
+                  Resuelve acertijos en el castillo y gana recompensas
                 </p>
-                <Link to="/asistencia" className="btn-gold w-full flex items-center justify-center gap-3 py-5 text-sm font-black uppercase bg-white/10 border-white/20 hover:bg-white/20">
+              </div>
+
+              {/* Botón de Registro de Visita */}
+              <div className="space-y-3 text-center">
+                <Link to="/asistencia" className="btn-gold w-full flex items-center justify-center gap-3 py-5 text-sm font-black uppercase shadow-[0_0_30px_rgba(212,175,55,0.2)]">
                   <QrCode className="w-6 h-6" />
                   Registrar Visita Mágica
                 </Link>
                 <p className="text-[10px] text-white/40 uppercase font-black tracking-widest leading-relaxed max-w-[280px] mx-auto italic">
-                  Muestra tu QR al personal para validar tu asistencia y acumular puntos
+                  Genera tu código para que un mesero valide tu estancia
                 </p>
               </div>
             </div>
 
             {/* Acciones secundarias según el estado */}
-            <div className="pt-4 space-y-4">
+            <div className="pt-2 space-y-4">
               {activeSession?.status === 'seated' && (
                 <button 
                   onClick={handleEndVisit}

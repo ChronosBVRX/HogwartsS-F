@@ -87,10 +87,10 @@ export default function Attendance() {
       <div className="glass-card overflow-hidden">
         <div className="p-10 text-center bg-magical-gold/5 border-b border-white/5 space-y-2">
           <h1 className="text-2xl md:text-3xl font-black uppercase italic tracking-tighter text-white">
-            Iniciar aventura mágica y <span className="text-magical-gold">registrar visita</span>
+            Registrar <span className="text-magical-gold">Visita Mágica</span>
           </h1>
           <p className="text-[10px] text-white/50 uppercase font-black tracking-[0.2em] leading-relaxed max-w-sm mx-auto">
-            Genera un QR que tendrás que mostrar a los meseros para que validen tu visita
+            Muestra este código al personal para validar tu asistencia y acumular puntos
           </p>
         </div>
 
@@ -110,18 +110,11 @@ export default function Attendance() {
 
               {/* Status & Info */}
               <div className="w-full space-y-6">
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="bg-white/5 p-4 rounded-2xl border border-white/5 flex flex-col items-center gap-2">
-                    <Clock className="w-4 h-4 text-magical-gold" />
-                    <span className="text-[10px] font-black uppercase text-white/40">Válido hasta</span>
-                    <span className="text-xs font-bold text-white">
-                      {new Date(session.qr_expires_at || Date.now() + 20*60*1000).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                    </span>
-                  </div>
-                  <div className="bg-white/5 p-4 rounded-2xl border border-white/5 flex flex-col items-center gap-2">
-                    <ShieldCheck className="w-4 h-4 text-magical-gold" />
-                    <span className="text-[10px] font-black uppercase text-white/40">Estado</span>
-                    <span className="text-[10px] font-black uppercase text-magical-gold">
+                <div className="flex justify-center">
+                  <div className="bg-white/5 p-4 px-10 rounded-2xl border border-white/10 flex flex-col items-center gap-2">
+                    <ShieldCheck className="w-5 h-5 text-magical-gold" />
+                    <span className="text-[10px] font-black uppercase text-white/40 tracking-widest">Estado del Pase</span>
+                    <span className="text-xs font-black uppercase text-magical-gold tracking-tighter">
                       {session.status.replace(/_/g, ' ')}
                     </span>
                   </div>
