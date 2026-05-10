@@ -53,7 +53,7 @@ const InstallPWA = () => {
   if (!isVisible || state.isStandalone) return null;
 
   return (
-    <div className="fixed bottom-5 left-1/2 z-[9999] w-[92%] max-w-sm -translate-x-1/2 rounded-2xl border border-magical-gold/25 bg-magical-navy/95 p-4 shadow-[0_12px_40px_rgba(0,0,0,0.55)] backdrop-blur-xl">
+    <div className="fixed bottom-5 left-1/2 z-[9999] w-[92%] max-w-sm -translate-x-1/2 rounded-2xl border border-magical-gold/25 bg-magical-navy/95 p-4 shadow-[0_12px_40px_rgba(0,0,0,0.55)] backdrop-blur-xl md:hidden">
       <div className="flex items-start gap-3">
         <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-magical-gold/15 text-magical-gold">
           <Smartphone className="h-5 w-5" />
