@@ -87,53 +87,18 @@ export default function DuelRoom() {
     
     setSelectedSpell(spellKey)
 
-    if (duel.mode === 'ai') {
-      // Resolve immediately for AI
-      const aiSpell = chooseAiSpell({
-        aiHp: duel.player_two_hp,
-        playerHp: duel.player_one_hp,
-        aiEnergy: duel.player_two_energy,
-        difficulty: 'normal'
-      })
+    const { data, error } = await supabase.rpc('hsf_submit_duel_action', {
+      p_duel_id: duelId,
+      p_spell_key: spellKey,
+      p_item_key: null,
+      p_used_focus: false
+    })
 
-      const result = getSpellResult(spellKey, aiSpell)
-      
-      // Update DB
-      const newP1Hp = Math.max(0, duel.player_one_hp - result.bDamage + result.aHeal)
-      const newP2Hp = Math.max(0, duel.player_two_hp - result.aDamage + result.bHeal)
-      const newStatus = (newP1Hp <= 0 || newP2Hp <= 0 || duel.turn_number >= 12) ? 'finished' : 'active'
-      
-      const { error } = await supabase.from('hsf_duels').update({
-        player_one_hp: newP1Hp,
-        player_two_hp: newP2Hp,
-        player_one_energy: Math.min(5, duel.player_one_energy - SPELLS[spellKey].cost + 1),
-        player_two_energy: Math.min(5, duel.player_two_energy - SPELLS[aiSpell].cost + 1),
-        turn_number: duel.turn_number + 1,
-        status: newStatus,
-        winner_id: newP2Hp <= 0 ? duel.player_one : (newP1Hp <= 0 ? duel.player_two : null),
-        last_event: { message: result.message, p1_spell: spellKey, p2_spell: aiSpell }
-      }).eq('id', duelId)
-
-      await supabase.from('hsf_duel_events').insert({
-        duel_id: duelId,
-        turn_number: duel.turn_number,
-        event_type: 'turn_resolved',
-        payload: {
-          player_one_spell: spellKey,
-          player_two_spell: aiSpell,
-          player_one_damage: result.bDamage,
-          player_two_damage: result.aDamage,
-          message: result.message
-        }
-      })
-    } else {
-      // PvP: Submit turn to hsf_duel_turns
-      await supabase.from('hsf_duel_turns').insert({
-        duel_id: duelId,
-        turn_number: duel.turn_number,
-        player_id: profile.user_id,
-        spell_key: spellKey
-      })
+    if (error) {
+      alert('Error en el duelo: ' + error.message)
+      setSelectedSpell(null)
+    } else if (data?.status === 'waiting_opponent') {
+      // PvP logic: Just wait for Realtime update
     }
   }
 

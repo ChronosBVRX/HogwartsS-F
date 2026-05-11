@@ -81,11 +81,11 @@ export default function DuelArena({ duel, lastEvent, isResolving, player, oppone
       </div>
 
       {/* Narrative Overlay */}
-      {lastEvent?.message && (
+      {lastEvent?.payload?.message && (
         <div className="absolute bottom-8 left-1/2 -translate-x-1/2 w-[85%] z-30">
           <div className="bg-black/80 backdrop-blur-2xl border border-white/10 rounded-[2rem] p-5 text-center shadow-2xl animate-in slide-in-from-bottom-4 duration-500">
             <p className="text-white/80 text-xs md:text-sm italic font-medium leading-relaxed">
-              "{lastEvent.message}"
+              "{lastEvent.payload.message}"
             </p>
           </div>
         </div>

@@ -136,3 +136,88 @@ html, body {
   animation: glow-pulse 3s ease-in-out infinite;
 }
 
+/* Magic Duel Animations */
+.duel-avatar {
+  position: relative;
+  width: 78px;
+  height: 78px;
+  border-radius: 1.5rem;
+  background: rgba(255,255,255,0.06);
+  border: 1px solid rgba(255,255,255,0.14);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  backdrop-filter: blur(18px);
+  box-shadow: 0 0 35px rgba(212,175,55,0.12);
+}
+
+.spell-beam {
+  position: absolute;
+  width: 100%;
+  height: 5px;
+  border-radius: 999px;
+  background: linear-gradient(90deg, transparent, #d4af37, #60a5fa, transparent);
+  box-shadow: 0 0 28px rgba(96,165,250,0.8);
+  animation: spellBeam 0.8s ease-in-out forwards;
+}
+
+.spell-impact {
+  position: absolute;
+  width: 84px;
+  height: 84px;
+  border-radius: 999px;
+  border: 2px solid rgba(212,175,55,0.8);
+  box-shadow: 0 0 30px rgba(212,175,55,0.5);
+  animation: spellImpact 0.8s ease-out forwards;
+}
+
+.damage-number {
+  position: absolute;
+  top: 42%;
+  font-size: 1.7rem;
+  font-weight: 900;
+  color: #ff4d5a;
+  text-shadow: 0 0 20px rgba(255,77,90,0.8);
+  animation: damageFloat 1s ease-out forwards;
+  z-index: 30;
+}
+
+@keyframes spellBeam {
+  0% { opacity: 0; transform: scaleX(0); }
+  30% { opacity: 1; }
+  100% { opacity: 0.35; transform: scaleX(1); }
+}
+
+@keyframes spellImpact {
+  0% { opacity: 1; transform: scale(0.2); }
+  100% { opacity: 0; transform: scale(1.9); }
+}
+
+@keyframes damageFloat {
+  0% { opacity: 0; transform: translateY(14px) scale(0.85); }
+  20% { opacity: 1; transform: translateY(0) scale(1.15); }
+  100% { opacity: 0; transform: translateY(-44px) scale(1); }
+}
+
+@keyframes duelCast {
+  0% { transform: translateX(0) scale(1); }
+  45% { transform: translateX(-10px) scale(1.08); }
+  100% { transform: translateX(0) scale(1); }
+}
+
+@keyframes duelHit {
+  0% { transform: translateX(0); }
+  20% { transform: translateX(-8px); }
+  40% { transform: translateX(8px); }
+  60% { transform: translateX(-4px); }
+  100% { transform: translateX(0); }
+}
+
+.animate-duel-cast {
+  animation: duelCast 0.55s ease-in-out;
+}
+
+.animate-duel-hit {
+  animation: duelHit 0.55s ease-in-out;
+}
+
