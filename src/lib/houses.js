@@ -1,8 +1,8 @@
-import wizardGryffindor from '../../assets/duels/wizard_gryffindor.png'
-import wizardSlytherin from '../../assets/duels/wizard_slytherin.png'
-import wizardRavenclaw from '../../assets/duels/wizard_ravenclaw.png'
-import wizardHufflepuff from '../../assets/duels/wizard_hufflepuff.png'
-import wizardAi from '../../assets/duels/wizard_ai.png'
+import wizardGryffindor from '../assets/duels/wizard_gryffindor.png'
+import wizardSlytherin from '../assets/duels/wizard_slytherin.png'
+import wizardRavenclaw from '../assets/duels/wizard_ravenclaw.png'
+import wizardHufflepuff from '../assets/duels/wizard_hufflepuff.png'
+import wizardAi from '../assets/duels/wizard_ai.png'
 
 export const HOUSE_NORMALIZER = {
   red: 'gryffindor',
