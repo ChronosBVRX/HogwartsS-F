@@ -4,6 +4,8 @@ import { useAuth } from '../../context/AuthContext'
 import { Shield, Ticket, Check, X, Users, Star, TrendingUp, AlertCircle, Search, UserCog, UserPlus, Wand2, Map } from 'lucide-react'
 import AdminMenuManager from '../../components/AdminMenuManager'
 import AdminAdventureManager from '../../components/AdminAdventureManager'
+import AdminDuelManager from '../../components/AdminDuelManager'
+import { Swords } from 'lucide-react'
 
 export default function AdminDashboard() {
   const [stats, setStats] = useState({ users: 0, points: 0, pendingTickets: 0 })
@@ -159,11 +161,21 @@ export default function AdminDashboard() {
             <Map className="w-4 h-4" />
             Aventuras
           </button>
+          <button
+            onClick={() => setActiveTab('duels')}
+            className={`px-6 py-3 rounded-xl text-xs font-black uppercase tracking-widest transition-all flex items-center gap-2 whitespace-nowrap ${
+              activeTab === 'duels' ? 'bg-magical-gold text-magical-navy' : 'text-white/40 hover:text-white'
+            }`}
+          >
+            <Swords className="w-4 h-4" />
+            Duelos
+          </button>
         </div>
       </header>
 
       {activeTab === 'menu' && <AdminMenuManager />}
       {activeTab === 'adventures' && <AdminAdventureManager />}
+      {activeTab === 'duels' && <AdminDuelManager />}
 
       {activeTab === 'tickets' && (
         <>
