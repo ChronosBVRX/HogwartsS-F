@@ -371,7 +371,7 @@ export default function Profile() {
 
             <div className="bg-[#5c3a21]/5 border border-[#5c3a21]/10 rounded-2xl p-4 flex flex-col items-center text-center mt-12 space-y-2">
                <p className="text-[10px] uppercase font-black tracking-widest text-[#5c3a21]/60 italic">
-                 Junta 1,200 galeones durante el mes y desbloquea una hamburguesa clásica gratis.
+                 “Grandes banquetes aguardan a quienes recorren el castillo”. Junta 1,200 galeones y elige entre una Hamburguesa Clásica (Poder de Gryffindor) o unos Tacos de Arrachera (Fuerza de Gigante) gratis.
                </p>
                <div className="py-2">
                  <p className="text-[10px] uppercase font-black tracking-widest text-[#5c3a21]/40">Tu Poder Mágico Mensual</p>

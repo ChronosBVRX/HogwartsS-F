@@ -1,12 +1,14 @@
 import { useEffect, useState } from 'react'
 import { Link, useParams, useLocation } from 'react-router-dom'
 import { supabase } from '../../lib/supabase'
-import { Gift, Sparkles, ChevronLeft } from 'lucide-react'
+import { Gift, Sparkles, ChevronLeft, QrCode as QrIcon, CheckCircle2 } from 'lucide-react'
+import QRCode from 'react-qr-code'
 
 export default function AdventureReward() {
   const { runId } = useParams()
   const location = useLocation()
   const [reward, setReward] = useState(location.state || null)
+  const [loading, setLoading] = useState(!location.state)
 
   useEffect(() => {
     fetchReward()
@@ -17,59 +19,82 @@ export default function AdventureReward() {
     const { data } = await supabase
       .from('hsf_adventure_rewards')
       .select('*')
-      .eq('run_id', runId)
+      .eq('run_id', runId === 'system' ? null : runId) // Handle system rewards (house welcome)
+      .eq('status', 'available')
       .order('created_at', { ascending: false })
       .limit(1)
       .maybeSingle()
 
-    if (data) setReward(data)
+    if (data) {
+      setReward(data)
+    } else if (runId !== 'system') {
+      // If not available, check if it was already redeemed
+      const { data: redeemed } = await supabase
+        .from('hsf_adventure_rewards')
+        .select('*')
+        .eq('run_id', runId)
+        .eq('status', 'redeemed')
+        .maybeSingle()
+      if (redeemed) setReward({ ...redeemed, isRedeemed: true })
+    }
+    setLoading(false)
   }
 
-  const title = reward?.reward_title || reward?.rewardTitle || 'Recompensa mágica desbloqueada'
-  const description = reward?.reward_description || reward?.rewardDescription || reward?.completion_text || 'Muestra esta pantalla al personal para validar tu recompensa.'
+  if (loading) return (
+    <div className="flex-1 flex items-center justify-center">
+      <div className="animate-pulse text-magical-gold font-black uppercase tracking-widest text-xs">Revelando recompensa...</div>
+    </div>
+  )
+
+  const title = reward?.reward_title || 'Recompensa mágica'
+  const description = reward?.reward_description || 'Muestra esta pantalla al personal para validar tu recompensa.'
+  const isRedeemed = reward?.status === 'redeemed' || reward?.isRedeemed
 
   return (
     <div className="flex-1 max-w-2xl mx-auto w-full p-4 md:p-6 pb-24 flex items-center">
-      <div className="glass-card rounded-[2.5rem] border border-magical-gold/30 overflow-hidden w-full text-center relative">
+      <div className={`glass-card rounded-[2.5rem] border ${isRedeemed ? 'border-white/10' : 'border-magical-gold/30'} overflow-hidden w-full text-center relative`}>
         <Sparkles className="absolute -right-8 -top-8 w-40 h-40 text-magical-gold/10" />
 
         <div className="p-10 md:p-12 space-y-8 relative z-10">
-          <div className="w-24 h-24 mx-auto rounded-full bg-magical-gold/10 border border-magical-gold/30 flex items-center justify-center">
-            <Gift className="w-12 h-12 text-magical-gold" />
+          <div className={`w-24 h-24 mx-auto rounded-full flex items-center justify-center border ${isRedeemed ? 'bg-white/5 border-white/10' : 'bg-magical-gold/10 border-magical-gold/30'}`}>
+            {isRedeemed ? <CheckCircle2 className="w-12 h-12 text-white/20" /> : <Gift className="w-12 h-12 text-magical-gold" />}
           </div>
 
-          <div className="space-y-3">
-            <p className="text-[10px] font-black uppercase tracking-[0.4em] text-magical-gold">
-              Aventura completada
-            </p>
-            <h1 className="text-4xl md:text-5xl font-black uppercase italic tracking-tighter text-white">
-              {title}
-            </h1>
-            <p className="text-white/60 leading-relaxed">{description}</p>
-          </div>
-
-          {Number(reward?.reward_points || 0) > 0 && (
-            <div className="bg-white/5 border border-white/10 p-5 rounded-2xl">
-              <p className="text-[10px] text-white/40 uppercase font-black tracking-widest">Puntos obtenidos</p>
-              <p className="text-4xl font-black text-magical-gold">+{reward.reward_points}</p>
-            </div>
-          )}
-
-          {Number(reward?.min_consumption || 0) > 0 && (
-            <div className="bg-magical-gold/5 border border-magical-gold/20 p-5 rounded-2xl">
-              <p className="text-[10px] text-magical-gold uppercase font-black tracking-widest">
-                Válido con consumo mínimo de ${reward.min_consumption}
+          <div className="space-y-4">
+            <div className="space-y-1">
+              <p className={`text-[10px] font-black uppercase tracking-[0.4em] ${isRedeemed ? 'text-white/30' : 'text-magical-gold'}`}>
+                {isRedeemed ? 'Hechizo ya utilizado' : '¡Misión Cumplida!'}
               </p>
+              <h1 className={`text-4xl md:text-5xl font-black uppercase italic tracking-tighter ${isRedeemed ? 'text-white/40' : 'text-white'}`}>
+                {title}
+              </h1>
+            </div>
+            <p className="text-white/60 leading-relaxed italic">“{description}”</p>
+            
+            {!isRedeemed && (
+              <div className="bg-magical-navy/40 p-4 rounded-2xl border border-white/5">
+                <p className="text-[10px] text-magical-gold font-black uppercase tracking-widest">
+                  Presenta este código con la Gerencia
+                </p>
+              </div>
+            )}
+          </div>
+
+          {!isRedeemed && reward?.id && (
+            <div className="bg-white p-6 rounded-[2.5rem] inline-block shadow-2xl border-8 border-magical-gold/20">
+              <QRCode value={`REWARD:${reward.id}`} size={180} />
             </div>
           )}
 
-          <div className="grid gap-3">
+          {isRedeemed && (
+            <div className="py-10">
+              <p className="text-white/20 font-black uppercase tracking-widest text-xs italic">Esta recompensa ya ha sido reclamada en el Gran Comedor</p>
+            </div>
+          )}
+
+          <div className="grid gap-3 pt-4">
             <Link to="/perfil" className="btn-gold w-full py-5 text-sm font-black uppercase">
-              Ver mi perfil
-            </Link>
-            <Link to="/aventura" className="flex items-center justify-center gap-2 text-white/40 hover:text-white transition-colors text-xs font-black uppercase tracking-widest">
-              <ChevronLeft className="w-4 h-4" />
-              Volver a aventuras
+              Volver al Castillo
             </Link>
           </div>
         </div>
