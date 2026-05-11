@@ -1,25 +1,25 @@
-import { useEffect, useRef } from 'react'
+import { normalizeHouseSlug, HOUSE_META } from '../../lib/houses'
+import arenaYard from '../../assets/duels/arena_yard.png'
 
 export default function DuelArena({ duel, lastEvent, isResolving, player, opponent }) {
-  const containerRef = useRef(null)
-
-  const houseIcons = {
-    gryffindor: '🦁',
-    slytherin: '🐍',
-    ravenclaw: '🦅',
-    hufflepuff: '🦡',
-    ai: '💀'
-  }
+  const normPlayer = normalizeHouseSlug(player?.house)
+  const normOpponent = normalizeHouseSlug(opponent?.house)
+  
+  const pMeta = HOUSE_META[normPlayer] || { name: 'Mago', avatar: null }
+  const oMeta = HOUSE_META[normOpponent] || { name: 'Rival', avatar: null }
 
   return (
-    <section ref={containerRef} className="relative h-[350px] md:h-[450px] rounded-[3rem] overflow-hidden border border-white/10 bg-gradient-to-b from-[#0a0f1e] via-[#050712] to-black shadow-2xl">
-      {/* Background Ambience */}
-      <div className="absolute inset-0 opacity-40 bg-[radial-gradient(circle_at_center,rgba(212,175,55,0.15),transparent_70%)]" />
-      <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/dark-matter.png')] opacity-20" />
+    <section className="relative h-[400px] md:h-[550px] rounded-[3rem] overflow-hidden border border-white/10 shadow-2xl">
+      {/* 3D-like Arena Background */}
+      <div className="absolute inset-0 bg-black">
+        <img src={arenaYard} className="w-full h-full object-cover opacity-60 scale-110 blur-[1px]" alt="Arena" />
+        <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-black/40" />
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(212,175,55,0.1),transparent_80%)]" />
+      </div>
 
       {/* Turn Indicator */}
-      <div className="absolute top-8 left-1/2 -translate-x-1/2 text-center z-20">
-        <div className="bg-black/60 backdrop-blur-md px-6 py-2 rounded-full border border-white/10 space-y-0.5">
+      <div className="absolute top-8 left-1/2 -translate-x-1/2 z-20">
+        <div className="bg-black/60 backdrop-blur-xl px-6 py-2 rounded-full border border-white/10 text-center">
           <p className="text-[8px] uppercase tracking-[0.4em] text-white/30 font-black">Arena de Duelos</p>
           <p className="text-magical-gold text-xs font-black uppercase italic tracking-widest">
             {duel?.status === 'finished' ? 'Duelo Terminado' : `Turno ${duel?.turn_number || 1} / 12`}
@@ -27,64 +27,69 @@ export default function DuelArena({ duel, lastEvent, isResolving, player, oppone
         </div>
       </div>
 
-      {/* Combatants */}
-      <div className="absolute inset-0 flex items-center justify-between px-6 md:px-16 pt-12">
-        {/* Opponent */}
-        <div className="flex flex-col items-center space-y-4">
-          <div className={`duel-avatar opponent ${isResolving ? 'animate-duel-hit' : ''} border-red-500/20 shadow-red-500/10`}>
-            <span className="text-4xl filter drop-shadow-[0_0_10px_rgba(255,255,255,0.5)]">
-              {houseIcons[opponent?.house] || '👤'}
-            </span>
-            <div className="absolute -top-2 -right-2 bg-red-500 text-white text-[8px] font-black px-2 py-1 rounded-lg uppercase tracking-widest">Rival</div>
+      {/* Combatants Container */}
+      <div className="absolute inset-0 flex items-end justify-between px-4 md:px-12 pb-12">
+        
+        {/* Opponent (Left side for mirror effect) */}
+        <div className="relative flex flex-col items-center group">
+          <div className={`relative w-32 h-32 md:w-48 md:h-48 rounded-[2rem] overflow-hidden border-2 transition-all duration-500 ${isResolving ? 'animate-duel-hit' : 'hover:scale-105'} border-red-500/20 shadow-[0_0_50px_rgba(239,68,68,0.1)]`}>
+            {oMeta.avatar ? (
+              <img src={oMeta.avatar} className="w-full h-full object-cover grayscale-[0.2]" alt={oMeta.name} />
+            ) : (
+              <div className="w-full h-full bg-white/5 flex items-center justify-center text-4xl">💀</div>
+            )}
+            <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent" />
           </div>
-          <div className="text-center">
-            <p className="text-xs font-black text-white uppercase tracking-tighter truncate max-w-[100px]">{opponent?.name}</p>
-            <p className="text-[8px] font-bold text-white/30 uppercase tracking-[0.2em]">{opponent?.house}</p>
+          <div className="mt-4 text-center">
+             <div className="bg-red-600 text-white text-[8px] font-black px-3 py-1 rounded-full uppercase tracking-widest inline-block mb-1 shadow-lg">Rival</div>
+             <p className="text-sm font-black text-white uppercase tracking-tighter drop-shadow-lg">{opponent?.name}</p>
           </div>
         </div>
 
-        {/* Combat Visual Area */}
-        <div className="flex-1 relative h-full mx-4 flex items-center justify-center pointer-events-none">
+        {/* Action Center */}
+        <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-30">
           {isResolving && (
-            <div className="absolute inset-0 flex items-center justify-center">
+            <>
               <div className="spell-beam" />
               <div className="spell-impact" />
               
-              {/* Damage Floating Numbers (Simulated for MVP) */}
               {lastEvent?.payload?.player_one_damage > 0 && (
-                <div className="damage-number" style={{ left: '80%' }}>
+                <div className="damage-number" style={{ left: '75%' }}>
                   -{lastEvent.payload.player_one_damage}
                 </div>
               )}
               {lastEvent?.payload?.player_two_damage > 0 && (
-                <div className="damage-number" style={{ left: '20%' }}>
+                <div className="damage-number" style={{ left: '25%' }}>
                   -{lastEvent.payload.player_two_damage}
                 </div>
               )}
-            </div>
+            </>
           )}
         </div>
 
-        {/* Player */}
-        <div className="flex flex-col items-center space-y-4">
-          <div className={`duel-avatar player ${isResolving ? 'animate-duel-cast' : ''} border-magical-gold/20 shadow-magical-gold/10`}>
-            <span className="text-4xl filter drop-shadow-[0_0_10px_rgba(255,255,255,0.5)]">
-              {houseIcons[player?.house] || '👤'}
-            </span>
-            <div className="absolute -top-2 -left-2 bg-magical-gold text-magical-navy text-[8px] font-black px-2 py-1 rounded-lg uppercase tracking-widest">Tú</div>
+        {/* Player (Right side) */}
+        <div className="relative flex flex-col items-center group">
+          <div className={`relative w-32 h-32 md:w-48 md:h-48 rounded-[2rem] overflow-hidden border-2 transition-all duration-500 ${isResolving ? 'animate-duel-cast' : 'hover:scale-105'} border-magical-gold/20 shadow-[0_0_50px_rgba(212,175,55,0.1)]`}>
+            {pMeta.avatar ? (
+              <img src={pMeta.avatar} className="w-full h-full object-cover" alt={pMeta.name} />
+            ) : (
+              <div className="w-full h-full bg-white/5 flex items-center justify-center text-4xl">🧙‍♂️</div>
+            )}
+            <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent" />
           </div>
-          <div className="text-center">
-            <p className="text-xs font-black text-white uppercase tracking-tighter truncate max-w-[100px]">{player?.name}</p>
-            <p className="text-[8px] font-bold text-white/30 uppercase tracking-[0.2em]">{player?.house}</p>
+          <div className="mt-4 text-center">
+             <div className="bg-magical-gold text-magical-navy text-[8px] font-black px-3 py-1 rounded-full uppercase tracking-widest inline-block mb-1 shadow-lg">Tú</div>
+             <p className="text-sm font-black text-white uppercase tracking-tighter drop-shadow-lg">{player?.name}</p>
           </div>
         </div>
+
       </div>
 
-      {/* Narrative Overlay */}
+      {/* Narrative Log */}
       {lastEvent?.payload?.message && (
-        <div className="absolute bottom-8 left-1/2 -translate-x-1/2 w-[85%] z-30">
-          <div className="bg-black/80 backdrop-blur-2xl border border-white/10 rounded-[2rem] p-5 text-center shadow-2xl animate-in slide-in-from-bottom-4 duration-500">
-            <p className="text-white/80 text-xs md:text-sm italic font-medium leading-relaxed">
+        <div className="absolute bottom-6 left-1/2 -translate-x-1/2 w-[90%] md:w-[60%] z-40">
+          <div className="bg-black/80 backdrop-blur-3xl border border-white/10 rounded-3xl p-4 text-center shadow-2xl border-b-4 border-b-magical-gold">
+            <p className="text-white text-xs md:text-sm italic font-medium leading-relaxed tracking-wide">
               "{lastEvent.payload.message}"
             </p>
           </div>
