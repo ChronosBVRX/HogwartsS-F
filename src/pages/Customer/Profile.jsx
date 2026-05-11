@@ -280,6 +280,17 @@ export default function Profile() {
                 </p>
               </div>
 
+              {/* Botón de Duelos */}
+              <div className="space-y-3 text-center">
+                <Link to="/duelos" className="btn-gold w-full flex items-center justify-center gap-3 py-5 text-sm font-black uppercase shadow-[0_0_40px_rgba(212,175,55,0.3)]">
+                  <Wand2 className="w-5 h-5" />
+                  Entrar a Duelos Mágicos
+                </Link>
+                <p className="text-[10px] text-white/40 uppercase font-black tracking-widest leading-relaxed max-w-[280px] mx-auto italic">
+                  Reta a la IA o a otros magos, gana fragmentos y defiende el honor de tu casa.
+                </p>
+              </div>
+
               {/* Botón de Registro de Visita */}
               <div className="space-y-3 text-center">
                 <Link to="/asistencia" className="btn-gold w-full flex items-center justify-center gap-3 py-5 text-sm font-black uppercase shadow-[0_0_30px_rgba(212,175,55,0.2)]">

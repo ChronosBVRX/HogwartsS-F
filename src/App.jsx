@@ -19,6 +19,11 @@ import AdventureHome from './pages/Customer/AdventureHome'
 import AdventureScanner from './pages/Customer/AdventureScanner'
 import AdventurePlay from './pages/Customer/AdventurePlay'
 import AdventureReward from './pages/Customer/AdventureReward'
+import DuelHome from './pages/Customer/DuelHome'
+import DuelRoom from './pages/Customer/DuelRoom'
+import DuelLobby from './pages/Customer/DuelLobby'
+import DuelShop from './pages/Customer/DuelShop'
+import DuelRanking from './pages/Customer/DuelRanking'
 
 
 const ProtectedRoute = ({ children, role }) => {
@@ -54,6 +59,13 @@ function App() {
             <Route path="/aventura/escanear" element={<ProtectedRoute><AdventureScanner /></ProtectedRoute>} />
             <Route path="/aventura/jugar/:runId" element={<ProtectedRoute><AdventurePlay /></ProtectedRoute>} />
             <Route path="/aventura/recompensa/:runId" element={<ProtectedRoute><AdventureReward /></ProtectedRoute>} />
+
+            {/* Magic Duels Routes */}
+            <Route path="/duelos" element={<ProtectedRoute><DuelHome /></ProtectedRoute>} />
+            <Route path="/duelos/retar" element={<ProtectedRoute><DuelLobby /></ProtectedRoute>} />
+            <Route path="/duelos/sala/:duelId" element={<ProtectedRoute><DuelRoom /></ProtectedRoute>} />
+            <Route path="/duelos/tienda" element={<ProtectedRoute><DuelShop /></ProtectedRoute>} />
+            <Route path="/duelos/ranking" element={<ProtectedRoute><DuelRanking /></ProtectedRoute>} />
 
             {/* Waiter Routes */}
             <Route path="/mesero" element={<ProtectedRoute role="waiter"><WaiterDashboard /></ProtectedRoute>} />
