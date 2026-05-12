@@ -68,25 +68,28 @@ export default function DuelRoom() {
         return
       }
 
-      // Fetch names separately to avoid complex join errors (400)
-      let p1_name = data.player_one_name || 'Mago 1', p1_house = data.player_one_house || 'neutral'
-      let p2_name = data.player_two_name || 'Mago 2', p2_house = data.player_two_house || 'neutral'
+      // Fetch names and genders separately
+      let p1_name = data.player_one_name || 'Mago 1', p1_house = data.player_one_house || 'neutral', p1_gender = 'male'
+      let p2_name = data.player_two_name || 'Mago 2', p2_house = data.player_two_house || 'neutral', p2_gender = 'male'
 
-      const { data: p1 } = await supabase.from('hsf_profiles').select('display_name, house_slug').eq('user_id', data.player_one).maybeSingle()
+      const { data: p1 } = await supabase.from('hsf_profiles').select('display_name, house_slug, gender').eq('user_id', data.player_one).maybeSingle()
       if (p1) {
         p1_name = p1.display_name
         p1_house = p1.house_slug
+        p1_gender = p1.gender || 'male'
       }
 
       if (data.player_two) {
         if (data.mode === 'ai') {
           p2_name = 'Profesor Snape'
           p2_house = 'ai'
+          p2_gender = 'male'
         } else {
-          const { data: p2 } = await supabase.from('hsf_profiles').select('display_name, house_slug').eq('user_id', data.player_two).maybeSingle()
+          const { data: p2 } = await supabase.from('hsf_profiles').select('display_name, house_slug, gender').eq('user_id', data.player_two).maybeSingle()
           if (p2) {
             p2_name = p2.display_name
             p2_house = p2.house_slug
+            p2_gender = p2.gender || 'male'
           }
         }
       }
@@ -95,8 +98,10 @@ export default function DuelRoom() {
         ...data,
         p1_name,
         p1_house,
+        p1_gender,
         p2_name,
-        p2_house
+        p2_house,
+        p2_gender
       }
       
       setDuel(formattedData)
@@ -304,8 +309,16 @@ export default function DuelRoom() {
           duel={duel} 
           lastEvent={lastEvent} 
           isResolving={resolutionStage === 'impact' || resolutionStage === 'casting'} 
-          player={{ name: profile?.display_name || 'Tú', house: myHouse }}
-          opponent={{ name: rivalName, house: duel?.mode === 'ai' ? 'ai' : rivalHouse }}
+          player={{ 
+            name: profile?.display_name || 'Tú', 
+            house: myHouse,
+            gender: profile?.gender || 'male'
+          }}
+          opponent={{ 
+            name: rivalName, 
+            house: duel?.mode === 'ai' ? 'ai' : rivalHouse,
+            gender: isP1 ? duel?.p2_gender : duel?.p1_gender
+          }}
           isP1={isP1}
         />
         

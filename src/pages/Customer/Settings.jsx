@@ -13,6 +13,8 @@ export default function Settings() {
   const [message, setMessage] = useState(null)
   const navigate = useNavigate()
 
+  const [gender, setGender] = useState(profile?.gender || 'male')
+
   const handleUpdateProfile = async (e) => {
     e.preventDefault()
     setLoading(true)
@@ -23,6 +25,7 @@ export default function Settings() {
       .update({
         display_name: displayName,
         phone: phone,
+        gender: gender,
         updated_at: new Date().toISOString()
       })
       .eq('user_id', user.id)
@@ -32,7 +35,7 @@ export default function Settings() {
     } else {
       setMessage({ type: 'success', text: 'Perfil actualizado correctamente' })
       // Reload profile from context if possible or just wait for effect
-      window.location.reload() // Simple way to refresh context
+      setTimeout(() => window.location.reload(), 1500)
     }
     setLoading(false)
   }
@@ -85,7 +88,7 @@ export default function Settings() {
           </div>
           <h2 className="text-lg font-black uppercase italic tracking-tighter text-white">Editar Perfil</h2>
         </div>
-        <form onSubmit={handleUpdateProfile} className="p-8 space-y-6">
+        <form onSubmit={handleUpdateProfile} className="p-8 space-y-8">
           <div className="grid md:grid-cols-2 gap-6">
             <div className="space-y-1">
               <label className="text-[10px] font-black uppercase tracking-widest text-white/40">Nombre Público</label>
@@ -108,9 +111,37 @@ export default function Settings() {
               />
             </div>
           </div>
-          <button type="submit" disabled={loading} className="btn-gold px-8 py-3 flex items-center gap-2 text-sm font-black uppercase italic">
+
+          {/* Gender Selector */}
+          <div className="space-y-3">
+            <label className="text-[10px] font-black uppercase tracking-widest text-white/40">Identidad Mágica</label>
+            <div className="grid grid-cols-2 gap-4">
+              <button
+                type="button"
+                onClick={() => setGender('male')}
+                className={`p-4 rounded-2xl border-2 transition-all flex flex-col items-center gap-2 ${
+                  gender === 'male' ? 'border-magical-gold bg-magical-gold/10 text-white' : 'border-white/5 bg-white/5 text-white/40'
+                }`}
+              >
+                <span className="text-2xl">🧙‍♂️</span>
+                <span className="text-xs font-black uppercase tracking-widest">Mago</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setGender('female')}
+                className={`p-4 rounded-2xl border-2 transition-all flex flex-col items-center gap-2 ${
+                  gender === 'female' ? 'border-magical-gold bg-magical-gold/10 text-white' : 'border-white/5 bg-white/5 text-white/40'
+                }`}
+              >
+                <span className="text-2xl">🧙‍♀️</span>
+                <span className="text-xs font-black uppercase tracking-widest">Bruja</span>
+              </button>
+            </div>
+          </div>
+
+          <button type="submit" disabled={loading} className="w-full btn-gold py-4 flex items-center justify-center gap-2 text-sm font-black uppercase italic shadow-lg">
             <Save className="w-4 h-4" />
-            Guardar Cambios
+            Guardar Identidad
           </button>
         </form>
       </section>

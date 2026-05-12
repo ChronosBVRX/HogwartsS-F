@@ -1,4 +1,4 @@
-import { normalizeHouseSlug, HOUSE_META } from '../../lib/houses'
+import { normalizeHouseSlug, HOUSE_META, getAvatar } from '../../lib/houses'
 import audioManager from '../../lib/audioManager'
 import { useEffect } from 'react'
 
@@ -6,8 +6,11 @@ export default function DuelArena({ duel, lastEvent, isResolving, player, oppone
   const normPlayer = normalizeHouseSlug(player?.house)
   const normOpponent = normalizeHouseSlug(opponent?.house)
   
-  const pMeta = HOUSE_META[normPlayer] || { name: 'Mago', avatar: null }
-  const oMeta = HOUSE_META[normOpponent] || { name: 'Rival', avatar: null }
+  const pAvatar = getAvatar(normPlayer, player?.gender)
+  const oAvatar = getAvatar(normOpponent, opponent?.gender)
+
+  const pMeta = HOUSE_META[normPlayer] || { name: 'Mago' }
+  const oMeta = HOUSE_META[normOpponent] || { name: 'Rival' }
 
   const p1Damage = lastEvent?.payload?.p1_damage || 0
   const p2Damage = lastEvent?.payload?.p2_damage || 0
@@ -61,8 +64,8 @@ export default function DuelArena({ duel, lastEvent, isResolving, player, oppone
         {/* Opponent (Left) */}
         <div className="relative flex-1 flex flex-col items-center group max-w-[140px] md:max-w-none">
           <div className={`relative w-full aspect-square rounded-3xl overflow-hidden border-2 transition-all duration-700 ${isResolving && rivalDamageTaken > 0 ? 'animate-duel-hit' : 'animate-float'} border-impact-red/30 shadow-[0_0_40px_rgba(255,77,90,0.2)] bg-night-blue`}>
-            {oMeta.avatar ? (
-              <img src={oMeta.avatar} className="w-full h-full object-cover brightness-[0.9] contrast-[1.1]" alt={oMeta.name} />
+            {oAvatar ? (
+              <img src={oAvatar} className="w-full h-full object-cover brightness-[0.9] contrast-[1.1]" alt={oMeta.name} />
             ) : (
               <div className="w-full h-full bg-white/5 flex items-center justify-center text-4xl">💀</div>
             )}
@@ -108,8 +111,8 @@ export default function DuelArena({ duel, lastEvent, isResolving, player, oppone
         {/* Player (Right) */}
         <div className="relative flex-1 flex flex-col items-center group max-w-[140px] md:max-w-none">
           <div className={`relative w-full aspect-square rounded-3xl overflow-hidden border-2 transition-all duration-700 ${isResolving ? 'animate-duel-cast' : 'animate-float'} border-magical-gold/40 shadow-[0_0_40px_rgba(212,175,55,0.3)] bg-night-blue`} style={{ animationDelay: '0.5s' }}>
-            {pMeta.avatar ? (
-              <img src={pMeta.avatar} className="w-full h-full object-cover brightness-[0.9] contrast-[1.1]" alt={pMeta.name} />
+            {pAvatar ? (
+              <img src={pAvatar} className="w-full h-full object-cover brightness-[0.9] contrast-[1.1]" alt={pMeta.name} />
             ) : (
               <div className="w-full h-full bg-white/5 flex items-center justify-center text-4xl">🧙‍♂️</div>
             )}
