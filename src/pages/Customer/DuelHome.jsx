@@ -138,6 +138,10 @@ export default function DuelHome() {
           <Link 
             key={i}
             to={item.to}
+            onClick={() => {
+              audioManager.unlockAudio().catch(() => {});
+              audioManager.playSfx('ui_button_magic');
+            }}
             className={`glass-card p-8 flex flex-col items-center gap-4 transition-all duration-300 hover:-translate-y-2 border-b-4 ${item.border}`}
           >
             <div className={`${item.color} drop-shadow-[0_0_10px_rgba(255,255,255,0.2)]`}>{item.icon}</div>

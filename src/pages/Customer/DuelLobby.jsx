@@ -11,6 +11,7 @@ export default function DuelLobby() {
   const navigate = useNavigate()
 
   const createDuel = async () => {
+    audioManager.unlockAudio().catch(() => {})
     audioManager.playSfx('ui_button_magic')
     setLoading(true)
     setError(null)
@@ -22,6 +23,7 @@ export default function DuelLobby() {
 
   const joinDuel = async (e) => {
     e.preventDefault()
+    audioManager.unlockAudio().catch(() => {})
     audioManager.playSfx('ui_button_magic')
     if (!inviteCode) return
     setLoading(true)

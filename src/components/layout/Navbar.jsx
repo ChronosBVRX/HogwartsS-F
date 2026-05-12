@@ -1,10 +1,15 @@
 import { Link } from 'react-router-dom'
 import { useAuth } from '../../context/AuthContext'
 import { Shield, Users, Utensils, User, LogIn } from 'lucide-react'
+import { useLocation } from 'react-router-dom'
 import logo from '../../assets/logo.png'
 
 export default function Navbar() {
   const { user, profile, isAdmin, isWaiter } = useAuth()
+  const location = useLocation()
+
+  // Hide navbar in immersive duel arena
+  if (location.pathname.includes('/duelos/sala/')) return null
 
   return (
     <nav className="glass-card m-4 px-6 py-4 flex justify-between items-center z-50">

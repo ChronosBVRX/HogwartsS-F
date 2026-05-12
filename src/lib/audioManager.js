@@ -37,6 +37,10 @@ const AUDIO_MAP = {
     defeat: '/audio/duels/voices/defeat.mp3',
     turn_start: '/audio/duels/voices/turn_start.mp3',
     low_energy: '/audio/duels/voices/low_energy.mp3',
+    snape_mock_low_energy: '/audio/duels/voices/snape_mock_low_energy.mp3',
+    snape_mock_bad_move: '/audio/duels/voices/snape_mock_bad_move.mp3',
+    harry_cheer_good_move: '/audio/duels/voices/harry_cheer_good_move.mp3',
+    harry_cheer_advantage: '/audio/duels/voices/harry_cheer_advantage.mp3',
   }
 };
 
@@ -161,19 +165,24 @@ class AudioManager {
     const url = AUDIO_MAP.voices[key];
     if (!url) return;
 
-    // We use a new Audio object to allow voices to overlap with SFX but we might want to stop current voice?
-    // For narrations, usually we want one at a time.
+    // Interrupt previous voice if still playing
     if (this.currentVoice) {
       this.currentVoice.pause();
+      this.currentVoice = null;
     }
 
     const audio = new Audio(url);
-    audio.volume = 1.0; // Voices should be clear
+    audio.volume = 1.0;
     this.currentVoice = audio;
     
-    audio.play().catch(err => {
-      console.warn('Voice play failed', err);
-    });
+    // Small delay to prevent audio engine glitching when switching voices rapidly
+    setTimeout(() => {
+      if (this.currentVoice === audio) {
+        audio.play().catch(err => {
+          console.warn('Voice play failed', err);
+        });
+      }
+    }, 50);
   }
 
   setAudioEnabled(value) {

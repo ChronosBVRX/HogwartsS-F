@@ -25,6 +25,7 @@ export default function DuelRoom() {
   const [availableHand, setAvailableHand] = useState([])
   const [timeLeft, setTimeLeft] = useState(20)
   const [showResult, setShowResult] = useState(false)
+  const [resolutionStage, setResolutionStage] = useState(null) // null, 'casting', 'impact', 'narrative'
 
   // Determine if user is P1 or P2
   const isP1 = profile?.user_id === duel?.player_one
@@ -54,6 +55,22 @@ export default function DuelRoom() {
       })
       .on('postgres_changes', { event: 'INSERT', table: 'hsf_duel_events', filter: `duel_id=eq.${duelId}` }, (payload) => {
         setLastEvent(payload.new)
+        
+        // Character reactions to duel events
+        if (payload.new.payload) {
+          const { player_one_damage, player_two_damage } = payload.new.payload
+          const iAmP1 = profile.user_id === duel?.player_one
+          const myDamage = iAmP1 ? player_one_damage : player_two_damage
+          const rivalDamage = iAmP1 ? player_two_damage : player_one_damage
+
+          if (rivalDamage > 15) {
+            audioManager.playVoice('harry_cheer_advantage')
+          } else if (myDamage > 10) {
+            audioManager.playVoice('snape_mock_bad_move')
+          } else if (rivalDamage > 0) {
+            audioManager.playVoice('harry_cheer_good_move')
+          }
+        }
         triggerResolution()
       })
       .subscribe()
@@ -73,16 +90,22 @@ export default function DuelRoom() {
         audioManager.playVoice('instructions')
       } else {
         audioManager.playVoice('turn_start')
+        
+        // Dynamic character reactions based on state
+        if (myEnergy < 2) {
+          audioManager.playVoice('snape_mock_low_energy');
+        }
       }
     }
   }, [duel?.turn_number, isResolving])
 
   useEffect(() => {
-    if (duel && !isResolving && duel.status === 'active') {
-      setAvailableHand(getAvailableHand(duel.turn_number, myEnergy))
+    if (duel && !resolutionStage && duel.status === 'active') {
+      const hand = getAvailableHand(duel.turn_number, myEnergy)
+      setAvailableHand(hand)
       setTimeLeft(20)
     }
-  }, [duel?.turn_number, isResolving])
+  }, [duel?.turn_number, resolutionStage])
 
   useEffect(() => {
     if (!duel || duel.status !== 'active' || isResolving || selectedSpell) return
@@ -127,11 +150,28 @@ export default function DuelRoom() {
   }
 
   const triggerResolution = () => {
+    if (resolutionStage) return;
+    
+    // Stage 1: Casting (Focus on the magic)
+    setResolutionStage('casting')
     setIsResolving(true)
+
+    // Stage 2: Impact (Show damage/animations)
     setTimeout(() => {
+      setResolutionStage('impact')
+    }, 1500)
+
+    // Stage 3: Narrative (The Pokemon Box)
+    setTimeout(() => {
+      setResolutionStage('narrative')
+    }, 3500)
+
+    // Stage 4: Reset
+    setTimeout(() => {
+      setResolutionStage(null)
       setIsResolving(false)
       setSelectedSpell(null)
-    }, 3000)
+    }, 7000)
   }
 
   const handleSpellSubmit = async (spellKey) => {
@@ -185,17 +225,29 @@ export default function DuelRoom() {
       </div>
 
       {/* Main Arena Section */}
-      <DuelArena 
-        duel={duel} 
-        lastEvent={lastEvent} 
-        isResolving={isResolving} 
-        player={{ name: profile.display_name, house: myHouse }}
-        opponent={{ name: rivalName, house: duel?.mode === 'ai' ? 'ai' : rivalHouse }}
-      />
+      <div className="relative">
+        <DuelArena 
+          duel={duel} 
+          lastEvent={lastEvent} 
+          isResolving={resolutionStage === 'impact' || resolutionStage === 'casting'} 
+          player={{ name: profile.display_name, house: myHouse }}
+          opponent={{ name: rivalName, house: duel?.mode === 'ai' ? 'ai' : rivalHouse }}
+        />
+        
+        {/* Waiting Overlay */}
+        {selectedSpell && !resolutionStage && (
+          <div className="absolute inset-0 bg-magical-navy/60 backdrop-blur-md rounded-[2.5rem] flex items-center justify-center z-50 animate-in fade-in duration-300">
+            <div className="flex flex-col items-center gap-4">
+              <div className="w-12 h-12 border-4 border-magical-gold border-t-transparent rounded-full animate-spin" />
+              <p className="text-magical-gold font-black uppercase italic tracking-widest text-sm">Esperando al oponente...</p>
+            </div>
+          </div>
+        )}
+      </div>
 
       {/* Turn Announcement - Pokémon Style */}
-      {lastEvent && (
-        <div className="animate-in fade-in zoom-in duration-500">
+      {resolutionStage === 'narrative' && lastEvent && (
+        <div className="animate-in fade-in zoom-in slide-in-from-bottom-8 duration-700">
           <DuelTurnAnnouncement lastEvent={lastEvent} isP1={isP1} />
         </div>
       )}
@@ -218,13 +270,13 @@ export default function DuelRoom() {
             </div>
           </div>
 
-          <div className="grid grid-cols-3 gap-2 md:gap-8 overflow-x-auto pb-2 custom-scrollbar">
-            {availableHand.map(spell => (
+          <div className="grid grid-cols-3 gap-2 md:gap-8 overflow-x-auto pb-4 pt-2 custom-scrollbar">
+            {availableHand.map((spell, idx) => (
               <SpellCard 
-                key={spell.key}
+                key={`${spell.key}-${duel?.turn_number}-${idx}`}
                 spell={spell}
                 selected={selectedSpell === spell.key}
-                disabled={isResolving || myEnergy < spell.cost || selectedSpell}
+                disabled={resolutionStage || myEnergy < spell.cost || selectedSpell}
                 onClick={() => handleSpellSubmit(spell.key)}
               />
             ))}
