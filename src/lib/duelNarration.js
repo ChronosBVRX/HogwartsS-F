@@ -80,16 +80,22 @@ export function buildTurnAnnouncement({ payload, isP1 }) {
   }
 
   // 3. Resultados de impacto
-  if (my.blocked > 0) timeline.push(`Lograste bloquear ${my.blocked} puntos de daño rival.`)
-  if (my.damageTaken > 0) timeline.push(`Recibiste ${my.damageTaken} de daño tras el intercambio.`)
-  else if (rival.damageDealt > 0) timeline.push("¡Defensa impecable! No recibiste daño este turno.")
+  if (my.blocked > 0) {
+    timeline.push(`Tu estrategia bloqueó ${my.blocked} puntos de daño rival.`)
+  }
+  
+  if (my.damageTaken > 0) {
+    timeline.push(`Recibiste ${my.damageTaken} de daño tras el intercambio.`)
+  } else {
+    timeline.push("¡Defensa impecable! No recibiste daño este turno.")
+  }
 
   // 4. Segunda Acción
   if (my.actions.length > 1) {
     const secondAction = SPELLS[my.actions[1].key]
     if (secondAction) {
       timeline.push(`Tu segunda acción fue ${secondAction.name}.`)
-      if (my.interrupted) timeline.push(`Lamentablemente, el impacto rival interrumpió tu segunda acción.`)
+      if (my.interrupted) timeline.push(`¡Pero el impacto rival interrumpió tu carga mágica!`)
       else if (secondAction.energyGain > 0) timeline.push(`Lograste canalizar ${secondAction.energyGain} de energía extra.`)
     }
   }

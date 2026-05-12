@@ -404,7 +404,7 @@ export default function DuelRoom() {
             
             {/* Stance Selector */}
             <div className="flex flex-col gap-2">
-              <p className="text-[10px] font-black text-magical-gold uppercase tracking-[0.3em] text-center">Elegir Postura Mágica</p>
+              <p className="text-[10px] font-black text-magical-gold uppercase tracking-[0.3em] text-center">Elige tu estilo de combate</p>
               <div className="flex justify-around gap-2">
                 {STANCES.map(s => (
                   <button
@@ -432,12 +432,12 @@ export default function DuelRoom() {
                 <div className="flex items-center gap-2">
                   <div className={`w-2 h-2 rounded-full ${usedAP >= 1 ? 'bg-magical-gold shadow-[0_0_8px_var(--color-magical-gold)]' : 'bg-white/10'}`} />
                   <div className={`w-2 h-2 rounded-full ${usedAP >= 2 ? 'bg-magical-gold shadow-[0_0_8px_var(--color-magical-gold)]' : 'bg-white/10'}`} />
-                  <span className="text-[10px] font-black uppercase text-white/40 ml-2">Puntos de Acción</span>
+                  <span className="text-[10px] font-black uppercase text-white/40 ml-2">Movimientos</span>
                 </div>
                 <div className="flex items-center gap-2">
                    <ZapIcon className="text-magical-gold w-3 h-3" />
                    <p className="text-lg font-black italic">{myEnergy - totalEnergyCost} / 5</p>
-                   <span className="text-[9px] text-white/30 uppercase font-black tracking-widest ml-1">Energía Restante</span>
+                   <span className="text-[9px] text-white/30 uppercase font-black tracking-widest ml-1">Energía</span>
                 </div>
               </div>
 
@@ -450,10 +450,15 @@ export default function DuelRoom() {
                     : 'bg-white/5 text-white/20'
                 }`}
               >
-                {isSubmitting ? 'Esperando...' : 'Confirmar Estrategia'}
+                {isSubmitting ? 'Esperando...' : 'Lanzar Estrategia'}
                 <Swords className="w-4 h-4" />
               </button>
             </div>
+
+            {/* Microcopy Tip */}
+            <p className="text-[9px] text-white/30 font-medium italic text-center">
+              Toca un hechizo para jugar rápido. Si es ligero, puedes combinarlo con otro.
+            </p>
 
             {/* Spell Grid */}
             <div className="grid grid-cols-5 md:grid-cols-10 gap-2">

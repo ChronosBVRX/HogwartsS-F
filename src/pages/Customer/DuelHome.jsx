@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '../../context/AuthContext'
 import { supabase } from '../../lib/supabase'
-import { Wand2, Trophy, ShoppingBag, BarChart2, Swords, Shield, Zap, Sparkles, Repeat, Flag } from 'lucide-react'
+import { Wand2, Trophy, ShoppingBag, BarChart2, Swords, Shield, Zap, Sparkles, Repeat, Flag, BookOpen, Play } from 'lucide-react'
 import audioManager from '../../lib/audioManager'
 import AudioToggle from '../../components/AudioToggle'
 
@@ -196,6 +196,41 @@ export default function DuelHome() {
           </div>
         </Link>
       </div>
+
+      {/* Academia de Duelo */}
+      <section className="space-y-6">
+        <div className="flex items-center gap-3">
+          <BookOpen className="w-5 h-5 text-magical-gold" />
+          <h2 className="text-[10px] font-black uppercase text-magical-gold tracking-[0.4em]">Academia de Duelo</h2>
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <Link 
+            to="/duelos/tutorial"
+            className="group p-8 rounded-[2rem] bg-gradient-to-br from-magical-gold/10 to-transparent border border-magical-gold/20 flex items-center justify-between hover:border-magical-gold transition-all duration-500 shadow-lg"
+          >
+            <div className="space-y-2 text-left">
+              <h3 className="text-2xl font-black uppercase italic italic text-white tracking-tighter">Clase de Duelo</h3>
+              <p className="text-[10px] text-white/40 font-black uppercase tracking-widest">Tutorial interactivo paso a paso</p>
+            </div>
+            <div className="p-4 bg-magical-gold/10 rounded-2xl group-hover:bg-magical-gold group-hover:text-magical-navy transition-all duration-500">
+               <Play className="w-6 h-6" />
+            </div>
+          </Link>
+
+          <Link 
+            to="/duelos/manual"
+            className="group p-8 rounded-[2rem] bg-gradient-to-br from-spell-blue/10 to-transparent border border-spell-blue/20 flex items-center justify-between hover:border-spell-blue transition-all duration-500 shadow-lg"
+          >
+            <div className="space-y-2 text-left">
+              <h3 className="text-2xl font-black uppercase italic italic text-white tracking-tighter">Manual del Duelista</h3>
+              <p className="text-[10px] text-white/40 font-black uppercase tracking-widest">Reglas, posturas y consejos</p>
+            </div>
+            <div className="p-4 bg-spell-blue/10 rounded-2xl group-hover:bg-spell-blue group-hover:text-white transition-all duration-500">
+               <BookOpen className="w-6 h-6" />
+            </div>
+          </Link>
+        </div>
+      </section>
 
       {/* Sub Actions Grid */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-6">

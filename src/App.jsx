@@ -27,6 +27,8 @@ import DuelRanking from './pages/Customer/DuelRanking'
 import DuelSpellGuide from './pages/Customer/DuelSpellGuide'
 import DuelAchievements from './pages/Customer/DuelAchievements'
 import DuelWaitingRoom from './pages/Customer/DuelWaitingRoom'
+import DuelTutorial from './pages/Customer/DuelTutorial'
+import DuelManual from './pages/Customer/DuelManual'
 
 
 const ProtectedRoute = ({ children, role }) => {
@@ -72,6 +74,8 @@ function App() {
             <Route path="/duelos/hechizos" element={<ProtectedRoute><DuelSpellGuide /></ProtectedRoute>} />
             <Route path="/duelos/logros" element={<ProtectedRoute><DuelAchievements /></ProtectedRoute>} />
             <Route path="/duelos/espera/:duelId" element={<ProtectedRoute><DuelWaitingRoom /></ProtectedRoute>} />
+            <Route path="/duelos/tutorial" element={<ProtectedRoute><DuelTutorial /></ProtectedRoute>} />
+            <Route path="/duelos/manual" element={<ProtectedRoute><DuelManual /></ProtectedRoute>} />
 
             {/* Waiter Routes */}
             <Route path="/mesero" element={<ProtectedRoute role="waiter"><WaiterDashboard /></ProtectedRoute>} />

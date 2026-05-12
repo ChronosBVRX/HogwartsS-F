@@ -1,6 +1,6 @@
 import React from 'react'
 import { buildTurnAnnouncement } from '../../lib/duelNarration'
-import { Zap, Heart, Shield, Swords, AlertTriangle } from 'lucide-react'
+import { AlertTriangle } from 'lucide-react'
 import audioManager from '../../lib/audioManager'
 
 export default function DuelTurnAnnouncement({ lastEvent, isP1, onContinue }) {
@@ -98,20 +98,31 @@ export default function DuelTurnAnnouncement({ lastEvent, isP1, onContinue }) {
 
 function StrategyCard({ label, actions, stance, isPlayer }) {
   const STANCE_ICONS = { offensive: '⚔️', defensive: '🛡️', concentrated: '🧘', cunning: '🧠', desperate: '🔥', neutral: '🪄' }
+  const STANCE_LABELS = { 
+    neutral: 'Neutral', 
+    offensive: 'Ataque Valiente', 
+    defensive: 'Guardia Protegida', 
+    concentrated: 'Enfoque Arcano', 
+    cunning: 'Lectura Táctica', 
+    desperate: 'Último Recurso' 
+  }
+
   return (
     <div className={`p-5 rounded-3xl border ${isPlayer ? 'bg-magical-gold/5 border-magical-gold/20' : 'bg-white/5 border-white/10'}`}>
       <p className={`text-[9px] font-black uppercase tracking-widest mb-3 ${isPlayer ? 'text-magical-gold' : 'text-white/40'}`}>{label}</p>
       <div className="space-y-2">
         <div className="flex flex-wrap gap-2">
-          {actions.map((a, i) => (
+          {actions && actions.length > 0 ? actions.map((a, i) => (
             <span key={i} className="px-3 py-1 bg-black/60 rounded-lg text-[10px] font-bold text-white border border-white/5">
               {a.name}
             </span>
-          ))}
+          )) : (
+            <span className="text-[10px] text-white/20 font-bold">Sin acciones</span>
+          )}
         </div>
         <div className="flex items-center gap-2 mt-2">
           <span className="text-lg">{STANCE_ICONS[stance] || '🪄'}</span>
-          <span className="text-[10px] font-black uppercase text-white/60 italic">{stance}</span>
+          <span className="text-[10px] font-black uppercase text-white/60 italic">{STANCE_LABELS[stance] || stance}</span>
         </div>
       </div>
     </div>
@@ -125,54 +136,6 @@ function StatSummary({ label, value, color, isEnergy }) {
       <p className={`text-xl md:text-2xl font-black ${color}`}>
         {isEnergy && value >= 0 ? '+' : ''}{value}
       </p>
-    </div>
-  )
-}
-  )
-}
-
-function BreakdownCard({ label, total, details, isAttacker, heal }) {
-  const colorClass = isAttacker ? 'text-healing-green' : 'text-impact-red'
-  
-  return (
-    <div className="bg-black/60 rounded-2xl p-5 border border-white/5 space-y-4 relative overflow-hidden">
-      <div className="flex justify-between items-start border-b border-white/5 pb-3 relative z-10">
-        <div className="flex items-center gap-2">
-          {isAttacker ? <Swords className="w-3 h-3 text-magical-gold" /> : <Shield className="w-3 h-3 text-impact-red" />}
-          <p className="text-[9px] md:text-[11px] uppercase tracking-widest text-white/40 font-black">{label}</p>
-        </div>
-        <div className="text-right">
-           <p className={`text-2xl md:text-3xl font-black ${colorClass}`}>-{total}</p>
-           {heal > 0 && (
-             <div className="flex items-center justify-end gap-1 text-healing-green">
-               <Heart className="w-3 h-3 fill-current" />
-               <span className="text-[10px] font-black">+{heal} HP</span>
-             </div>
-           )}
-        </div>
-      </div>
-      
-      <div className="grid grid-cols-1 gap-2 relative z-10">
-        {details.base > 0 && <StatRow label="Daño Base" value={details.base} />}
-        {details.bonus > 0 && <StatRow label="Bonus Estratégico" value={`+${details.bonus}`} color="text-healing-green" />}
-        {details.penalty > 0 && <StatRow label="Penalización" value={`-${details.penalty}`} color="text-impact-red" />}
-        {details.block > 0 && <StatRow label="Defensa Rival" value={`-${details.block}`} color="text-spell-blue" />}
-        {details.interrupted && <StatRow label="Acción Interrumpida" value="SÍ" color="text-impact-red" />}
-      </div>
-      
-      {/* Subtle background icon */}
-      <div className="absolute -right-4 -bottom-4 opacity-[0.03] rotate-12">
-        {isAttacker ? <Swords className="w-24 h-24" /> : <Shield className="w-24 h-24" />}
-      </div>
-    </div>
-  )
-}
-
-function StatRow({ label, value, color = "text-white/50" }) {
-  return (
-    <div className="flex justify-between items-center text-[9px] md:text-[10px] uppercase font-bold tracking-wider">
-      <span className="text-white/30">{label}</span>
-      <span className={color}>{value}</span>
     </div>
   )
 }
