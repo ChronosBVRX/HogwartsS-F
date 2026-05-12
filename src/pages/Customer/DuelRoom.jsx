@@ -115,7 +115,8 @@ export default function DuelRoom() {
   }, [duel?.turn_number, resolutionStage])
 
   useEffect(() => {
-    if (!duel || duel.status !== 'active' || isResolving || selectedSpell) return
+    // Timer only runs during active play, NOT during resolution or waiting
+    if (!duel || duel.status !== 'active' || resolutionStage || isResolving || selectedSpell) return
 
     if (timeLeft <= 0) {
       handleSpellSubmit('protego')
@@ -131,7 +132,7 @@ export default function DuelRoom() {
     }, 1000)
 
     return () => clearTimeout(timer)
-  }, [timeLeft, isResolving, duel?.status, selectedSpell])
+  }, [timeLeft, resolutionStage, isResolving, duel?.status, selectedSpell])
 
   const fetchDuel = async () => {
     const { data } = await supabase.from('hsf_duels').select('*').eq('id', duelId).single()
@@ -173,14 +174,14 @@ export default function DuelRoom() {
       setResolutionStage('narrative')
     }, 3500)
 
-    // Stage 4: Reset (NOW MANUAL)
-    // We removed the automatic timeout here
+    // Stage 4: Reset is now manual via nextTurn()
   }
 
   const nextTurn = () => {
     setResolutionStage(null)
     setIsResolving(false)
     setSelectedSpell(null)
+    setLastEvent(null)
     audioManager.playSfx('ui_button_magic')
   }
 
@@ -257,7 +258,7 @@ export default function DuelRoom() {
 
       {/* Turn Announcement - Pokémon Style (Overlaying bottom area) */}
       {resolutionStage === 'narrative' && lastEvent && (
-        <div className="fixed inset-0 z-[60] flex items-end justify-center p-4 md:p-8 animate-in fade-in slide-in-from-bottom-8 duration-700 bg-black/20 pointer-events-none">
+        <div className="fixed inset-0 z-[100] flex items-end justify-center p-4 md:p-10 animate-in fade-in slide-in-from-bottom-12 duration-700 bg-black/60 backdrop-blur-sm pointer-events-none">
           <div className="w-full max-w-5xl pointer-events-auto">
             <DuelTurnAnnouncement lastEvent={lastEvent} isP1={isP1} onContinue={nextTurn} />
           </div>

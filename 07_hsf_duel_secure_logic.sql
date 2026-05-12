@@ -1,74 +1,6 @@
 
 -- ==========================================
--- 1. RESOLUCIÓN DE TURNOS (SEGURIDAD)
--- ==========================================
-
-create or replace function hsf_submit_duel_action(
-  p_duel_id uuid,
-  p_spell_key text,
-  p_item_key text default null,
-  p_used_focus boolean default false
-)
-returns jsonb
-language plpgsql
-security definer
-as $$
-declare
-  v_user uuid := auth.uid();
-  v_duel record;
-  v_is_p1 boolean;
-  v_spell record;
-  v_opponent_spell_key text;
-  v_result jsonb;
-begin
-  -- 1. Validaciones básicas
-  select * into v_duel from hsf_duels where id = p_duel_id;
-  if not found then raise exception 'Duelo no encontrado'; end if;
-  if v_duel.status != 'active' then raise exception 'El duelo no está activo'; end if;
-  
-  v_is_p1 := (v_user = v_duel.player_one);
-  if not v_is_p1 and v_user != v_duel.player_two then
-    raise exception 'No participas en este duelo';
-  end if;
-
-  -- 2. Guardar elección de turno
-  insert into hsf_duel_turns (duel_id, turn_number, player_id, spell_key, item_key, used_focus)
-  values (p_duel_id, v_duel.turn_number, v_user, p_spell_key, p_item_key, p_used_focus)
-  on conflict (duel_id, turn_number, player_id) 
-  do update set spell_key = p_spell_key;
-
-  -- 3. Si es modo AI, generar respuesta automática y resolver inmediatamente
-  if v_duel.mode = 'ai' then
-    -- Aquí podrías llamar a una lógica de IA más compleja, 
-    -- por ahora usamos una simplificada o 'protego' por defecto si no hay motor en SQL
-    v_opponent_spell_key := 'protego'; 
-    
-    -- Insertar turno de la IA (un bot fijo o uuid nulo)
-    -- Para IA simplificamos: el RPC resuelve directamente contra el jugador
-    
-    -- Llamar a la función de resolución (se define abajo)
-    v_result := hsf_resolve_duel_turn(p_duel_id, v_duel.turn_number);
-    return v_result;
-  end if;
-
-  -- 4. Si es PvP, revisar si el oponente ya envió su turno
-  if exists (
-    select 1 from hsf_duel_turns 
-    where duel_id = p_duel_id 
-    and turn_number = v_duel.turn_number 
-    and player_id != v_user
-  ) then
-    -- Ambos listos, resolver
-    v_result := hsf_resolve_duel_turn(p_duel_id, v_duel.turn_number);
-    return v_result;
-  else
-    return jsonb_build_object('status', 'waiting_opponent');
-  end if;
-end;
-$$;
-
--- ==========================================
--- 2. LÓGICA DE CÁLCULO DE DAÑO (BACKEND)
+-- 2. LÓGICA DE CÁLCULO DE DAÑO (BACKEND ACTUALIZADO)
 -- ==========================================
 
 create or replace function hsf_resolve_duel_turn(p_duel_id uuid, p_turn_number int)
@@ -80,174 +12,124 @@ declare
   v_duel record;
   v_p1_turn record;
   v_p2_turn record;
-  v_p1_dmg int := 0;
-  v_p2_dmg int := 0;
-  v_p1_heal int := 0;
-  v_p2_heal int := 0;
-  v_msg text;
+  
+  -- Spell Metadata (Simulated to avoid complex joins in this version)
+  -- En producción esto vendría de hsf_spells
+  v_s1_dmg int := 0; v_s1_fam text; v_s1_beats text[]; v_s1_loses text[]; v_s1_blk int := 0;
+  v_s2_dmg int := 0; v_s2_fam text; v_s2_beats text[]; v_s2_loses text[]; v_s2_blk int := 0;
+  
+  v_p1_final_dmg int := 0; v_p2_final_dmg int := 0;
+  v_p1_bonus int := 0; v_p2_bonus int := 0;
+  v_p1_penalty int := 0; v_p2_penalty int := 0;
+  
+  v_adv_bonus int := 14;
+  v_dis_penalty int := 8;
+  v_same_penalty int := 6;
+  
   v_winner_id uuid := null;
-  v_new_status text := 'active';
+  v_ai_spell_key text := 'protego';
+  v_ai_rand float;
 begin
   select * into v_duel from hsf_duels where id = p_duel_id;
   
-  -- Obtener turnos
+  -- 1. MEJORA DE IA (Si el modo es AI y no existe el turno de P2)
+  if v_duel.mode = 'ai' then
+    v_ai_rand := random();
+    
+    -- Lógica de decisión IA
+    if v_duel.player_two_hp < 35 and v_ai_rand < 0.6 then
+      v_ai_spell_key := 'episkey'; -- Priorizar curación
+    elsif v_duel.player_two_energy < 1 then
+      v_ai_spell_key := 'accio'; -- Cargar energía obligatoriamente
+    elsif v_duel.player_one_energy < 2 and v_ai_rand < 0.7 then
+      v_ai_spell_key := 'stupefy'; -- Castigar falta de energía del jugador
+    elsif v_ai_rand < 0.3 then
+      v_ai_spell_key := 'protego'; -- Táctico defensivo
+    elsif v_ai_rand < 0.6 then
+      v_ai_spell_key := 'incendio'; -- Ataque balanceado
+    elsif v_ai_rand < 0.8 then
+      v_ai_spell_key := 'petrificus'; -- Control
+    else
+      v_ai_spell_key := 'expelliarmus'; -- Desarme
+    end if;
+
+    -- Insertar turno de IA para que quede registrado
+    insert into hsf_duel_turns (duel_id, turn_number, player_id, spell_key)
+    values (p_duel_id, p_turn_number, '00000000-0000-0000-0000-000000000000', v_ai_spell_key)
+    on conflict do nothing;
+  end if;
+
+  -- 2. Obtener turnos definitivos
   select * into v_p1_turn from hsf_duel_turns where duel_id = p_duel_id and turn_number = p_turn_number and player_id = v_duel.player_one;
   
   if v_duel.mode = 'ai' then
-     -- Simular turno de IA si no existe en hsf_duel_turns
-     v_p2_turn := row(null, p_duel_id, p_turn_number, null, 'stupefy', null, false);
+    select * into v_p2_turn from hsf_duel_turns where duel_id = p_duel_id and turn_number = p_turn_number and player_id = '00000000-0000-0000-0000-000000000000';
   else
-     select * into v_p2_turn from hsf_duel_turns where duel_id = p_duel_id and turn_number = p_turn_number and player_id = v_duel.player_two;
+    select * into v_p2_turn from hsf_duel_turns where duel_id = p_duel_id and turn_number = p_turn_number and player_id = v_duel.player_two;
   end if;
 
-  -- LÓGICA SIMPLIFICADA DE DAÑO (Debe expandirse con la tabla de hechizos)
-  -- Aquí implementamos una base, en producción se cruza con hsf_duel_items o una tabla de spells
-  v_p1_dmg := 15; -- Base para ejemplo
-  v_p2_dmg := 15;
+  -- 3. Mapeo de Hechizos (Hardcoded para match con duelSpells.js)
+  -- P1 Spell
+  case v_p1_turn.spell_key
+    when 'expelliarmus' then v_s1_dmg := 14; v_s1_fam := 'disarm'; v_s1_beats := array['heavy']; v_s1_loses := array['defense'];
+    when 'stupefy'      then v_s1_dmg := 26; v_s1_fam := 'heavy';  v_s1_beats := array['heal', 'charge']; v_s1_loses := array['disarm', 'defense'];
+    when 'protego'      then v_s1_blk := 20; v_s1_fam := 'defense'; v_s1_beats := array['attack', 'heavy']; v_s1_loses := array['control'];
+    when 'petrificus'   then v_s1_dmg := 10; v_s1_fam := 'control'; v_s1_beats := array['defense']; v_s1_loses := array['counter'];
+    when 'incendio'     then v_s1_dmg := 16; v_s1_fam := 'attack'; v_s1_beats := array['charge']; v_s1_loses := array['defense'];
+    when 'episkey'      then v_s1_fam := 'heal'; v_s1_beats := array['defense']; v_s1_loses := array['heavy'];
+    when 'accio'        then v_s1_fam := 'charge'; v_s1_beats := array['counter']; v_s1_loses := array['attack', 'heavy'];
+    else v_s1_dmg := 10; v_s1_fam := 'attack';
+  end case;
 
-  -- Aplicar ventajas básicas (Piedra papel tijera interno)
-  -- (Simulado: Stupefy > Expelliarmus > Protego > Stupefy)
-  if v_p1_turn.spell_key = 'stupefy' and v_p2_turn.spell_key = 'expelliarmus' then v_p1_dmg := 25; v_p2_dmg := 5; end if;
-  if v_p1_turn.spell_key = 'protego' then v_p2_dmg := v_p2_dmg - 10; end if;
+  -- P2 Spell
+  case v_p2_turn.spell_key
+    when 'expelliarmus' then v_s2_dmg := 14; v_s2_fam := 'disarm'; v_s2_beats := array['heavy']; v_s2_loses := array['defense'];
+    when 'stupefy'      then v_s2_dmg := 26; v_s2_fam := 'heavy';  v_s2_beats := array['heal', 'charge']; v_s2_loses := array['disarm', 'defense'];
+    when 'protego'      then v_s2_blk := 20; v_s2_fam := 'defense'; v_s2_beats := array['attack', 'heavy']; v_s2_loses := array['control'];
+    when 'petrificus'   then v_s2_dmg := 10; v_s2_fam := 'control'; v_s2_beats := array['defense']; v_s2_loses := array['counter'];
+    when 'incendio'     then v_s2_dmg := 16; v_s2_fam := 'attack'; v_s2_beats := array['charge']; v_s2_loses := array['defense'];
+    when 'episkey'      then v_s2_fam := 'heal'; v_s2_beats := array['defense']; v_s2_loses := array['heavy'];
+    when 'accio'        then v_s2_fam := 'charge'; v_s2_beats := array['counter']; v_s2_loses := array['attack', 'heavy'];
+    else v_s2_dmg := 10; v_s2_fam := 'attack';
+  end case;
 
-  -- Actualizar vidas
+  -- 4. Cálculo de Modificadores (Match con duelBalance.js)
+  if v_s2_fam = any(v_s1_beats) then v_p1_bonus := v_adv_bonus; end if;
+  if v_s1_fam = any(v_s2_beats) then v_p2_bonus := v_adv_bonus; end if;
+  if v_s2_fam = any(v_s1_loses) then v_p1_penalty := v_dis_penalty; end if;
+  if v_s1_fam = any(v_s2_loses) then v_p2_penalty := v_dis_penalty; end if;
+  if v_s1_fam = v_s2_fam then v_p1_penalty := v_p1_penalty + v_same_penalty; v_p2_penalty := v_p2_penalty + v_same_penalty; end if;
+
+  v_p1_final_dmg := max(0, v_s1_dmg + v_p1_bonus - v_p1_penalty - v_s2_blk);
+  v_p2_final_dmg := max(0, v_s2_dmg + v_p2_bonus - v_p2_penalty - v_s1_blk);
+
+  -- 5. Actualizar Duelo
   update hsf_duels
   set 
-    player_one_hp = max(0, player_one_hp - v_p2_dmg + v_p1_heal),
-    player_two_hp = max(0, player_two_hp - v_p1_dmg + v_p2_heal),
-    player_one_energy = min(5, player_one_energy + 1),
-    player_two_energy = min(5, player_two_energy + 1),
-    turn_number = turn_number + 1,
-    last_event = jsonb_build_object(
-      'message', 'Hechizos lanzados: ' || v_p1_turn.spell_key || ' vs ' || v_p2_turn.spell_key,
-      'p1_dmg', v_p2_dmg,
-      'p2_dmg', v_p1_dmg
-    )
+    player_one_hp = max(0, player_one_hp - v_p2_final_dmg + (case when v_p1_turn.spell_key = 'episkey' then 18 else 0 end)),
+    player_two_hp = max(0, player_two_hp - v_p1_final_dmg + (case when v_p2_turn.spell_key = 'episkey' then 18 else 0 end)),
+    player_one_energy = case when v_p1_turn.spell_key = 'accio' then min(5, player_one_energy + 2) else min(5, player_one_energy + 1) end,
+    player_two_energy = case when v_p2_turn.spell_key = 'accio' then min(5, player_two_energy + 2) else min(5, player_two_energy + 1) end,
+    turn_number = turn_number + 1
   where id = p_duel_id
   returning * into v_duel;
 
-  -- Revisar fin de duelo
-  if v_duel.player_one_hp <= 0 or v_duel.player_two_hp <= 0 or v_duel.turn_number > 12 then
-    v_new_status := 'finished';
-    if v_duel.player_one_hp > v_duel.player_two_hp then v_winner_id := v_duel.player_one;
-    elsif v_duel.player_two_hp > v_duel.player_one_hp then v_winner_id := v_duel.player_two;
-    end if;
-    
-    update hsf_duels set status = 'finished', winner_id = v_winner_id, finished_at = now() where id = p_duel_id;
-    
-    -- Dar recompensas
-    perform hsf_finish_duel_rewards(p_duel_id);
-  end if;
-
-  -- Registrar evento
+  -- 6. Registrar Evento Narrativo
   insert into hsf_duel_events (duel_id, turn_number, event_type, payload)
   values (p_duel_id, p_turn_number, 'turn_resolved', jsonb_build_object(
     'p1_spell', v_p1_turn.spell_key,
     'p2_spell', v_p2_turn.spell_key,
-    'p1_damage', v_p2_dmg,
-    'p2_damage', v_p1_dmg,
-    'message', '¡El choque de magias resuena en la arena!'
+    'p1_damage', v_p2_final_dmg,
+    'p2_damage', v_p1_final_dmg,
+    'message', '¡El choque de magias ha sido resuelto!'
   ));
 
+  -- 7. Revisar fin de duelo
+  if v_duel.player_one_hp <= 0 or v_duel.player_two_hp <= 0 or v_duel.turn_number > 12 then
+    update hsf_duels set status = 'finished', finished_at = now(), winner_id = (case when player_one_hp > player_two_hp then player_one else player_two end) where id = p_duel_id;
+    perform hsf_finish_duel_rewards(p_duel_id);
+  end if;
+
   return jsonb_build_object('status', 'resolved');
-end;
-$$;
-
--- ==========================================
--- 3. RECOMPENSAS ATÓMICAS (SEGURIDAD)
--- ==========================================
-
-create or replace function hsf_finish_duel_rewards(p_duel_id uuid)
-returns void
-language plpgsql
-security definer
-as $$
-declare
-  v_duel record;
-  v_shard_gain int;
-  v_mmr_gain int := 20;
-begin
-  select * into v_duel from hsf_duels where id = p_duel_id;
-  if v_duel.status != 'finished' then return; end if;
-
-  -- Recompensas Player One
-  v_shard_gain := case when v_duel.winner_id = v_duel.player_one then 15 else 5 end;
-  
-  update hsf_duel_profiles
-  set 
-    wins = wins + (case when v_duel.winner_id = v_duel.player_one then 1 else 0 end),
-    losses = losses + (case when v_duel.winner_id = v_duel.player_one then 0 else 1 end),
-    duel_shards = duel_shards + v_shard_gain,
-    mmr = mmr + (case when v_duel.winner_id = v_duel.player_one then v_mmr_gain else -10 end),
-    duels_played = duels_played + 1
-  where user_id = v_duel.player_one;
-
-  -- Sumar puntos a la casa
-  insert into hsf_duel_house_points (house_slug, month_key, points)
-  values (v_duel.player_one_house, to_char(now(), 'YYYY-MM'), v_shard_gain)
-  on conflict (house_slug, month_key) 
-  do update set points = hsf_duel_house_points.points + v_shard_gain;
-
-  -- Repetir para Player Two si no es AI
-  if v_duel.mode = 'pvp' then
-    v_shard_gain := case when v_duel.winner_id = v_duel.player_two then 15 else 5 end;
-    
-    update hsf_duel_profiles
-    set 
-      wins = wins + (case when v_duel.winner_id = v_duel.player_two then 1 else 0 end),
-      losses = losses + (case when v_duel.winner_id = v_duel.player_two then 0 else 1 end),
-      duel_shards = duel_shards + v_shard_gain,
-      mmr = mmr + (case when v_duel.winner_id = v_duel.player_two then v_mmr_gain else -10 end),
-      duels_played = duels_played + 1
-    where user_id = v_duel.player_two;
-
-    insert into hsf_duel_house_points (house_slug, month_key, points)
-    values (v_duel.player_two_house, to_char(now(), 'YYYY-MM'), v_shard_gain)
-    on conflict (house_slug, month_key) 
-    do update set points = hsf_duel_house_points.points + v_shard_gain;
-  end if;
-end;
-$$;
-
--- ==========================================
--- 4. COMPRA SEGURA (TIENDA)
--- ==========================================
-
-create or replace function hsf_purchase_duel_item(p_item_key text, p_currency text)
-returns jsonb
-language plpgsql
-security definer
-as $$
-declare
-  v_user uuid := auth.uid();
-  v_item record;
-  v_profile record;
-  v_duel_profile record;
-begin
-  select * into v_item from hsf_duel_items where item_key = p_item_key and is_active = true;
-  if not found then return jsonb_build_object('success', false, 'error', 'Item no disponible'); end if;
-
-  select * into v_profile from hsf_profiles where user_id = v_user;
-  select * into v_duel_profile from hsf_duel_profiles where user_id = v_user;
-
-  if p_currency = 'shards' then
-    if v_duel_profile.duel_shards < v_item.price_shards then
-       return jsonb_build_object('success', false, 'error', 'Fragmentos insuficientes');
-    end if;
-    update hsf_duel_profiles set duel_shards = duel_shards - v_item.price_shards where user_id = v_user;
-  elsif p_currency = 'galleons' then
-    if v_profile.loyalty_points < v_item.price_galleons then
-       return jsonb_build_object('success', false, 'error', 'Galeones insuficientes');
-    end if;
-    update hsf_profiles set loyalty_points = loyalty_points - v_item.price_galleons where user_id = v_user;
-  else
-    return jsonb_build_object('success', false, 'error', 'Moneda no válida');
-  end if;
-
-  insert into hsf_duel_inventory (user_id, item_key)
-  values (v_user, p_item_key)
-  on conflict do nothing;
-
-  return jsonb_build_object('success', true);
 end;
 $$;
