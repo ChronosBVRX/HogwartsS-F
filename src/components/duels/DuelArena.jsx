@@ -2,17 +2,24 @@ import { normalizeHouseSlug, HOUSE_META } from '../../lib/houses'
 import audioManager from '../../lib/audioManager'
 import { useEffect } from 'react'
 
-export default function DuelArena({ duel, lastEvent, isResolving, player, opponent }) {
+export default function DuelArena({ duel, lastEvent, isResolving, player, opponent, isP1 }) {
   const normPlayer = normalizeHouseSlug(player?.house)
   const normOpponent = normalizeHouseSlug(opponent?.house)
   
   const pMeta = HOUSE_META[normPlayer] || { name: 'Mago', avatar: null }
   const oMeta = HOUSE_META[normOpponent] || { name: 'Rival', avatar: null }
 
+  const p1Damage = lastEvent?.payload?.p1_damage || 0
+  const p2Damage = lastEvent?.payload?.p2_damage || 0
+
+  // Perspective based damage
+  const myDamageTaken = isP1 ? p1Damage : p2Damage
+  const rivalDamageTaken = isP1 ? p2Damage : p1Damage
+
   useEffect(() => {
     if (isResolving) {
       audioManager.playSfx('spell_impact');
-      if (lastEvent?.payload?.player_one_damage > 0 || lastEvent?.payload?.player_two_damage > 0) {
+      if (p1Damage > 0 || p2Damage > 0) {
         setTimeout(() => audioManager.playSfx('damage_hit'), 500);
       }
     }
@@ -53,7 +60,7 @@ export default function DuelArena({ duel, lastEvent, isResolving, player, oppone
         
         {/* Opponent (Left) */}
         <div className="relative flex-1 flex flex-col items-center group max-w-[140px] md:max-w-none">
-          <div className={`relative w-full aspect-square rounded-3xl overflow-hidden border-2 transition-all duration-700 ${isResolving ? 'animate-duel-hit' : 'animate-float'} border-impact-red/30 shadow-[0_0_40px_rgba(255,77,90,0.2)] bg-night-blue`}>
+          <div className={`relative w-full aspect-square rounded-3xl overflow-hidden border-2 transition-all duration-700 ${isResolving && rivalDamageTaken > 0 ? 'animate-duel-hit' : 'animate-float'} border-impact-red/30 shadow-[0_0_40px_rgba(255,77,90,0.2)] bg-night-blue`}>
             {oMeta.avatar ? (
               <img src={oMeta.avatar} className="w-full h-full object-cover brightness-[0.9] contrast-[1.1]" alt={oMeta.name} />
             ) : (
@@ -77,19 +84,21 @@ export default function DuelArena({ duel, lastEvent, isResolving, player, oppone
             <>
               {/* Dynamic Beam Effect */}
               <div className="spell-beam w-[60%] origin-left" style={{ 
-                '--beam-color': lastEvent?.payload?.player_one_damage > 0 ? '#D4AF37' : '#4DA1FF',
+                '--beam-color': rivalDamageTaken > 0 ? '#D4AF37' : '#4DA1FF',
                 transform: 'rotate(-5deg)'
               }} />
               
-              {/* Floating Damage Text */}
-              {lastEvent?.payload?.player_one_damage > 0 && (
-                <div className="damage-text text-xl md:text-3xl" style={{ left: '75%' }}>
-                  -{lastEvent.payload.player_one_damage}
+              {/* Floating Damage Text - RIVAL (Left) */}
+              {rivalDamageTaken > 0 && (
+                <div className="damage-text text-xl md:text-3xl" style={{ left: '20%' }}>
+                  -{rivalDamageTaken}
                 </div>
               )}
-              {lastEvent?.payload?.player_two_damage > 0 && (
-                <div className="damage-text text-xl md:text-3xl" style={{ left: '20%' }}>
-                  -{lastEvent.payload.player_two_damage}
+              
+              {/* Floating Damage Text - PLAYER (Right) */}
+              {myDamageTaken > 0 && (
+                <div className="damage-text text-xl md:text-3xl" style={{ left: '75%' }}>
+                  -{myDamageTaken}
                 </div>
               )}
             </>
@@ -128,5 +137,3 @@ export default function DuelArena({ duel, lastEvent, isResolving, player, oppone
     </section>
   )
 }
-
-

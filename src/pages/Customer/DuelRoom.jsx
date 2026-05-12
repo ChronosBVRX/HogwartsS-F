@@ -58,10 +58,10 @@ export default function DuelRoom() {
         
         // Character reactions to duel events
         if (payload.new.payload) {
-          const { player_one_damage, player_two_damage } = payload.new.payload
+          const { p1_damage = 0, p2_damage = 0 } = payload.new.payload
           const iAmP1 = profile.user_id === duel?.player_one
-          const myDamage = iAmP1 ? player_one_damage : player_two_damage
-          const rivalDamage = iAmP1 ? player_two_damage : player_one_damage
+          const myDamage = iAmP1 ? p1_damage : p2_damage
+          const rivalDamage = iAmP1 ? p2_damage : p1_damage
 
           if (rivalDamage > 15) {
             audioManager.playVoice('harry_cheer_advantage', { cooldownMs: 20000 })
@@ -243,6 +243,7 @@ export default function DuelRoom() {
           isResolving={resolutionStage === 'impact' || resolutionStage === 'casting'} 
           player={{ name: profile.display_name, house: myHouse }}
           opponent={{ name: rivalName, house: duel?.mode === 'ai' ? 'ai' : rivalHouse }}
+          isP1={isP1}
         />
         
         {/* Waiting Overlay */}
