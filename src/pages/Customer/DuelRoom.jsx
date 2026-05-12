@@ -135,21 +135,21 @@ export default function DuelRoom() {
   if (loading) return <div className="flex-1 flex items-center justify-center font-black uppercase tracking-widest text-magical-gold animate-pulse">Entrando a la Arena...</div>
 
   return (
-    <div className="flex-1 max-w-5xl mx-auto w-full p-4 md:p-8 pb-32 flex flex-col space-y-8 animate-in fade-in duration-1000">
+    <div className="flex-1 max-w-5xl mx-auto w-full p-2 md:p-8 pb-32 flex flex-col space-y-4 md:space-y-8 animate-in fade-in duration-1000">
       {/* Header Info - Premium Stat Bar */}
-      <div className="flex justify-between items-center bg-night-blue/60 backdrop-blur-xl p-6 rounded-[2rem] border border-magical-gold/20 shadow-2xl">
-        <div className="flex-1">
-          <HealthBar label="Tu Vitalidad" value={myHp} house={myHouse} />
+      <div className="flex justify-between items-center bg-night-blue/60 backdrop-blur-xl p-3 md:p-6 rounded-2xl md:rounded-[2rem] border border-magical-gold/20 shadow-2xl">
+        <div className="flex-1 min-w-0">
+          <HealthBar label="Tu Vida" value={myHp} house={myHouse} />
         </div>
         
-        <div className="px-10 flex flex-col items-center">
-          <div className="text-[10px] font-black text-magical-gold/40 uppercase tracking-[0.6em] mb-1">Duelo</div>
-          <div className="w-12 h-[1px] bg-magical-gold/20 mb-2" />
-          <div className="text-xl font-black text-white italic tracking-tighter uppercase">{rivalName}</div>
+        <div className="px-4 md:px-10 flex flex-col items-center">
+          <div className="text-[7px] md:text-[10px] font-black text-magical-gold/40 uppercase tracking-[0.4em] mb-1">Duelo</div>
+          <div className="w-8 md:w-12 h-[1px] bg-magical-gold/20 mb-2" />
+          <div className="text-xs md:text-xl font-black text-white italic tracking-tighter uppercase truncate max-w-[80px] md:max-w-none">{rivalName}</div>
         </div>
 
-        <div className="flex-1">
-          <HealthBar label="Energía Rival" value={rivalHp} house={duel?.mode === 'ai' ? 'ai' : rivalHouse} />
+        <div className="flex-1 min-w-0">
+          <HealthBar label="Rival" value={rivalHp} house={duel?.mode === 'ai' ? 'ai' : rivalHouse} />
         </div>
       </div>
 
@@ -163,24 +163,24 @@ export default function DuelRoom() {
       />
 
       {/* Controls & Hand Area */}
-      <div className="premium-panel fixed bottom-0 left-0 right-0 p-6 pt-10 z-50 rounded-t-[3rem] border-t border-magical-gold/20">
-        <div className="max-w-5xl mx-auto space-y-8">
+      <div className="premium-panel fixed bottom-0 left-0 right-0 p-4 md:p-6 pt-6 md:pt-10 z-50 rounded-t-[2rem] md:rounded-t-[3rem] border-t border-magical-gold/20">
+        <div className="max-w-5xl mx-auto space-y-4 md:space-y-8">
           <div className="flex justify-between items-center">
             <EnergyBar value={myEnergy} />
             
             {/* Timer Badge */}
-            <div className={`relative px-6 py-3 rounded-2xl border transition-all duration-300 ${timeLeft < 5 ? 'bg-impact-red/20 border-impact-red text-impact-red animate-pulse' : 'bg-night-blue border-magical-gold/40 text-magical-gold'}`}>
-               <div className="flex items-center gap-3">
-                 <Clock className={`w-4 h-4 ${timeLeft < 5 ? 'animate-spin-slow' : ''}`} />
-                 <span className="text-xl font-black tabular-nums">{timeLeft}s</span>
+            <div className={`relative px-4 py-2 md:px-6 md:py-3 rounded-xl md:rounded-2xl border transition-all duration-300 ${timeLeft < 5 ? 'bg-impact-red/20 border-impact-red text-impact-red animate-pulse' : 'bg-night-blue border-magical-gold/40 text-magical-gold'}`}>
+               <div className="flex items-center gap-2 md:gap-3">
+                 <Clock className={`w-3 h-3 md:w-4 md:h-4 ${timeLeft < 5 ? 'animate-spin-slow' : ''}`} />
+                 <span className="text-sm md:text-xl font-black tabular-nums">{timeLeft}s</span>
                </div>
-               <div className="absolute -top-2 left-4 bg-magical-navy px-2">
-                 <span className="text-[7px] font-black uppercase tracking-widest opacity-60">Tiempo</span>
+               <div className="absolute -top-2 left-3 md:left-4 bg-magical-navy px-1.5 md:px-2">
+                 <span className="text-[6px] md:text-[7px] font-black uppercase tracking-widest opacity-60">Tiempo</span>
                </div>
             </div>
           </div>
 
-          <div className="grid grid-cols-3 gap-4 md:gap-8 overflow-x-auto pb-4 custom-scrollbar">
+          <div className="grid grid-cols-3 gap-2 md:gap-8 overflow-x-auto pb-2 custom-scrollbar">
             {availableHand.map(spell => (
               <SpellCard 
                 key={spell.key}
@@ -193,6 +193,7 @@ export default function DuelRoom() {
           </div>
         </div>
       </div>
+
 
       {/* Result Modal - Redesigned */}
       {showResult && (
