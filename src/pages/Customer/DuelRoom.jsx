@@ -229,7 +229,7 @@ export default function DuelRoom() {
   if (!duel) return (
     <div className="min-h-screen bg-magical-navy flex flex-col items-center justify-center space-y-4">
       <p className="text-white/40 uppercase font-black tracking-widest">Duelo no encontrado</p>
-      <button onClick={() => navigate('/duels')} className="btn-gold px-8 py-3 uppercase text-xs font-black">Regresar</button>
+      <button onClick={() => navigate('/duelos')} className="btn-gold px-8 py-3 uppercase text-xs font-black">Regresar</button>
     </div>
   )
 
@@ -359,7 +359,7 @@ export default function DuelRoom() {
               <div className="bg-white/5 border border-white/10 rounded-3xl p-6 md:p-8 space-y-4 relative z-10">
                  <p className="text-text-gray uppercase text-[10px] md:text-xs font-black tracking-widest">Recompensa Obtenida</p>
                  <div className="flex items-center justify-center gap-4">
-                    <img src="/assets/items/shard_magical.webp" className="w-10 md:w-16 h-10 md:h-16 drop-shadow-2xl" alt="Shard" />
+                    <img src="/assets/items/shard_magical.png" className="w-10 md:w-16 h-10 md:h-16 drop-shadow-2xl" alt="Shard" />
                     <span className="text-4xl md:text-6xl font-black italic tracking-tighter">
                        +{iWon ? '15' : iLost ? '5' : '8'}
                     </span>
@@ -369,19 +369,19 @@ export default function DuelRoom() {
 
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4 relative z-10">
                 <button
-                  onClick={() => navigate('/duels')}
+                  onClick={() => navigate('/duelos')}
                   className="flex items-center justify-center gap-2 bg-white/10 hover:bg-white/20 px-8 py-5 rounded-2xl font-black uppercase tracking-widest transition-all text-xs"
                 >
                   <Home className="w-4 h-4" /> Inicio
                 </button>
                 <button
-                  onClick={() => navigate('/duels/ranking')}
+                  onClick={() => navigate('/duelos/ranking')}
                   className="flex items-center justify-center gap-2 bg-white/10 hover:bg-white/20 px-8 py-5 rounded-2xl font-black uppercase tracking-widest transition-all text-xs"
                 >
                   <BarChart3 className="w-4 h-4" /> Ranking
                 </button>
                 <button
-                  onClick={() => navigate('/duels/lobby')}
+                  onClick={() => navigate('/duelos/retar')}
                   className="flex items-center justify-center gap-2 bg-magical-gold text-magical-navy px-8 py-5 rounded-2xl font-black uppercase tracking-widest transition-all shadow-xl text-xs"
                 >
                   <Swords className="w-4 h-4" /> Nuevo Duelo
