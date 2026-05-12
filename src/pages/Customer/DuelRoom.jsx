@@ -10,6 +10,7 @@ import EnergyBar from '../../components/duels/EnergyBar'
 import SpellCard from '../../components/duels/SpellCard'
 import { Clock, Trophy, XCircle } from 'lucide-react'
 import audioManager from '../../lib/audioManager'
+import DuelTurnAnnouncement from '../../components/duels/DuelTurnAnnouncement'
 
 export default function DuelRoom() {
   const { duelId } = useParams()
@@ -191,6 +192,13 @@ export default function DuelRoom() {
         player={{ name: profile.display_name, house: myHouse }}
         opponent={{ name: rivalName, house: duel?.mode === 'ai' ? 'ai' : rivalHouse }}
       />
+
+      {/* Turn Announcement - Pokémon Style */}
+      {lastEvent && (
+        <div className="animate-in fade-in zoom-in duration-500">
+          <DuelTurnAnnouncement lastEvent={lastEvent} isP1={isP1} />
+        </div>
+      )}
 
       {/* Controls & Hand Area */}
       <div className="premium-panel fixed bottom-0 left-0 right-0 p-4 md:p-6 pt-6 md:pt-10 z-50 rounded-t-[2rem] md:rounded-t-[3rem] border-t border-magical-gold/20">
