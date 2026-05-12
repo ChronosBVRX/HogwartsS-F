@@ -1,7 +1,7 @@
 import React from 'react'
 import { buildTurnAnnouncement } from '../../lib/duelNarration'
 
-export default function DuelTurnAnnouncement({ lastEvent, isP1 }) {
+export default function DuelTurnAnnouncement({ lastEvent, isP1, onContinue }) {
   const announcement = buildTurnAnnouncement({
     payload: lastEvent?.payload,
     isP1

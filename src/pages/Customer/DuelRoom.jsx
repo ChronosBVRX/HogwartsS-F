@@ -64,11 +64,11 @@ export default function DuelRoom() {
           const rivalDamage = iAmP1 ? player_two_damage : player_one_damage
 
           if (rivalDamage > 15) {
-            audioManager.playVoice('harry_cheer_advantage')
+            audioManager.playVoice('harry_cheer_advantage', { cooldownMs: 20000 })
           } else if (myDamage > 10) {
-            audioManager.playVoice('snape_mock_bad_move')
+            audioManager.playVoice('snape_mock_bad_move', { cooldownMs: 20000 })
           } else if (rivalDamage > 0) {
-            audioManager.playVoice('harry_cheer_good_move')
+            audioManager.playVoice('harry_cheer_good_move', { cooldownMs: 15000 })
           }
         }
         triggerResolution()
@@ -85,19 +85,26 @@ export default function DuelRoom() {
   }, [duelId])
 
   useEffect(() => {
-    if (duel?.status === 'active' && !isResolving) {
+    if (duel?.status === 'active' && !resolutionStage) {
       if (duel.turn_number === 1) {
-        audioManager.playVoice('instructions')
+        audioManager.playVoice('instructions', { force: true })
       } else {
-        audioManager.playVoice('turn_start')
+        const hpDiff = myHp - rivalHp;
         
-        // Dynamic character reactions based on state
         if (myEnergy < 2) {
-          audioManager.playVoice('snape_mock_low_energy');
+          audioManager.playVoice('low_energy', { cooldownMs: 12000 });
+        } else if (hpDiff >= 20) {
+          audioManager.playVoice('turn_start_advantage', { cooldownMs: 15000 });
+        } else if (hpDiff <= -20) {
+          audioManager.playVoice('turn_start_disadvantage', { cooldownMs: 15000 });
+        } else if (timeLeft <= 8) {
+          audioManager.playVoice('turn_start_pressure', { cooldownMs: 12000 });
+        } else {
+          audioManager.playVoice('turn_start_neutral', { cooldownMs: 10000 });
         }
       }
     }
-  }, [duel?.turn_number, isResolving])
+  }, [duel?.turn_number, resolutionStage])
 
   useEffect(() => {
     if (duel && !resolutionStage && duel.status === 'active') {

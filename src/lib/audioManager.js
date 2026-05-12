@@ -1,7 +1,7 @@
 /**
  * AudioManager.js
  * Handles all audio operations for the Magic Duels minigame.
- * Powered by ElevenLabs Cinematic Sound Effects.
+ * Powered by ElevenLabs Cinematic Sound Effects and Dynamic Voice Variants.
  */
 
 const STORAGE_KEY = 'hsf_audio_settings';
@@ -33,10 +33,51 @@ const AUDIO_MAP = {
   voices: {
     welcome: '/audio/duels/voices/welcome.mp3',
     instructions: '/audio/duels/voices/instructions.mp3',
-    victory: '/audio/duels/voices/victory.mp3',
-    defeat: '/audio/duels/voices/defeat.mp3',
-    turn_start: '/audio/duels/voices/turn_start.mp3',
-    low_energy: '/audio/duels/voices/low_energy.mp3',
+    
+    // New Dynamic Variants
+    turn_start_neutral: [
+      '/audio/duels/voices/variants/turn_start_neutral/turn_start_neutral_01.mp3',
+      '/audio/duels/voices/variants/turn_start_neutral/turn_start_neutral_02.mp3',
+      '/audio/duels/voices/variants/turn_start_neutral/turn_start_neutral_03.mp3',
+      '/audio/duels/voices/variants/turn_start_neutral/turn_start_neutral_04.mp3',
+      '/audio/duels/voices/variants/turn_start_neutral/turn_start_neutral_05.mp3'
+    ],
+    turn_start_pressure: [
+      '/audio/duels/voices/variants/turn_start_pressure/turn_start_pressure_01.mp3',
+      '/audio/duels/voices/variants/turn_start_pressure/turn_start_pressure_02.mp3',
+      '/audio/duels/voices/variants/turn_start_pressure/turn_start_pressure_03.mp3',
+      '/audio/duels/voices/variants/turn_start_pressure/turn_start_pressure_04.mp3'
+    ],
+    turn_start_advantage: [
+      '/audio/duels/voices/variants/turn_start_advantage/turn_start_advantage_01.mp3',
+      '/audio/duels/voices/variants/turn_start_advantage/turn_start_advantage_02.mp3',
+      '/audio/duels/voices/variants/turn_start_advantage/turn_start_advantage_03.mp3',
+      '/audio/duels/voices/variants/turn_start_advantage/turn_start_advantage_04.mp3'
+    ],
+    turn_start_disadvantage: [
+      '/audio/duels/voices/variants/turn_start_disadvantage/turn_start_disadvantage_01.mp3',
+      '/audio/duels/voices/variants/turn_start_disadvantage/turn_start_disadvantage_02.mp3',
+      '/audio/duels/voices/variants/turn_start_disadvantage/turn_start_disadvantage_03.mp3',
+      '/audio/duels/voices/variants/turn_start_disadvantage/turn_start_disadvantage_04.mp3'
+    ],
+    low_energy: [
+      '/audio/duels/voices/variants/low_energy/low_energy_01.mp3',
+      '/audio/duels/voices/variants/low_energy/low_energy_02.mp3',
+      '/audio/duels/voices/variants/low_energy/low_energy_03.mp3',
+      '/audio/duels/voices/variants/low_energy/low_energy_04.mp3'
+    ],
+    victory: [
+      '/audio/duels/voices/variants/victory/victory_01.mp3',
+      '/audio/duels/voices/variants/victory/victory_02.mp3',
+      '/audio/duels/voices/variants/victory/victory_03.mp3'
+    ],
+    defeat: [
+      '/audio/duels/voices/variants/defeat/defeat_01.mp3',
+      '/audio/duels/voices/variants/defeat/defeat_02.mp3',
+      '/audio/duels/voices/variants/defeat/defeat_03.mp3'
+    ],
+    
+    // Legacy support for older keys
     snape_mock_low_energy: '/audio/duels/voices/snape_mock_low_energy.mp3',
     snape_mock_bad_move: '/audio/duels/voices/snape_mock_bad_move.mp3',
     harry_cheer_good_move: '/audio/duels/voices/harry_cheer_good_move.mp3',
@@ -49,8 +90,16 @@ class AudioManager {
     this.enabled = true;
     this.ambientVolume = 0.4;
     this.sfxVolume = 0.6;
+    this.voiceVolume = 1.0;
+    
     this.currentAmbient = null;
     this.ambientAudio = null;
+    this.currentVoice = null;
+    
+    this.lastVoiceByKey = {};
+    this.lastVoicePlayedAt = {};
+    this.voiceCooldownMs = 8000;
+    
     this.isUnlocked = false;
     this.initialized = false;
     
@@ -62,10 +111,11 @@ class AudioManager {
       if (typeof window === 'undefined') return;
       const saved = localStorage.getItem(STORAGE_KEY);
       if (saved) {
-        const { enabled, ambientVolume, sfxVolume } = JSON.parse(saved);
+        const { enabled, ambientVolume, sfxVolume, voiceVolume } = JSON.parse(saved);
         this.enabled = enabled ?? true;
         this.ambientVolume = ambientVolume ?? 0.4;
         this.sfxVolume = sfxVolume ?? 0.6;
+        this.voiceVolume = voiceVolume ?? 1.0;
       }
     } catch (e) {
       console.warn('Failed to load audio settings', e);
@@ -78,7 +128,8 @@ class AudioManager {
         localStorage.setItem(STORAGE_KEY, JSON.stringify({
           enabled: this.enabled,
           ambientVolume: this.ambientVolume,
-          sfxVolume: this.sfxVolume
+          sfxVolume: this.sfxVolume,
+          voiceVolume: this.voiceVolume
         }));
       }
     } catch (e) {
@@ -89,19 +140,16 @@ class AudioManager {
   initAudio() {
     if (this.initialized) return;
     this.initialized = true;
-    console.log('ElevenLabs Audio Manager Initialized');
+    console.log('Dynamic Audio Manager Initialized');
   }
 
   async unlockAudio() {
     if (this.isUnlocked) return;
-    
     try {
       const AudioContext = window.AudioContext || window.webkitAudioContext;
       const context = new AudioContext();
       await context.resume();
       this.isUnlocked = true;
-      console.log('Audio Context Unlocked');
-      
       if (this.currentAmbient && !this.ambientAudio && this.enabled) {
         this.playAmbient(this.currentAmbient);
       }
@@ -112,30 +160,21 @@ class AudioManager {
 
   playAmbient(key) {
     if (typeof window === 'undefined') return;
-    
     const url = AUDIO_MAP.ambient[key];
     if (!url) return;
-
     if (this.currentAmbient === key && this.ambientAudio) {
       this.ambientAudio.volume = this.enabled ? this.ambientVolume : 0;
-      if (this.ambientAudio.paused && this.enabled) {
-        this.ambientAudio.play().catch(() => {});
-      }
+      if (this.ambientAudio.paused && this.enabled) this.ambientAudio.play().catch(() => {});
       return;
     }
-
     this.stopAmbient();
     this.currentAmbient = key;
-
     const audio = new Audio(url);
     audio.loop = true;
     audio.volume = this.enabled ? this.ambientVolume : 0;
     this.ambientAudio = audio;
-
     if (this.isUnlocked && this.enabled) {
-      audio.play().catch(err => {
-        console.warn('Ambient play failed', err);
-      });
+      audio.play().catch(err => console.warn('Ambient play failed', err));
     }
   }
 
@@ -148,41 +187,50 @@ class AudioManager {
 
   playSfx(key) {
     if (typeof window === 'undefined' || !this.enabled || !this.isUnlocked) return;
-
     const url = AUDIO_MAP.sfx[key];
     if (!url) return;
-
     const audio = new Audio(url);
     audio.volume = this.sfxVolume;
-    audio.play().catch(err => {
-      console.warn('SFX play failed', err);
-    });
+    audio.play().catch(err => console.warn('SFX play failed', err));
   }
 
-  playVoice(key) {
+  pickVoiceUrl(key) {
+    const entry = AUDIO_MAP.voices[key];
+    if (!entry) return null;
+    if (Array.isArray(entry)) {
+      if (entry.length === 1) return entry[0];
+      const last = this.lastVoiceByKey[key];
+      const options = entry.filter(url => url !== last);
+      const pool = options.length ? options : entry;
+      const selected = pool[Math.floor(Math.random() * pool.length)];
+      this.lastVoiceByKey[key] = selected;
+      return selected;
+    }
+    return entry;
+  }
+
+  playVoice(key, options = {}) {
     if (typeof window === 'undefined' || !this.enabled || !this.isUnlocked) return;
-
-    const url = AUDIO_MAP.voices[key];
+    const now = Date.now();
+    const cooldown = options.cooldownMs ?? this.voiceCooldownMs;
+    if (!options.force && this.lastVoicePlayedAt[key] && now - this.lastVoicePlayedAt[key] < cooldown) {
+      return;
+    }
+    const url = this.pickVoiceUrl(key);
     if (!url) return;
-
-    // Interrupt previous voice if still playing
-    if (this.currentVoice) {
+    this.lastVoicePlayedAt[key] = now;
+    if (this.currentVoice && options.interrupt !== false) {
       this.currentVoice.pause();
       this.currentVoice = null;
     }
-
     const audio = new Audio(url);
-    audio.volume = 1.0;
+    audio.volume = options.volume ?? this.voiceVolume;
     this.currentVoice = audio;
-    
-    // Small delay to prevent audio engine glitching when switching voices rapidly
     setTimeout(() => {
       if (this.currentVoice === audio) {
-        audio.play().catch(err => {
-          console.warn('Voice play failed', err);
-        });
+        audio.play().catch(err => console.warn('Voice play failed', err));
       }
-    }, 50);
+    }, options.delayMs ?? 50);
   }
 
   setAudioEnabled(value) {
