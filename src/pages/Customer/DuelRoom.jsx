@@ -32,7 +32,7 @@ export default function DuelRoom() {
   const myHp = isP1 ? duel?.player_one_hp : duel?.player_two_hp
   const rivalHp = isP1 ? duel?.player_two_hp : duel?.player_one_hp
   const myEnergy = isP1 ? duel?.player_one_energy : duel?.player_two_energy
-  const myHouse = profile?.house || 'neutral'
+  const myHouse = profile?.house_slug || profile?.house?.slug || 'neutral'
   const rivalHouse = isP1 ? duel?.player_two_house : duel?.player_one_house
   const rivalName = isP1 ? (duel?.mode === 'ai' ? 'Profesor Snape' : duel?.p2_name) : duel?.p1_name
 
@@ -42,34 +42,57 @@ export default function DuelRoom() {
   const iLost = duelFinished && !iWon && !isDraw
 
   const fetchDuel = async () => {
-    const { data, error } = await supabase
-      .from('hsf_duels')
-      .select(`
-        *,
-        p1_profile:hsf_profiles!player_one(display_name, house),
-        p2_profile:hsf_profiles!player_two(display_name, house)
-      `)
-      .eq('id', duelId)
-      .single()
+    try {
+      const { data, error } = await supabase
+        .from('hsf_duels')
+        .select('*')
+        .eq('id', duelId)
+        .single()
 
-    if (error) {
+      if (error) throw error
+
+      // Fetch names separately to avoid complex join errors (400)
+      let p1_name = 'Mago 1', p1_house = 'neutral'
+      let p2_name = 'Mago 2', p2_house = 'neutral'
+
+      if (data.player_one) {
+        const { data: p1 } = await supabase.from('hsf_profiles').select('display_name, house_slug').eq('user_id', data.player_one).maybeSingle()
+        if (p1) {
+          p1_name = p1.display_name
+          p1_house = p1.house_slug
+        }
+      }
+
+      if (data.player_two) {
+        if (data.mode === 'ai') {
+          p2_name = 'Profesor Snape'
+          p2_house = 'ai'
+        } else {
+          const { data: p2 } = await supabase.from('hsf_profiles').select('display_name, house_slug').eq('user_id', data.player_two).maybeSingle()
+          if (p2) {
+            p2_name = p2.display_name
+            p2_house = p2.house_slug
+          }
+        }
+      }
+
+      const formattedData = {
+        ...data,
+        p1_name,
+        p1_house,
+        p2_name,
+        p2_house
+      }
+      
+      setDuel(formattedData)
+      if (formattedData.status === 'finished') {
+        setShowResult(true)
+      }
+    } catch (error) {
       console.error('Error fetching duel:', error)
-      return
+    } finally {
+      setLoading(false)
     }
-
-    const formattedData = {
-      ...data,
-      p1_name: data.p1_profile?.display_name,
-      p1_house: data.p1_profile?.house,
-      p2_name: data.p2_profile?.display_name,
-      p2_house: data.p2_profile?.house
-    }
-    
-    setDuel(formattedData)
-    if (formattedData.status === 'finished') {
-      setShowResult(true)
-    }
-    setLoading(false)
   }
 
   const enableDuelAudio = async () => {
@@ -80,6 +103,7 @@ export default function DuelRoom() {
   }
 
   useEffect(() => {
+    if (!duelId) return
     fetchDuel()
 
     audioManager.initAudio()
@@ -87,7 +111,6 @@ export default function DuelRoom() {
       await audioManager.unlockAudio()
       setAudioReady(true)
       audioManager.playAmbient('duel_hall')
-      // Try fullscreen on first touch as fallback
       try {
         if (!document.fullscreenElement && document.documentElement.requestFullscreen) {
           document.documentElement.requestFullscreen().catch(() => {})
@@ -96,14 +119,12 @@ export default function DuelRoom() {
     }
     window.addEventListener('pointerdown', unlockOnFirstTouch, { once: true })
 
-    // Auto-try fullscreen on mount
     try {
       if (!document.fullscreenElement && document.documentElement.requestFullscreen) {
         document.documentElement.requestFullscreen().catch(() => {})
       }
     } catch (e) {}
 
-    // Listen for real-time changes in the duel
     const duelSub = supabase
       .channel(`duel:${duelId}`)
       .on('postgres_changes', { 
@@ -126,10 +147,9 @@ export default function DuelRoom() {
         setLastEvent(payload.new)
         setResolutionStage('casting')
         
-        // Character reactions to duel events
         if (payload.new.payload) {
           const { p1_damage = 0, p2_damage = 0 } = payload.new.payload
-          const iAmP1 = profile.user_id === duel?.player_one
+          const iAmP1 = profile?.user_id === duel?.player_one
           const myDamage = iAmP1 ? p1_damage : p2_damage
           const rivalDamage = iAmP1 ? p2_damage : p1_damage
 
@@ -154,7 +174,6 @@ export default function DuelRoom() {
     }
   }, [duelId])
 
-  // End of game audio
   useEffect(() => {
     if (!duelFinished || resultAudioPlayed || !audioReady) return
 
@@ -207,6 +226,13 @@ export default function DuelRoom() {
     </div>
   )
 
+  if (!duel) return (
+    <div className="min-h-screen bg-magical-navy flex flex-col items-center justify-center space-y-4">
+      <p className="text-white/40 uppercase font-black tracking-widest">Duelo no encontrado</p>
+      <button onClick={() => navigate('/duels')} className="btn-gold px-8 py-3 uppercase text-xs font-black">Regresar</button>
+    </div>
+  )
+
   return (
     <main className="min-h-screen bg-magical-navy text-white pb-20 relative overflow-hidden">
       
@@ -235,7 +261,7 @@ export default function DuelRoom() {
           duel={duel} 
           lastEvent={lastEvent} 
           isResolving={resolutionStage === 'impact' || resolutionStage === 'casting'} 
-          player={{ name: profile.display_name, house: myHouse }}
+          player={{ name: profile?.display_name || 'Tú', house: myHouse }}
           opponent={{ name: rivalName, house: duel?.mode === 'ai' ? 'ai' : rivalHouse }}
           isP1={isP1}
         />
@@ -298,7 +324,6 @@ export default function DuelRoom() {
            
            <div className="relative w-full max-w-2xl text-center space-y-12 animate-in fade-in zoom-in duration-1000">
               
-              {/* Animated Glow Backdrops */}
               <div className={`absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[300px] md:w-[600px] h-[300px] md:h-[600px] rounded-full blur-[100px] md:blur-[160px] opacity-20 ${
                 iWon ? 'bg-healing-green' : iLost ? 'bg-impact-red' : 'bg-magical-gold'
               }`} />
@@ -331,7 +356,6 @@ export default function DuelRoom() {
                 )}
               </div>
 
-              {/* Rewards Summary */}
               <div className="bg-white/5 border border-white/10 rounded-3xl p-6 md:p-8 space-y-4 relative z-10">
                  <p className="text-text-gray uppercase text-[10px] md:text-xs font-black tracking-widest">Recompensa Obtenida</p>
                  <div className="flex items-center justify-center gap-4">
@@ -343,7 +367,6 @@ export default function DuelRoom() {
                  </div>
               </div>
 
-              {/* Action Buttons */}
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4 relative z-10">
                 <button
                   onClick={() => navigate('/duels')}
