@@ -12,149 +12,122 @@ export default function DuelTurnAnnouncement({ lastEvent, isP1, onContinue }) {
   React.useEffect(() => {
     if (announcement && lastEvent) {
       const label = announcement.effectivenessLabel.toLowerCase()
-      if (label.includes('muy efectivo')) {
+      if (label.includes('exitosa')) {
         audioManager.playVoice('turn_result_super', { cooldownMs: 10000 })
-      } else if (label.includes('no fue muy efectivo')) {
-        audioManager.playVoice('turn_result_weak', { cooldownMs: 10000 })
-      } else if (label.includes('leyó tu movimiento') || label.includes('detenido')) {
-        audioManager.playVoice('turn_result_block', { cooldownMs: 10000 })
-      } else if (label.includes('castigó')) {
-        audioManager.playVoice('turn_result_punish', { cooldownMs: 10000 })
-      } else {
+      } else if (label.includes('neutral')) {
         audioManager.playVoice('turn_result_neutral', { cooldownMs: 10000 })
+      } else {
+        audioManager.playVoice('turn_result_weak', { cooldownMs: 10000 })
       }
     }
   }, [lastEvent?.id, announcement?.effectivenessLabel])
 
   if (!announcement) {
     return (
-      <div className="rounded-[2.5rem] border border-impact-red/40 bg-impact-red/10 p-8 md:p-12 text-center backdrop-blur-2xl animate-in fade-in zoom-in duration-500 shadow-2xl">
-        <div className="w-20 h-20 bg-impact-red/20 rounded-full flex items-center justify-center mx-auto mb-6 border border-impact-red/30">
-           <AlertTriangle className="w-10 h-10 text-impact-red animate-pulse" />
-        </div>
-        <h3 className="text-2xl md:text-3xl font-black text-white uppercase italic tracking-tighter mb-4">Error de Sincronización Arcana</h3>
-        <p className="text-white/60 text-sm md:text-base mb-8 max-w-md mx-auto leading-relaxed">
-          No se pudo construir la explicación del turno. Revisa los datos del evento para depurar el flujo.
-        </p>
-        
-        <div className="bg-black/60 rounded-2xl p-6 text-left mb-8 border border-white/5 overflow-hidden">
-          <p className="text-[9px] font-black text-magical-gold uppercase tracking-[0.3em] mb-4">Debug Payload:</p>
-          <pre className="text-[10px] text-white/40 font-mono overflow-auto max-h-[200px] custom-scrollbar leading-tight">
-            {JSON.stringify(lastEvent?.payload, null, 2)}
-          </pre>
-        </div>
-
-        <button 
-          onClick={onContinue} 
-          className="w-full py-4 md:py-6 bg-magical-gold text-magical-navy font-black uppercase italic tracking-widest rounded-2xl shadow-xl hover:scale-[1.02] active:scale-[0.98] transition-all"
-        >
-          Forzar Continuación
-        </button>
+      <div className="rounded-[2.5rem] border border-impact-red/40 bg-impact-red/10 p-8 text-center backdrop-blur-2xl animate-in fade-in zoom-in">
+        <AlertTriangle className="w-12 h-12 text-impact-red mx-auto mb-4" />
+        <h3 className="text-xl font-black text-white uppercase italic">Error de Sincronización</h3>
+        <p className="text-white/40 text-xs mb-6">Los datos del turno no pudieron ser interpretados.</p>
+        <button onClick={onContinue} className="w-full py-4 bg-magical-gold text-magical-navy font-black uppercase rounded-xl">Continuar</button>
       </div>
     )
   }
 
   const toneClass = {
-    good: 'border-healing-green/40 bg-healing-green/10 shadow-[0_0_30px_rgba(34,197,94,0.1)]',
-    bad: 'border-impact-red/40 bg-impact-red/10 shadow-[0_0_30px_rgba(239,68,68,0.1)]',
-    clash: 'border-magical-gold/40 bg-magical-gold/10 shadow-[0_0_30px_rgba(212,175,55,0.1)]',
-    neutral: 'border-white/10 bg-white/5'
-  }[announcement.tone]
-
-  const textToneClass = {
-    good: 'text-healing-green',
-    bad: 'text-impact-red',
-    clash: 'text-magical-gold',
-    neutral: 'text-white'
+    good: 'border-healing-green/40 bg-healing-green/10 shadow-[0_0_40px_rgba(34,197,94,0.15)]',
+    bad: 'border-impact-red/40 bg-impact-red/10 shadow-[0_0_40px_rgba(239,68,68,0.15)]',
+    neutral: 'border-magical-gold/40 bg-magical-gold/5 shadow-[0_0_40px_rgba(212,175,55,0.1)]'
   }[announcement.tone]
 
   return (
-    <div className={`rounded-[2rem] border p-6 md:p-8 shadow-2xl backdrop-blur-2xl animate-in fade-in slide-in-from-bottom-8 duration-700 ${toneClass}`}>
-      {/* Spell Clash Header */}
-      <div className="grid grid-cols-2 gap-4 mb-6">
-        <div className="bg-black/40 rounded-2xl p-4 border border-white/5">
-          <p className="text-[9px] uppercase tracking-[0.2em] text-magical-gold font-black mb-1">Tú</p>
-          <p className="text-sm md:text-xl font-black text-white uppercase italic tracking-tighter">
-            {announcement.mySpell.name}
-          </p>
-          <p className="text-[8px] text-white/40 uppercase font-bold">{announcement.mySpell.family}</p>
-        </div>
-
-        <div className="bg-black/40 rounded-2xl p-4 border border-white/5 text-right">
-          <p className="text-[9px] uppercase tracking-[0.2em] text-impact-red font-black mb-1">Rival</p>
-          <p className="text-sm md:text-xl font-black text-white uppercase italic tracking-tighter">
-            {announcement.rivalSpell.name}
-          </p>
-          <p className="text-[8px] text-white/40 uppercase font-bold">{announcement.rivalSpell.family}</p>
-        </div>
-      </div>
-
-      {/* Main Narrative Result */}
-      <div className="space-y-4 text-center px-2 mb-8">
-        <p className={`text-xl md:text-3xl font-black uppercase italic tracking-tight ${textToneClass} animate-pulse`}>
+    <div className={`rounded-[2.5rem] border p-6 md:p-10 shadow-2xl backdrop-blur-3xl animate-in fade-in slide-in-from-bottom-12 duration-700 ${toneClass}`}>
+      
+      {/* Title & Effectiveness */}
+      <div className="text-center mb-8 space-y-2">
+        <p className="text-[10px] font-black uppercase tracking-[0.4em] text-white/40">Resolución del Turno</p>
+        <h2 className={`text-3xl md:text-5xl font-black italic uppercase tracking-tighter ${announcement.tone === 'good' ? 'text-healing-green' : announcement.tone === 'bad' ? 'text-impact-red' : 'text-magical-gold'}`}>
           {announcement.effectivenessLabel}
-        </p>
-        <p className="text-xs md:text-base text-white/70 leading-relaxed font-medium">
-          {announcement.explanation}
-        </p>
+        </h2>
       </div>
 
-      {/* Stats Breakdown Grid */}
+      {/* Strategy Summary Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
-        <BreakdownCard 
-          label="Tu Impacto" 
-          total={announcement.rivalDamageTaken} 
-          details={announcement.myBreakdown}
-          isAttacker={true}
-          heal={announcement.myBreakdown.heal}
+        <StrategyCard 
+          label="Tu Estrategia" 
+          actions={announcement.myActions} 
+          stance={announcement.myStance} 
+          isPlayer 
         />
-        <BreakdownCard 
-          label="Impacto Rival" 
-          total={announcement.myDamageTaken} 
-          details={announcement.rivalBreakdown}
-          isAttacker={false}
-          heal={announcement.rivalBreakdown.heal}
+        <StrategyCard 
+          label="Estrategia Rival" 
+          actions={announcement.rivalActions} 
+          stance={announcement.rivalStance} 
         />
       </div>
 
-      {/* Energy & Action Row */}
-      <div className="flex flex-col md:flex-row gap-4">
-        <div className="flex-1 bg-night-blue/60 rounded-2xl p-4 border border-magical-gold/20 flex items-center justify-between">
-           <div className="flex items-center gap-3">
-             <div className={`w-10 h-10 rounded-xl flex items-center justify-center border ${announcement.myBreakdown.interrupted ? 'bg-impact-red/10 border-impact-red/30' : 'bg-magical-gold/10 border-magical-gold/30'}`}>
-               {announcement.myBreakdown.interrupted ? <AlertTriangle className="w-5 h-5 text-impact-red" /> : <Zap className="w-5 h-5 text-magical-gold" />}
-             </div>
-             <div>
-               <p className={`text-[10px] font-black uppercase tracking-widest ${announcement.myBreakdown.interrupted ? 'text-impact-red' : 'text-magical-gold'}`}>
-                 {announcement.myBreakdown.interrupted ? 'Carga Interrumpida' : 'Energía'}
-               </p>
-               <p className="text-xs font-bold text-white">
-                 {announcement.myBreakdown.energyCost > 0 && `Gasto: -${announcement.myBreakdown.energyCost}`}
-                 {announcement.myBreakdown.energyGain > 0 && !announcement.myBreakdown.interrupted && ` Carga: +${announcement.myBreakdown.energyGain}`}
-                 {announcement.myBreakdown.interrupted && ` Carga anulada`}
-               </p>
-             </div>
-           </div>
-           <div className="text-right">
-             <p className={`text-xl font-black ${announcement.myBreakdown.interrupted ? 'text-impact-red' : 'text-white'}`}>
-               {announcement.myBreakdown.interrupted ? '+0' : (
-                 <>
-                   {(announcement.myBreakdown.energyGain || 0) - (announcement.myBreakdown.energyCost || 0) >= 0 ? '+' : ''}
-                   {(announcement.myBreakdown.energyGain || 0) - (announcement.myBreakdown.energyCost || 0)}
-                 </>
-               )}
-             </p>
-           </div>
+      {/* Narrative Timeline */}
+      <div className="bg-black/40 rounded-3xl p-6 border border-white/5 mb-8 space-y-4">
+        <h4 className="text-[10px] font-black uppercase text-magical-gold tracking-widest mb-4">Línea de Eventos</h4>
+        <div className="space-y-3">
+          {announcement.timeline.map((line, i) => (
+            <div key={i} className="flex gap-4 items-start animate-in fade-in slide-in-from-left duration-500" style={{ animationDelay: `${i * 150}ms` }}>
+              <span className="text-magical-gold font-black italic text-sm">{i + 1}.</span>
+              <p className="text-sm text-white/80 leading-relaxed font-medium">{line}</p>
+            </div>
+          ))}
         </div>
+      </div>
 
-        <button
-          onClick={onContinue}
-          className="flex-[2] py-4 md:py-6 bg-magical-gold text-magical-navy font-black uppercase italic tracking-widest rounded-2xl shadow-[0_10px_30px_rgba(212,175,55,0.4)] hover:scale-[1.02] active:scale-[0.98] transition-all"
-        >
-          Continuar Duelo
-        </button>
+      {/* Results Breakdown */}
+      <div className="grid grid-cols-2 gap-4 mb-8">
+        <StatSummary label="Daño Causado" value={announcement.rivalDamageTaken} color="text-healing-green" />
+        <StatSummary label="Daño Recibido" value={announcement.myDamageTaken} color="text-impact-red" />
+        <StatSummary label="Bloqueo Total" value={announcement.myBreakdown.blocked} color="text-spell-blue" />
+        <StatSummary label="Energía Neta" value={(announcement.myBreakdown.energyGain || 0) - (announcement.myBreakdown.energyCost || 0)} color="text-magical-gold" isEnergy />
+      </div>
+
+      <button
+        onClick={onContinue}
+        className="w-full py-5 md:py-7 bg-magical-gold text-magical-navy font-black uppercase italic tracking-widest rounded-2xl shadow-[0_15px_40px_rgba(212,175,55,0.4)] hover:scale-[1.02] active:scale-[0.98] transition-all text-sm md:text-lg"
+      >
+        Continuar Duelo
+      </button>
+    </div>
+  )
+}
+
+function StrategyCard({ label, actions, stance, isPlayer }) {
+  const STANCE_ICONS = { offensive: '⚔️', defensive: '🛡️', concentrated: '🧘', cunning: '🧠', desperate: '🔥', neutral: '🪄' }
+  return (
+    <div className={`p-5 rounded-3xl border ${isPlayer ? 'bg-magical-gold/5 border-magical-gold/20' : 'bg-white/5 border-white/10'}`}>
+      <p className={`text-[9px] font-black uppercase tracking-widest mb-3 ${isPlayer ? 'text-magical-gold' : 'text-white/40'}`}>{label}</p>
+      <div className="space-y-2">
+        <div className="flex flex-wrap gap-2">
+          {actions.map((a, i) => (
+            <span key={i} className="px-3 py-1 bg-black/60 rounded-lg text-[10px] font-bold text-white border border-white/5">
+              {a.name}
+            </span>
+          ))}
+        </div>
+        <div className="flex items-center gap-2 mt-2">
+          <span className="text-lg">{STANCE_ICONS[stance] || '🪄'}</span>
+          <span className="text-[10px] font-black uppercase text-white/60 italic">{stance}</span>
+        </div>
       </div>
     </div>
+  )
+}
+
+function StatSummary({ label, value, color, isEnergy }) {
+  return (
+    <div className="bg-black/40 p-4 rounded-2xl border border-white/5 flex flex-col items-center justify-center text-center">
+      <p className="text-[8px] font-black uppercase text-white/30 tracking-widest mb-1">{label}</p>
+      <p className={`text-xl md:text-2xl font-black ${color}`}>
+        {isEnergy && value >= 0 ? '+' : ''}{value}
+      </p>
+    </div>
+  )
+}
   )
 }
 

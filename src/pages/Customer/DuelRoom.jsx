@@ -493,13 +493,16 @@ export default function DuelRoom() {
         <SpellDetailModal 
           spell={detailedSpell} 
           onClose={() => setDetailedSpell(null)}
-          canCast={myEnergy >= detailedSpell.cost && !isSubmitting}
+          canCast={usedAP + (detailedSpell.cost >= 2 ? 2 : 1) <= 2 && (myEnergy - totalEnergyCost) >= detailedSpell.cost && !isSubmitting}
           onCast={() => {
-            setSelectedSpell(detailedSpell.key)
-            // If they are already in narrative/resolving, don't submit
-            if (resolutionStage === 'idle') {
-               handleSpellSubmit(detailedSpell.key)
+            const isSelected = selectedActions.some(a => a.key === detailedSpell.key)
+            if (isSelected) {
+              setSelectedActions(prev => prev.filter(a => a.key !== detailedSpell.key))
+            } else {
+              setSelectedActions(prev => [...prev, detailedSpell])
+              audioManager.playSfx('ui_card_select')
             }
+            setDetailedSpell(null)
           }}
         />
       )}

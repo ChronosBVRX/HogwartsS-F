@@ -195,7 +195,7 @@ BEGIN
     turn_number = turn_number + 1
   WHERE id = p_duel_id RETURNING * INTO v_duel;
 
-  -- 8. Registro de Evento Completo
+  -- 8. Registro de Evento Completo y Enriquecido
   INSERT INTO hsf_duel_events (duel_id, turn_number, event_type, payload)
   VALUES (p_duel_id, p_turn_number, 'turn_resolved', jsonb_build_object(
     'p1_actions', v_p1_turn.actions, 
@@ -204,12 +204,17 @@ BEGIN
     'p2_stance', v_p2_stance,
     'p1_damage', v_p2_total_dmg, 
     'p2_damage', v_p1_total_dmg,
+    'p1_damage_dealt', v_p1_total_dmg,
+    'p2_damage_dealt', v_p2_total_dmg,
+    'p1_blocked', v_p1_final_blk,
+    'p2_blocked', v_p2_final_blk,
     'p1_heal', v_p1_heal, 
     'p2_heal', v_p2_heal,
     'p1_cooldowns', v_p1_cd,
     'p2_cooldowns', v_p2_cd,
     'p1_energy_change', v_p1_gain - v_p1_cost,
-    'p2_energy_change', v_p2_gain - v_p2_cost
+    'p2_energy_change', v_p2_gain - v_p2_cost,
+    'turn_number', p_turn_number
   ));
 
   IF v_duel.player_one_hp <= 0 OR v_duel.player_two_hp <= 0 OR v_duel.turn_number > 12 THEN

@@ -1,148 +1,138 @@
 import { SPELLS } from './duelSpells'
 
-const EFFECTIVENESS = {
-  SUPER: '¡Fue muy efectivo!',
-  NEUTRAL: 'Ambos hechizos chocaron sin ventaja clara.',
-  WEAK: 'No fue muy efectivo...',
-  BLOCK: '¡Defensa Exitosa!',
-  PUNISH: 'Tu hechizo castigó la carga del rival.',
-  CRITICAL: '¡Un impacto devastador!'
+const FAMILY_NAMES = {
+  attack: 'Ataque Directo',
+  heavy: 'Ataque Pesado',
+  defense: 'Defensa',
+  control: 'Control',
+  counter: 'Contrahechizo',
+  heal: 'Curación',
+  charge: 'Carga Mágica',
+  disarm: 'Desarme'
 }
 
-const FAMILY_EXPLANATIONS = {
-  'defense_beats_attack': 'Los hechizos defensivos resisten los ataques directos.',
-  'defense_beats_heavy': 'La defensa logró contener el impacto del ataque pesado.',
-  'control_beats_defense': 'Los hechizos de control rompen defensas reduciendo su efectividad.',
-  'counter_beats_control': 'El contrahechizo anuló el efecto de control antes de que hiciera efecto.',
-  'heavy_beats_heal': 'El ataque pesado interrumpió la curación antes de estabilizarse.',
-  'heavy_beats_charge': 'El ataque pesado castigó severamente el intento de carga.',
-  'disarm_beats_heavy': 'El desarme interrumpió el flujo de un ataque pesado.',
-  'attack_beats_charge': 'El ataque directo castigó al rival mientras reunía energía.',
-  'heal_beats_defense': 'La curación aprovechó la pausa defensiva para restaurar vida.',
-  'charge_beats_counter': 'La carga mágica fluyó libremente al no haber nada que cancelar.'
+const STANCE_NAMES = {
+  offensive: 'Ofensiva (Ataque Valiente)',
+  defensive: 'Defensiva (Guardia Protegida)',
+  concentrated: 'Concentrada (Enfoque Arcano)',
+  cunning: 'Astuta (Lectura Táctica)',
+  desperate: 'Desesperada (Último Recurso)',
+  neutral: 'Neutral'
 }
 
 export function buildTurnAnnouncement({ payload, isP1 }) {
   if (!payload) return null
 
-  // Format tolerance: map legacy or new strategy fields
-  const p1_spell_key = payload.p1_spell || (payload.p1_actions?.[0]?.key) || payload.player_one_spell
-  const p2_spell_key = payload.p2_spell || (payload.p2_actions?.[0]?.key) || payload.player_two_spell
-  
-  if (!p1_spell_key || !p2_spell_key) return null
-
-  const p1 = {
-    spell: SPELLS[p1_spell_key],
-    actions: payload.p1_actions || [{ type: 'spell', key: p1_spell_key }],
-    stance: payload.p1_stance || 'neutral',
-    damage: payload.p1_damage ?? 0,
-    blocked: payload.p1_blocked ?? 0,
-    bonus: payload.p1_bonus ?? 0,
-    penalty: payload.p1_penalty ?? 0,
-    heal: payload.p1_heal ?? 0,
-    cost: payload.p1_energy_cost ?? payload.p1_energy_change ?? 0,
-    gain: payload.p1_energy_gain ?? 0,
-    interrupted: payload.p1_interrupted ?? false
+  // Normalización de datos (Soporta nombres viejos y nuevos)
+  const getPData = (pNum) => {
+    const prefix = pNum === 1 ? 'p1_' : 'p2_';
+    const legacyPrefix = pNum === 1 ? 'player_one_' : 'player_two_';
+    
+    return {
+      spellKey: payload[prefix + 'spell'] || payload[legacyPrefix + 'spell'] || payload[prefix + 'actions']?.[0]?.key,
+      actions: payload[prefix + 'actions'] || [],
+      stance: payload[prefix + 'stance'] || payload[legacyPrefix + 'stance'] || 'neutral',
+      damageDealt: pNum === 1 ? (payload.p2_damage ?? payload.player_two_damage ?? 0) : (payload.p1_damage ?? payload.player_one_damage ?? 0),
+      damageTaken: pNum === 1 ? (payload.p1_damage ?? payload.player_one_damage ?? 0) : (payload.p2_damage ?? payload.player_two_damage ?? 0),
+      blocked: payload[prefix + 'blocked'] ?? payload[legacyPrefix + 'blocked'] ?? 0,
+      heal: payload[prefix + 'heal'] ?? payload[legacyPrefix + 'heal'] ?? 0,
+      cost: Math.abs(payload[prefix + 'energy_cost'] ?? payload[prefix + 'energy_change'] ?? 0),
+      gain: payload[prefix + 'energy_gain'] ?? 0,
+      interrupted: payload[prefix + 'interrupted'] ?? false,
+      bonus: payload[prefix + 'bonus'] ?? 0,
+      penalty: payload[prefix + 'penalty'] ?? 0
+    }
   }
 
-  const p2 = {
-    spell: SPELLS[p2_spell_key],
-    actions: payload.p2_actions || [{ type: 'spell', key: p2_spell_key }],
-    stance: payload.p2_stance || 'neutral',
-    damage: payload.p2_damage ?? 0,
-    blocked: payload.p2_blocked ?? 0,
-    bonus: payload.p2_bonus ?? 0,
-    penalty: payload.p2_penalty ?? 0,
-    heal: payload.p2_heal ?? 0,
-    cost: payload.p2_energy_cost ?? payload.p2_energy_change ?? 0,
-    gain: payload.p2_energy_gain ?? 0,
-    interrupted: payload.p2_interrupted ?? false
-  }
-
+  const p1 = getPData(1)
+  const p2 = getPData(2)
   const my = isP1 ? p1 : p2
   const rival = isP1 ? p2 : p1
 
-  if (!my.spell || !rival.spell) return null
+  // Si no hay acciones mínimas, fallar con gracia
+  if (my.actions.length === 0 && !my.spellKey) return null
 
-  // Title generation
-  const actionNames = my.actions.map(a => SPELLS[a.key]?.name).filter(Boolean)
-  let title = actionNames.length > 1 
-    ? `Combo: ${actionNames.join(' y ')}`
-    : `Lanzaste ${my.spell.name}`
+  const timeline = []
+  const myPrimaryAction = my.actions[0] || { key: my.spellKey }
+  const rivalPrimaryAction = rival.actions[0] || { key: rival.spellKey }
+  
+  const mySpell = SPELLS[myPrimaryAction.key]
+  const rivalSpell = SPELLS[rivalPrimaryAction.key]
 
-  const rivalActionNames = rival.actions.map(a => SPELLS[a.key]?.name).filter(Boolean)
-  let subtitle = rivalActionNames.length > 1
-    ? `El rival ejecutó ${rivalActionNames.join(' y ')}`
-    : `El rival respondió con ${rival.spell.name}`
+  if (!mySpell || !rivalSpell) return null
 
-  // Effectiveness logic
-  const myWon = my.spell.beats.includes(rival.spell.family)
-  const rivalWon = rival.spell.beats.includes(my.spell.family)
+  // 1. Postura
+  timeline.push(`Adoptaste una postura ${STANCE_NAMES[my.stance]}.`)
+  if (my.stance === 'offensive') timeline.push("Tu agresividad aumentó el daño, pero te dejó más expuesto.")
+  if (my.stance === 'defensive') timeline.push("Tu guardia cerrada aumentó significativamente tu capacidad de bloqueo.")
 
-  let result = EFFECTIVENESS.NEUTRAL
-  let tone = 'neutral'
+  // 2. Acción Principal y Ventaja de Familia
+  const myWon = mySpell.beats.includes(rivalSpell.family)
+  const rivalWon = rivalSpell.beats.includes(mySpell.family)
+
+  timeline.push(`Lanzaste ${mySpell.name} (${FAMILY_NAMES[mySpell.family]}) como acción principal.`)
+  timeline.push(`El rival respondió con ${rivalSpell.name} (${FAMILY_NAMES[rivalSpell.family]}).`)
 
   if (myWon && !rivalWon) {
-    tone = 'good'
-    result = EFFECTIVENESS.SUPER
+    timeline.push(`¡Ventaja Táctica! Tu ${mySpell.name} superó la estrategia del rival.`)
   } else if (rivalWon && !myWon) {
-    tone = 'bad'
-    result = EFFECTIVENESS.WEAK
+    timeline.push(`El rival tuvo la ventaja: su ${rivalSpell.name} contrarrestó tu movimiento.`)
   }
 
-  // Explanation with Stance info
-  const STANCE_NAMES = {
-    offensive: 'ataque valiente',
-    defensive: 'guardia protegida',
-    concentrated: 'concentración arcana',
-    cunning: 'astucia táctica',
-    desperate: 'último recurso',
-    neutral: 'postura neutral'
+  // 3. Resultados de impacto
+  if (my.blocked > 0) timeline.push(`Lograste bloquear ${my.blocked} puntos de daño rival.`)
+  if (my.damageTaken > 0) timeline.push(`Recibiste ${my.damageTaken} de daño tras el intercambio.`)
+  else if (rival.damageDealt > 0) timeline.push("¡Defensa impecable! No recibiste daño este turno.")
+
+  // 4. Segunda Acción
+  if (my.actions.length > 1) {
+    const secondAction = SPELLS[my.actions[1].key]
+    if (secondAction) {
+      timeline.push(`Tu segunda acción fue ${secondAction.name}.`)
+      if (my.interrupted) timeline.push(`Lamentablemente, el impacto rival interrumpió tu segunda acción.`)
+      else if (secondAction.energyGain > 0) timeline.push(`Lograste canalizar ${secondAction.energyGain} de energía extra.`)
+    }
   }
 
-  let explanation = `Tu postura de ${STANCE_NAMES[my.stance] || 'combate'} marcó el ritmo del intercambio.`
-  
-  const key = myWon
-    ? `${my.spell.family}_beats_${rival.spell.family}`
-    : rivalWon
-      ? `${rival.spell.family}_beats_${my.spell.family}`
-      : null
-
-  if (key && FAMILY_EXPLANATIONS[key]) {
-    explanation += ` ${FAMILY_EXPLANATIONS[key]}`
-  }
-
-  if (my.damage === 0 && my.blk > 0) explanation += ' Tu defensa fue impecable.'
-  if (my.interrupted) explanation += ' ¡Pero tu concentración fue rota por el ataque rival!'
+  // 5. Energía y Recursos
+  if (my.cost > 0) timeline.push(`Consumiste ${my.cost} puntos de energía en tu estrategia.`)
+  if (my.gain > 0 && !my.interrupted) timeline.push(`Recuperaste ${my.gain} puntos de energía al final del turno.`)
 
   return {
-    title,
-    subtitle,
-    result,
-    explanation,
-    tone,
-    mySpell: my.spell,
-    rivalSpell: rival.spell,
-    myDamageTaken: my.damage,
-    rivalDamageTaken: rival.damage,
+    title: actionNames(my.actions) || `Turno ${payload.turn_number}`,
+    subtitle: `Postura: ${STANCE_NAMES[my.stance]}`,
+    effectivenessLabel: myWon ? '¡Estrategia Exitosa!' : rivalWon ? 'Rival con Ventaja' : 'Choque Neutral',
+    tone: myWon ? 'good' : rivalWon ? 'bad' : 'neutral',
+    timeline,
+    myActions: my.actions.map(a => SPELLS[a.key]).filter(Boolean),
+    rivalActions: rival.actions.map(a => SPELLS[a.key]).filter(Boolean),
+    myStance: my.stance,
+    rivalStance: rival.stance,
+    myDamageTaken: my.damageTaken,
+    rivalDamageTaken: my.damageDealt,
     myBreakdown: {
-      base: my.spell.damage || 0,
+      base: mySpell.damage || 0,
       bonus: my.bonus,
       penalty: my.penalty,
       block: rival.blocked,
       heal: my.heal,
-      energyCost: Math.abs(my.cost),
+      energyCost: my.cost,
       energyGain: my.gain,
-      interrupted: my.interrupted
+      interrupted: my.interrupted,
+      blocked: my.blocked
     },
     rivalBreakdown: {
-      base: rival.spell.damage || 0,
+      base: rivalSpell.damage || 0,
       bonus: rival.bonus,
       penalty: rival.penalty,
       block: my.blocked,
       heal: rival.heal,
       interrupted: rival.interrupted
-    },
-    effectivenessLabel: result
+    }
   }
+}
+
+function actionNames(actions) {
+  if (!actions || actions.length === 0) return null
+  return actions.map(a => SPELLS[a.key]?.name).filter(Boolean).join(' + ')
 }
