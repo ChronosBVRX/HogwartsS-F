@@ -140,6 +140,7 @@ export default function DuelRoom() {
         table: 'hsf_duels', 
         filter: `id=eq.${duelId}` 
       }, (payload) => {
+        console.log('DUEL UPDATE:', payload.new)
         setDuel(prev => ({ ...prev, ...payload.new }))
         if (payload.new.status === 'finished') {
           setShowResult(true)
@@ -151,18 +152,23 @@ export default function DuelRoom() {
         table: 'hsf_duel_events',
         filter: `duel_id=eq.${duelId}`
       }, (payload) => {
+        console.log('DUEL EVENT INSERT:', payload.new)
+        console.log('DUEL EVENT PAYLOAD:', payload.new.payload)
+        
         setLastEvent(payload.new)
         setResolutionStage('casting')
         
         if (payload.new.payload) {
-          const { p1_damage = 0, p2_damage = 0 } = payload.new.payload
+          const p1_damage = payload.new.payload.p1_damage ?? payload.new.payload.player_one_damage ?? 0
+          const p2_damage = payload.new.payload.p2_damage ?? payload.new.payload.player_two_damage ?? 0
+          
           const iAmP1 = profile?.user_id === duel?.player_one
-          const myDamage = iAmP1 ? p1_damage : p2_damage
-          const rivalDamage = iAmP1 ? p2_damage : p1_damage
+          const myDamageTaken = iAmP1 ? p1_damage : p2_damage
+          const rivalDamageTaken = iAmP1 ? p2_damage : p1_damage
 
-          if (rivalDamage > 15) {
+          if (rivalDamageTaken > 15) {
             audioManager.playVoice('turn_result_super', { cooldownMs: 20000 })
-          } else if (myDamage > 10) {
+          } else if (myDamageTaken > 10) {
             audioManager.playVoice('turn_result_weak', { cooldownMs: 20000 })
           }
         }
@@ -192,6 +198,7 @@ export default function DuelRoom() {
       audioManager.playSfx('ui_reward')
     }
 
+    setIsSubmitting(false)
     setResultAudioPlayed(true)
   }, [duelFinished, iWon, iLost, isDraw, audioReady, resultAudioPlayed])
 
@@ -204,6 +211,12 @@ export default function DuelRoom() {
     setIsSubmitting(true)
     audioManager.playSfx('ui_card_confirm')
 
+    console.log('RPC hsf_submit_duel_turn enviada', {
+      duelId,
+      selectedSpell,
+      turnNumber: duel.turn_number
+    })
+
     const { error } = await supabase.rpc('hsf_submit_duel_turn', {
       p_duel_id: duelId,
       p_spell_key: selectedSpell,
@@ -213,11 +226,12 @@ export default function DuelRoom() {
     if (error) {
       console.error('Error submitting turn:', error)
       alert(error.message)
+      setIsSubmitting(false)
     } else {
       audioManager.playVoice('spell_confirmed', { cooldownMs: 15000 })
       setSelectedSpell(null)
+      // Note: isSubmitting is kept true until event arrives or error
     }
-    setIsSubmitting(false)
   }
 
   const nextTurn = () => {

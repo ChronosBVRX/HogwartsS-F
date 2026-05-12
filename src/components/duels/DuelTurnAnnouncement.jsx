@@ -1,6 +1,7 @@
 import React from 'react'
 import { buildTurnAnnouncement } from '../../lib/duelNarration'
 import { Zap, Heart, Shield, Swords, AlertTriangle } from 'lucide-react'
+import audioManager from '../../lib/audioManager'
 
 export default function DuelTurnAnnouncement({ lastEvent, isP1, onContinue }) {
   const announcement = buildTurnAnnouncement({
@@ -25,7 +26,33 @@ export default function DuelTurnAnnouncement({ lastEvent, isP1, onContinue }) {
     }
   }, [lastEvent?.id, announcement?.effectivenessLabel])
 
-  if (!announcement) return null
+  if (!announcement) {
+    return (
+      <div className="rounded-[2.5rem] border border-impact-red/40 bg-impact-red/10 p-8 md:p-12 text-center backdrop-blur-2xl animate-in fade-in zoom-in duration-500 shadow-2xl">
+        <div className="w-20 h-20 bg-impact-red/20 rounded-full flex items-center justify-center mx-auto mb-6 border border-impact-red/30">
+           <AlertTriangle className="w-10 h-10 text-impact-red animate-pulse" />
+        </div>
+        <h3 className="text-2xl md:text-3xl font-black text-white uppercase italic tracking-tighter mb-4">Error de Sincronización Arcana</h3>
+        <p className="text-white/60 text-sm md:text-base mb-8 max-w-md mx-auto leading-relaxed">
+          No se pudo construir la explicación del turno. Revisa los datos del evento para depurar el flujo.
+        </p>
+        
+        <div className="bg-black/60 rounded-2xl p-6 text-left mb-8 border border-white/5 overflow-hidden">
+          <p className="text-[9px] font-black text-magical-gold uppercase tracking-[0.3em] mb-4">Debug Payload:</p>
+          <pre className="text-[10px] text-white/40 font-mono overflow-auto max-h-[200px] custom-scrollbar leading-tight">
+            {JSON.stringify(lastEvent?.payload, null, 2)}
+          </pre>
+        </div>
+
+        <button 
+          onClick={onContinue} 
+          className="w-full py-4 md:py-6 bg-magical-gold text-magical-navy font-black uppercase italic tracking-widest rounded-2xl shadow-xl hover:scale-[1.02] active:scale-[0.98] transition-all"
+        >
+          Forzar Continuación
+        </button>
+      </div>
+    )
+  }
 
   const toneClass = {
     good: 'border-healing-green/40 bg-healing-green/10 shadow-[0_0_30px_rgba(34,197,94,0.1)]',
