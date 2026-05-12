@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '../../context/AuthContext'
 import { supabase } from '../../lib/supabase'
+import audioManager from '../../lib/audioManager'
 import { Award, QrCode, LogOut, Star, Shield, Zap, Wand2, Hash, Settings as SettingsIcon, Map, Footprints, Ticket, CheckCircle2, XCircle, Clock } from 'lucide-react'
 
 // House assets
@@ -36,6 +37,7 @@ export default function Profile() {
   const [ticketHistory, setTicketHistory] = useState([])
   const [monthlyPoints, setMonthlyPoints] = useState(0)
   const [loading, setLoading] = useState(true)
+  const navigate = useNavigate()
 
   const fetchActiveSession = async () => {
     if (!profile) return
@@ -271,10 +273,21 @@ export default function Profile() {
             <div className="space-y-10">
               {/* Botón de Aventura */}
               <div className="space-y-3 text-center">
-                <Link to="/aventura" className="btn-gold w-full flex items-center justify-center gap-3 py-5 text-sm font-black uppercase shadow-[0_0_40px_rgba(212,175,55,0.3)] bg-green-600 border-green-500 hover:bg-green-500">
+                <button 
+                  onClick={async () => {
+                    audioManager.unlockAudio().catch(() => {})
+                    try {
+                      if (document.documentElement.requestFullscreen) {
+                        document.documentElement.requestFullscreen().catch(() => {})
+                      }
+                    } catch (e) {}
+                    navigate('/aventura')
+                  }}
+                  className="btn-gold w-full flex items-center justify-center gap-3 py-5 text-sm font-black uppercase shadow-[0_0_40px_rgba(212,175,55,0.3)] bg-green-600 border-green-500 hover:bg-green-500"
+                >
                   <Wand2 className="w-5 h-5" />
                   Iniciar Aventura Mágica
-                </Link>
+                </button>
                 <p className="text-[10px] text-white/40 uppercase font-black tracking-widest leading-relaxed max-w-[280px] mx-auto italic">
                   Resuelve acertijos en el castillo y gana recompensas
                 </p>
@@ -282,10 +295,21 @@ export default function Profile() {
 
               {/* Botón de Duelos */}
               <div className="space-y-3 text-center">
-                <Link to="/duelos" className="btn-gold w-full flex items-center justify-center gap-3 py-5 text-sm font-black uppercase shadow-[0_0_40px_rgba(212,175,55,0.3)]">
+                <button 
+                  onClick={async () => {
+                    audioManager.unlockAudio().catch(() => {})
+                    try {
+                      if (document.documentElement.requestFullscreen) {
+                        document.documentElement.requestFullscreen().catch(() => {})
+                      }
+                    } catch (e) {}
+                    navigate('/duelos')
+                  }}
+                  className="btn-gold w-full flex items-center justify-center gap-3 py-5 text-sm font-black uppercase shadow-[0_0_40px_rgba(212,175,55,0.3)]"
+                >
                   <Wand2 className="w-5 h-5" />
                   Entrar a Duelos Mágicos
-                </Link>
+                </button>
                 <p className="text-[10px] text-white/40 uppercase font-black tracking-widest leading-relaxed max-w-[280px] mx-auto italic">
                   Reta a la IA o a otros magos, gana fragmentos y defiende el honor de tu casa.
                 </p>
@@ -293,10 +317,21 @@ export default function Profile() {
 
               {/* Botón de Registro de Visita */}
               <div className="space-y-3 text-center">
-                <Link to="/asistencia" className="btn-gold w-full flex items-center justify-center gap-3 py-5 text-sm font-black uppercase shadow-[0_0_30px_rgba(212,175,55,0.2)]">
+                <button 
+                  onClick={async () => {
+                    audioManager.unlockAudio().catch(() => {})
+                    try {
+                      if (document.documentElement.requestFullscreen) {
+                        document.documentElement.requestFullscreen().catch(() => {})
+                      }
+                    } catch (e) {}
+                    navigate('/asistencia')
+                  }}
+                  className="btn-gold w-full flex items-center justify-center gap-3 py-5 text-sm font-black uppercase shadow-[0_0_30px_rgba(212,175,55,0.2)]"
+                >
                   <QrCode className="w-6 h-6" />
                   Registrar Visita Mágica
-                </Link>
+                </button>
                 <p className="text-[10px] text-white/40 uppercase font-black tracking-widest leading-relaxed max-w-[280px] mx-auto italic">
                   Genera tu código para que un mesero valide tu estancia
                 </p>
