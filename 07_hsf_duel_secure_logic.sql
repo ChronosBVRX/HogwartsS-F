@@ -213,3 +213,66 @@ begin
   return jsonb_build_object('status', 'resolved');
 end;
 $$;
+
+-- ==========================================
+-- 3. RECOMPENSAS Y RANKING
+-- ==========================================
+
+create or replace function hsf_finish_duel_rewards(p_duel_id uuid)
+returns void
+language plpgsql
+security definer
+as $$
+declare
+  v_duel record;
+  v_winner_house text;
+  v_month_key text;
+  v_winner_points int := 15;
+  v_loser_points int := 5;
+  v_draw_points int := 8;
+begin
+  select * into v_duel from hsf_duels where id = p_duel_id;
+  v_month_key := to_char(now(), 'YYYY-MM');
+
+  -- 1. Actualizar perfiles de duelo (MMR y Estadísticas)
+  -- Jugador 1
+  insert into hsf_duel_profiles (user_id, mmr, wins, losses, total_duels)
+  values (v_duel.player_one, 100, 0, 0, 0)
+  on conflict (user_id) do nothing;
+
+  if v_duel.winner_id = v_duel.player_one then
+    update hsf_duel_profiles set mmr = mmr + v_winner_points, wins = wins + 1, total_duels = total_duels + 1 where user_id = v_duel.player_one;
+  elsif v_duel.winner_id is null and v_duel.status = 'finished' then
+    update hsf_duel_profiles set mmr = mmr + v_draw_points, total_duels = total_duels + 1 where user_id = v_duel.player_one;
+  else
+    update hsf_duel_profiles set mmr = mmr + v_loser_points, losses = losses + 1, total_duels = total_duels + 1 where user_id = v_duel.player_one;
+  end if;
+
+  -- Jugador 2 (Si no es AI)
+  if v_duel.mode = 'pvp' then
+    insert into hsf_duel_profiles (user_id, mmr, wins, losses, total_duels)
+    values (v_duel.player_two, 100, 0, 0, 0)
+    on conflict (user_id) do nothing;
+
+    if v_duel.winner_id = v_duel.player_two then
+      update hsf_duel_profiles set mmr = mmr + v_winner_points, wins = wins + 1, total_duels = total_duels + 1 where user_id = v_duel.player_two;
+    elsif v_duel.winner_id is null and v_duel.status = 'finished' then
+      update hsf_duel_profiles set mmr = mmr + v_draw_points, total_duels = total_duels + 1 where user_id = v_duel.player_two;
+    else
+      update hsf_duel_profiles set mmr = mmr + v_loser_points, losses = losses + 1, total_duels = total_duels + 1 where user_id = v_duel.player_two;
+    end if;
+  end if;
+
+  -- 2. Copa de las Casas (Solo si hay un ganador y es un jugador)
+  if v_duel.winner_id is not null then
+    select house_slug into v_winner_house from hsf_profiles where user_id = v_duel.winner_id;
+    
+    if v_winner_house is not null then
+      insert into hsf_duel_house_points (month_key, house_slug, points)
+      values (v_month_key, v_winner_house, v_winner_points)
+      on conflict (month_key, house_slug) 
+      do update set points = hsf_duel_house_points.points + v_winner_points;
+    end if;
+  end if;
+end;
+$$;
