@@ -167,7 +167,7 @@ export default function DuelRanking() {
                   const pct = (points / maxPoints) * 100
 
                   return (
-                    <div key={slug} className="magic-card p-5 border-white/5 space-y-4 group overflow-hidden relative flex flex-col">
+                    <div key={slug} className="glass-card p-5 space-y-4 group overflow-hidden relative flex flex-col border-white/5 h-fit">
                       <div className={`absolute inset-0 bg-gradient-to-br ${data.gradient} opacity-0 group-hover:opacity-10 transition-opacity duration-700`} />
                       
                       <div className="flex justify-between items-center relative z-10">

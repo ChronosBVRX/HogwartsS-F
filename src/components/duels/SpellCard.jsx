@@ -39,6 +39,7 @@ export default function SpellCard({ spell, disabled, selected, onClick, cooldown
       }}
       className={`
         magic-card flex flex-col p-3 md:p-4 text-left transition-all duration-300
+        aspect-[2.5/3.5]
         ${selected ? 'selected scale-[1.02] -translate-y-1' : 'hover:-translate-y-1'}
         ${(disabled || cooldown > 0) ? 'opacity-40 grayscale-[0.5] cursor-not-allowed scale-95' : ''}
       `}

@@ -114,7 +114,6 @@
 
   /* Magic Card Styles */
   .magic-card {
-    aspect-ratio: 2.5 / 3.5;
     background: var(--color-night-blue);
     border: 2px solid rgba(212, 175, 55, 0.3);
     border-radius: 1rem;
