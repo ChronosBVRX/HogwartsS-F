@@ -8,21 +8,21 @@ const STEPS = [
     desc: "Usa hechizos como Rictusempra para dañar al rival. Recuerda que los ataques directos vencen a los que intentan cargar energía.",
     icon: <Sword className="w-12 h-12 text-impact-red" />,
     color: "from-impact-red/20 to-transparent",
-    tip: "Tip: Los ataques pesados (2 AP) como Stupefy ignoran bloqueos ligeros."
+    tip: "Tip: Los ataques pesados (2 AP) como Stupefy ocupan todo el turno, pero causan un alto impacto."
   },
   {
     title: "Defensa y Postura",
     desc: "Antes de atacar, elige tu estilo. La 'Guardia Protegida' aumenta tu bloqueo, ideal si esperas un golpe fuerte del rival.",
     icon: <Shield className="w-12 h-12 text-spell-blue" />,
     color: "from-spell-blue/20 to-transparent",
-    tip: "Tip: Bloquear ataques pesados con Protego te otorga +1 de Energía."
+    tip: "Tip: Protego reduce ataques fuertes y es clave para sobrevivir a un combo rival."
   },
   {
     title: "Domina los Combos",
     desc: "Tienes 2 movimientos por turno. Puedes lanzar Protego (1) y luego Accio Energía (1) para defenderte y recargar recursos a la vez.",
     icon: <Zap className="w-12 h-12 text-magical-gold" />,
     color: "from-magical-gold/20 to-transparent",
-    tip: "Tip: Los hechizos pesados ocupan tus 2 movimientos del turno."
+    tip: "Tip: Accio Energía es fundamental para preparar tus jugadas más potentes en el siguiente turno."
   }
 ]
 

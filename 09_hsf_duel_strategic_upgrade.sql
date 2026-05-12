@@ -137,10 +137,16 @@ BEGIN
   SELECT house_slug INTO v_p1_house FROM hsf_profiles WHERE user_id = v_duel.player_one;
   v_p1_house := COALESCE(v_p1_house, 'gryffindor');
   
-  -- P1 Balance
-  IF v_p1_turn.stance = 'offensive' THEN v_p1_stance_dmg := 5; v_p2_stance_dmg := 4;
-  ELSIF v_p1_turn.stance = 'defensive' THEN v_p1_stance_blk := 8; v_p1_stance_dmg := -4;
+  -- P1 Stance Balance
+  IF v_p1_turn.stance = 'offensive' THEN v_p1_stance_dmg := 5; v_p2_dmg := v_p2_dmg + 4;
+  ELSIF v_p1_turn.stance = 'defensive' THEN v_p1_stance_blk := 8; v_p1_dmg := v_p1_dmg - 4;
   END IF;
+
+  -- P2 Stance Balance
+  IF v_p2_stance = 'offensive' THEN v_p2_stance_dmg := 5; v_p1_dmg := v_p1_dmg + 4;
+  ELSIF v_p2_stance = 'defensive' THEN v_p2_stance_blk := 8; v_p2_dmg := v_p2_dmg - 4;
+  END IF;
+
   IF v_p1_house = 'gryffindor' AND v_duel.player_one_hp < 35 THEN v_p1_stance_dmg := v_p1_stance_dmg + 6; END IF;
 
   -- 4. Procesar Hechizos P1

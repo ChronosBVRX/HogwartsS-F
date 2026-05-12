@@ -1,6 +1,6 @@
 import React from 'react'
 import { buildTurnAnnouncement } from '../../lib/duelNarration'
-import { AlertTriangle } from 'lucide-react'
+import { AlertTriangle, Info, Zap, Shield, Target } from 'lucide-react'
 import audioManager from '../../lib/audioManager'
 
 export default function DuelTurnAnnouncement({ lastEvent, isP1, onContinue }) {
@@ -11,84 +11,105 @@ export default function DuelTurnAnnouncement({ lastEvent, isP1, onContinue }) {
 
   React.useEffect(() => {
     if (announcement && lastEvent) {
-      const label = announcement.effectivenessLabel.toLowerCase()
-      if (label.includes('exitosa')) {
+      if (announcement.tone === 'good') {
         audioManager.playVoice('turn_result_super', { cooldownMs: 10000 })
-      } else if (label.includes('neutral')) {
+      } else if (announcement.tone === 'neutral') {
         audioManager.playVoice('turn_result_neutral', { cooldownMs: 10000 })
       } else {
         audioManager.playVoice('turn_result_weak', { cooldownMs: 10000 })
       }
     }
-  }, [lastEvent?.id, announcement?.effectivenessLabel])
+  }, [lastEvent?.id, announcement?.tone])
 
   if (!announcement) {
     return (
-      <div className="rounded-[2.5rem] border border-impact-red/40 bg-impact-red/10 p-8 text-center backdrop-blur-2xl animate-in fade-in zoom-in">
+      <div className="rounded-[2.5rem] border border-impact-red/40 bg-impact-red/10 p-8 text-center backdrop-blur-2xl">
         <AlertTriangle className="w-12 h-12 text-impact-red mx-auto mb-4" />
         <h3 className="text-xl font-black text-white uppercase italic">Error de Sincronización</h3>
-        <p className="text-white/40 text-xs mb-6">Los datos del turno no pudieron ser interpretados.</p>
-        <button onClick={onContinue} className="w-full py-4 bg-magical-gold text-magical-navy font-black uppercase rounded-xl">Continuar</button>
+        <button onClick={onContinue} className="w-full mt-4 py-4 bg-magical-gold text-magical-navy font-black uppercase rounded-xl">Continuar</button>
       </div>
     )
   }
 
-  const toneClass = {
-    good: 'border-healing-green/40 bg-healing-green/10 shadow-[0_0_40px_rgba(34,197,94,0.15)]',
-    bad: 'border-impact-red/40 bg-impact-red/10 shadow-[0_0_40px_rgba(239,68,68,0.15)]',
-    neutral: 'border-magical-gold/40 bg-magical-gold/5 shadow-[0_0_40px_rgba(212,175,55,0.1)]'
-  }[announcement.tone]
+  const toneColor = announcement.tone === 'good' ? 'text-healing-green' : announcement.tone === 'bad' ? 'text-impact-red' : 'text-magical-gold'
+  const toneBg = announcement.tone === 'good' ? 'bg-healing-green/10 border-healing-green/40' : announcement.tone === 'bad' ? 'bg-impact-red/10 border-impact-red/40' : 'bg-magical-gold/10 border-magical-gold/40'
 
   return (
-    <div className={`rounded-[2.5rem] border p-6 md:p-10 shadow-2xl backdrop-blur-3xl animate-in fade-in slide-in-from-bottom-12 duration-700 ${toneClass}`}>
+    <div className="max-h-[90vh] overflow-y-auto space-y-6 p-1 scrollbar-hide pb-10">
       
-      {/* Title & Effectiveness */}
-      <div className="text-center mb-8 space-y-2">
-        <p className="text-[10px] font-black uppercase tracking-[0.4em] text-white/40">Resolución del Turno</p>
-        <h2 className={`text-3xl md:text-5xl font-black italic uppercase tracking-tighter ${announcement.tone === 'good' ? 'text-healing-green' : announcement.tone === 'bad' ? 'text-impact-red' : 'text-magical-gold'}`}>
-          {announcement.effectivenessLabel}
-        </h2>
+      {/* 1. VEREDICTO ESTRATÉGICO */}
+      <div className={`rounded-[2.5rem] border p-8 shadow-2xl backdrop-blur-3xl animate-in fade-in slide-in-from-bottom-8 duration-700 ${toneBg}`}>
+        <div className="text-center space-y-3">
+          <p className="text-[10px] font-black uppercase tracking-[0.4em] text-white/40">Veredicto del Turno</p>
+          <h2 className={`text-3xl md:text-5xl font-black italic uppercase tracking-tighter ${toneColor}`}>
+            {announcement.verdictTitle}
+          </h2>
+          <p className="text-white/80 text-sm leading-relaxed max-w-sm mx-auto font-medium italic">
+            "{announcement.verdictText}"
+          </p>
+        </div>
       </div>
 
-      {/* Strategy Summary Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
-        <StrategyCard 
-          label="Tu Estrategia" 
-          actions={announcement.myActions} 
-          stance={announcement.myStance} 
-          isPlayer 
-        />
-        <StrategyCard 
-          label="Estrategia Rival" 
-          actions={announcement.rivalActions} 
-          stance={announcement.rivalStance} 
-        />
-      </div>
+      {/* 2. DESGLOSE DE DAÑO (LA FÓRMULA) */}
+      <div className="bg-black/60 rounded-[2.5rem] border border-white/5 p-8 space-y-6">
+        <div className="flex items-center gap-2 mb-2">
+          <Target className="w-4 h-4 text-magical-gold" />
+          <h3 className="text-[10px] font-black uppercase text-magical-gold tracking-widest">Por qué recibiste daño</h3>
+        </div>
+        
+        <p className="text-sm text-white/60 italic px-2">
+          {announcement.damageReason}
+        </p>
 
-      {/* Narrative Timeline */}
-      <div className="bg-black/40 rounded-3xl p-6 border border-white/5 mb-8 space-y-4">
-        <h4 className="text-[10px] font-black uppercase text-magical-gold tracking-widest mb-4">Línea de Eventos</h4>
-        <div className="space-y-3">
-          {announcement.timeline.map((line, i) => (
-            <div key={i} className="flex gap-4 items-start animate-in fade-in slide-in-from-left duration-500" style={{ animationDelay: `${i * 150}ms` }}>
-              <span className="text-magical-gold font-black italic text-sm">{i + 1}.</span>
-              <p className="text-sm text-white/80 leading-relaxed font-medium">{line}</p>
+        <div className="space-y-3 bg-black/40 rounded-3xl p-6 border border-white/5">
+          {announcement.damageFormula.map((item, i) => (
+            <div key={i} className={`flex justify-between items-center ${item.type === 'final' ? 'mt-4 pt-4 border-t border-white/10' : ''}`}>
+              <span className={`text-xs font-bold ${item.type === 'final' ? 'text-white' : 'text-white/40'}`}>
+                {item.label}
+              </span>
+              <span className={`text-sm font-black ${
+                item.type === 'danger' ? 'text-impact-red' : 
+                item.type === 'defense' ? 'text-spell-blue' : 
+                item.type === 'final' ? toneColor : 'text-white/60'
+              }`}>
+                {item.value}
+              </span>
             </div>
           ))}
         </div>
       </div>
 
-      {/* Results Breakdown */}
-      <div className="grid grid-cols-2 gap-4 mb-8">
-        <StatSummary label="Daño Causado" value={announcement.rivalDamageTaken} color="text-healing-green" />
-        <StatSummary label="Daño Recibido" value={announcement.myDamageTaken} color="text-impact-red" />
-        <StatSummary label="Bloqueo Total" value={announcement.myBreakdown.blocked} color="text-spell-blue" />
-        <StatSummary label="Energía Neta" value={(announcement.myBreakdown.energyGain || 0) - (announcement.myBreakdown.energyCost || 0)} color="text-magical-gold" isEnergy />
+      {/* 3. ESTRATEGIAS COMPARADAS */}
+      <div className="grid grid-cols-2 gap-4">
+        <StrategyCard label="Tu Estrategia" actions={announcement.myActions} stance={announcement.myStance} isPlayer />
+        <StrategyCard label="Rival" actions={announcement.rivalActions} stance={announcement.rivalStance} />
+      </div>
+
+      {/* 4. LÍNEA DE EVENTOS */}
+      <div className="bg-black/40 rounded-[2.5rem] p-8 border border-white/5 space-y-4">
+        <div className="flex items-center gap-2 mb-4">
+          <Info className="w-4 h-4 text-magical-gold" />
+          <h4 className="text-[10px] font-black uppercase text-magical-gold tracking-widest">Línea de Eventos</h4>
+        </div>
+        <div className="space-y-4">
+          {announcement.timeline.map((line, i) => (
+            <div key={i} className="flex gap-4 items-start animate-in fade-in slide-in-from-left duration-500" style={{ animationDelay: `${i * 100}ms` }}>
+              <div className="w-1.5 h-1.5 rounded-full bg-magical-gold mt-1.5 shrink-0" />
+              <p className="text-xs text-white/70 leading-relaxed">{line}</p>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* 5. LECCIÓN FINAL */}
+      <div className="bg-magical-gold/5 border border-magical-gold/20 rounded-3xl p-6 text-center space-y-2 italic">
+        <p className="text-[9px] font-black uppercase text-magical-gold/60 tracking-widest">Lección para el siguiente turno</p>
+        <p className="text-xs text-white/80">{announcement.finalLesson}</p>
       </div>
 
       <button
         onClick={onContinue}
-        className="w-full py-5 md:py-7 bg-magical-gold text-magical-navy font-black uppercase italic tracking-widest rounded-2xl shadow-[0_15px_40px_rgba(212,175,55,0.4)] hover:scale-[1.02] active:scale-[0.98] transition-all text-sm md:text-lg"
+        className="w-full py-6 bg-magical-gold text-magical-navy font-black uppercase italic tracking-widest rounded-2xl shadow-[0_15px_40px_rgba(212,175,55,0.4)] active:scale-95 transition-all"
       >
         Continuar Duelo
       </button>
@@ -97,7 +118,6 @@ export default function DuelTurnAnnouncement({ lastEvent, isP1, onContinue }) {
 }
 
 function StrategyCard({ label, actions, stance, isPlayer }) {
-  const STANCE_ICONS = { offensive: '⚔️', defensive: '🛡️', concentrated: '🧘', cunning: '🧠', desperate: '🔥', neutral: '🪄' }
   const STANCE_LABELS = { 
     neutral: 'Neutral', 
     offensive: 'Ataque Valiente', 
@@ -108,34 +128,18 @@ function StrategyCard({ label, actions, stance, isPlayer }) {
   }
 
   return (
-    <div className={`p-5 rounded-3xl border ${isPlayer ? 'bg-magical-gold/5 border-magical-gold/20' : 'bg-white/5 border-white/10'}`}>
-      <p className={`text-[9px] font-black uppercase tracking-widest mb-3 ${isPlayer ? 'text-magical-gold' : 'text-white/40'}`}>{label}</p>
+    <div className={`p-5 rounded-3xl border flex flex-col items-center text-center ${isPlayer ? 'bg-magical-gold/5 border-magical-gold/20' : 'bg-white/5 border-white/10'}`}>
+      <p className={`text-[8px] font-black uppercase tracking-widest mb-3 ${isPlayer ? 'text-magical-gold' : 'text-white/30'}`}>{label}</p>
       <div className="space-y-2">
-        <div className="flex flex-wrap gap-2">
-          {actions && actions.length > 0 ? actions.map((a, i) => (
-            <span key={i} className="px-3 py-1 bg-black/60 rounded-lg text-[10px] font-bold text-white border border-white/5">
+        <div className="flex flex-wrap justify-center gap-1">
+          {actions.map((a, i) => (
+            <span key={i} className="px-2 py-0.5 bg-black/60 rounded text-[9px] font-bold text-white border border-white/5">
               {a.name}
             </span>
-          )) : (
-            <span className="text-[10px] text-white/20 font-bold">Sin acciones</span>
-          )}
+          ))}
         </div>
-        <div className="flex items-center gap-2 mt-2">
-          <span className="text-lg">{STANCE_ICONS[stance] || '🪄'}</span>
-          <span className="text-[10px] font-black uppercase text-white/60 italic">{STANCE_LABELS[stance] || stance}</span>
-        </div>
+        <p className="text-[9px] font-black uppercase text-white/50 italic">{STANCE_LABELS[stance] || stance}</p>
       </div>
-    </div>
-  )
-}
-
-function StatSummary({ label, value, color, isEnergy }) {
-  return (
-    <div className="bg-black/40 p-4 rounded-2xl border border-white/5 flex flex-col items-center justify-center text-center">
-      <p className="text-[8px] font-black uppercase text-white/30 tracking-widest mb-1">{label}</p>
-      <p className={`text-xl md:text-2xl font-black ${color}`}>
-        {isEnergy && value >= 0 ? '+' : ''}{value}
-      </p>
     </div>
   )
 }
