@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { supabase } from '../../lib/supabase'
 import { PlusCircle, Search, Sparkles, Wand2, ChevronLeft } from 'lucide-react'
+import audioManager from '../../lib/audioManager'
 
 export default function DuelLobby() {
   const [inviteCode, setInviteCode] = useState('')
@@ -10,6 +11,7 @@ export default function DuelLobby() {
   const navigate = useNavigate()
 
   const createDuel = async () => {
+    audioManager.playSfx('ui_button_magic')
     setLoading(true)
     setError(null)
     const { data, error: err } = await supabase.rpc('hsf_create_pvp_duel')
@@ -20,6 +22,7 @@ export default function DuelLobby() {
 
   const joinDuel = async (e) => {
     e.preventDefault()
+    audioManager.playSfx('ui_button_magic')
     if (!inviteCode) return
     setLoading(true)
     setError(null)

@@ -1,4 +1,5 @@
 import { Zap, Shield, Heart, Sparkles, Clock, Sword, Wand, RefreshCcw } from 'lucide-react'
+import audioManager from '../../lib/audioManager'
 
 export default function SpellCard({ spell, disabled, selected, onClick, cooldown }) {
   const familyConfig = {
@@ -18,7 +19,18 @@ export default function SpellCard({ spell, disabled, selected, onClick, cooldown
   return (
     <button
       disabled={disabled || cooldown > 0}
-      onClick={onClick}
+      onClick={() => {
+        audioManager.playSfx('ui_card_select');
+        
+        // Family specific sfx
+        if (spell.family === 'attack' || spell.family === 'heavy') audioManager.playSfx('spell_cast_heavy');
+        else if (spell.family === 'heal') audioManager.playSfx('heal_magic');
+        else if (spell.family === 'charge') audioManager.playSfx('energy_charge');
+        else if (spell.family === 'control') audioManager.playSfx('control_spell');
+        else audioManager.playSfx('spell_cast_light');
+
+        onClick();
+      }}
       className={`
         magic-card flex flex-col p-3 md:p-4 text-left transition-all duration-300
         ${selected ? 'selected scale-[1.02] -translate-y-1' : 'hover:-translate-y-1'}

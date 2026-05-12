@@ -3,6 +3,8 @@ import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '../../context/AuthContext'
 import { supabase } from '../../lib/supabase'
 import { Wand2, Trophy, ShoppingBag, BarChart2, Swords, Shield, Zap, Sparkles } from 'lucide-react'
+import audioManager from '../../lib/audioManager'
+import AudioToggle from '../../components/AudioToggle'
 
 export default function DuelHome() {
   const { profile } = useAuth()
@@ -12,6 +14,8 @@ export default function DuelHome() {
 
   useEffect(() => {
     fetchDuelProfile()
+    audioManager.initAudio()
+    audioManager.playAmbient('castle_night')
   }, [profile])
 
   const fetchDuelProfile = async () => {
@@ -140,7 +144,7 @@ export default function DuelHome() {
           </Link>
         ))}
       </div>
+      <AudioToggle />
     </div>
-
   )
 }

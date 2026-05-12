@@ -9,6 +9,7 @@ import HealthBar from '../../components/duels/HealthBar'
 import EnergyBar from '../../components/duels/EnergyBar'
 import SpellCard from '../../components/duels/SpellCard'
 import { Clock, Trophy, XCircle } from 'lucide-react'
+import audioManager from '../../lib/audioManager'
 
 export default function DuelRoom() {
   const { duelId } = useParams()
@@ -39,7 +40,14 @@ export default function DuelRoom() {
       .channel(`duel_${duelId}`)
       .on('postgres_changes', { event: '*', table: 'hsf_duels', filter: `id=eq.${duelId}` }, (payload) => {
         setDuel(payload.new)
-        if (payload.new.status === 'finished') setShowResult(true)
+        if (payload.new.status === 'finished') {
+          setShowResult(true)
+          if (payload.new.winner_id === profile.user_id) {
+            audioManager.playSfx('victory_fanfare')
+          } else {
+            audioManager.playSfx('defeat_dark')
+          }
+        }
       })
       .on('postgres_changes', { event: 'INSERT', table: 'hsf_duel_events', filter: `duel_id=eq.${duelId}` }, (payload) => {
         setLastEvent(payload.new)
@@ -47,7 +55,13 @@ export default function DuelRoom() {
       })
       .subscribe()
 
-    return () => supabase.removeChannel(channel)
+    audioManager.initAudio()
+    audioManager.playAmbient('duel_hall')
+
+    return () => {
+      supabase.removeChannel(channel)
+      audioManager.stopAmbient()
+    }
   }, [duelId])
 
   useEffect(() => {
@@ -63,6 +77,10 @@ export default function DuelRoom() {
     if (timeLeft <= 0) {
       handleSpellSubmit('protego')
       return
+    }
+
+    if (timeLeft === 5) {
+      audioManager.playSfx('ui_timer_warning')
     }
 
     const timer = setTimeout(() => {

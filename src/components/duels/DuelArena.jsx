@@ -1,4 +1,6 @@
 import { normalizeHouseSlug, HOUSE_META } from '../../lib/houses'
+import audioManager from '../../lib/audioManager'
+import { useEffect } from 'react'
 
 export default function DuelArena({ duel, lastEvent, isResolving, player, opponent }) {
   const normPlayer = normalizeHouseSlug(player?.house)
@@ -6,6 +8,15 @@ export default function DuelArena({ duel, lastEvent, isResolving, player, oppone
   
   const pMeta = HOUSE_META[normPlayer] || { name: 'Mago', avatar: null }
   const oMeta = HOUSE_META[normOpponent] || { name: 'Rival', avatar: null }
+
+  useEffect(() => {
+    if (isResolving) {
+      audioManager.playSfx('spell_impact');
+      if (lastEvent?.payload?.player_one_damage > 0 || lastEvent?.payload?.player_two_damage > 0) {
+        setTimeout(() => audioManager.playSfx('damage_hit'), 500);
+      }
+    }
+  }, [isResolving]);
 
   return (
     <section className="relative h-[400px] md:h-[600px] rounded-[2.5rem] overflow-hidden border border-magical-gold/20 shadow-[0_0_50px_rgba(0,0,0,0.5)] bg-magical-navy">
