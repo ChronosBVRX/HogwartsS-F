@@ -34,8 +34,6 @@ export default function DuelRanking() {
         console.error('Error ranking casas:', hError)
         setHouseError('No se pudo cargar la Copa de las Casas.')
       } else {
-        console.log('House Points DB:', allHousePoints)
-        setDebugData(allHousePoints || [])
         const currentMonthData = allHousePoints?.filter(p => p.month_key === monthKey) || []
         setHousePoints(currentMonthData)
       }
@@ -237,33 +235,6 @@ export default function DuelRanking() {
           )}
         </div>
       </div>
-
-      {/* Diagnostic Box - Visible if table is empty or mismatch */}
-      {debugData && (
-        <div className="bg-magical-gold/5 border border-magical-gold/20 p-6 rounded-3xl space-y-4">
-          <div className="flex items-center gap-2 text-magical-gold">
-            <Info className="w-5 h-5" />
-            <h3 className="font-black uppercase text-xs tracking-widest">Panel de Sincronización</h3>
-          </div>
-          {debugData.length === 0 ? (
-            <p className="text-impact-red text-xs font-black uppercase">⚠️ La tabla hsf_duel_house_points está VACÍA en Supabase.</p>
-          ) : (
-            <div className="space-y-2">
-              <p className="text-text-gray text-xs">Registros encontrados en el servidor:</p>
-              <div className="flex flex-wrap gap-2">
-                {debugData.map((d, i) => (
-                  <span key={i} className="bg-white/5 px-3 py-1 rounded-full text-[9px] text-white/40 font-mono">
-                    {d.month_key}: {d.house_slug} ({d.points}pts)
-                  </span>
-                ))}
-              </div>
-            </div>
-          )}
-          <p className="text-[9px] text-text-gray opacity-40 italic">
-            Si la tabla está vacía tras ejecutar el SQL, asegúrate de que el SQL Editor no devolvió errores.
-          </p>
-        </div>
-      )}
 
       <div className="pt-10 flex justify-center">
         <button 
