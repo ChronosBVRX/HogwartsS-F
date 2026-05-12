@@ -25,6 +25,7 @@ import DuelLobby from './pages/Customer/DuelLobby'
 import DuelShop from './pages/Customer/DuelShop'
 import DuelRanking from './pages/Customer/DuelRanking'
 import DuelSpellGuide from './pages/Customer/DuelSpellGuide'
+import DuelAchievements from './pages/Customer/DuelAchievements'
 
 
 const ProtectedRoute = ({ children, role }) => {
@@ -68,6 +69,7 @@ function App() {
             <Route path="/duelos/tienda" element={<ProtectedRoute><DuelShop /></ProtectedRoute>} />
             <Route path="/duelos/ranking" element={<ProtectedRoute><DuelRanking /></ProtectedRoute>} />
             <Route path="/duelos/hechizos" element={<ProtectedRoute><DuelSpellGuide /></ProtectedRoute>} />
+            <Route path="/duelos/logros" element={<ProtectedRoute><DuelAchievements /></ProtectedRoute>} />
 
             {/* Waiter Routes */}
             <Route path="/mesero" element={<ProtectedRoute role="waiter"><WaiterDashboard /></ProtectedRoute>} />

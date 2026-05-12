@@ -150,7 +150,7 @@ export default function DuelHome() {
         {[
           { icon: <ShoppingBag className="w-6 h-6" />, label: 'Tienda', to: '/duelos/tienda', color: 'text-healing-green', border: 'hover:border-healing-green' },
           { icon: <Trophy className="w-6 h-6" />, label: 'Ranking', to: '/duelos/ranking', color: 'text-magical-gold', border: 'hover:border-magical-gold' },
-          { icon: <BarChart2 className="w-6 h-6" />, label: 'Logros', to: '#', color: 'text-control-purple', border: 'hover:border-control-purple' },
+          { icon: <BarChart2 className="w-6 h-6" />, label: 'Logros', to: '/duelos/logros', color: 'text-control-purple', border: 'hover:border-control-purple' },
           { icon: <Sparkles className="w-6 h-6" />, label: 'Guía', to: '/duelos/hechizos', color: 'text-spell-blue', border: 'hover:border-spell-blue' }
         ].map((item, i) => (
           <Link 
