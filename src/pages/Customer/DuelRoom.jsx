@@ -9,7 +9,7 @@ import DuelTurnAnnouncement from '../../components/duels/DuelTurnAnnouncement'
 import SpellDetailModal from '../../components/duels/SpellDetailModal'
 import { SPELLS } from '../../lib/duelSpells'
 import audioManager from '../../lib/audioManager'
-import { Trophy, Skull, Swords, Repeat, Home, BarChart3, Volume2 } from 'lucide-react'
+import { Trophy, Skull, Swords, Repeat, Home, BarChart3, Volume2, Flag } from 'lucide-react'
 
 export default function DuelRoom() {
   const { duelId } = useParams()
@@ -224,6 +224,37 @@ export default function DuelRoom() {
     }
   }, [duel?.status, resolutionStage, isSubmitting, duel?.turn_number])
 
+  const handleAbandon = async () => {
+    if (duelFinished) {
+      navigate('/duelos')
+      return
+    }
+
+    if (!window.confirm('¿Estás seguro de que quieres abandonar el duelo? Perderás automáticamente.')) return
+
+    try {
+      setIsSubmitting(true)
+      const { error } = await supabase.rpc('hsf_abandon_duel', { p_duel_id: duelId })
+      if (error) throw error
+      navigate('/duelos')
+    } catch (err) {
+      console.error('Error abandonando duelo:', err)
+      alert('Error al abandonar: ' + err.message)
+      setIsSubmitting(false)
+    }
+  }
+
+  useEffect(() => {
+    const handleBeforeUnload = (e) => {
+      if (!duelFinished) {
+        e.preventDefault()
+        e.returnValue = ''
+      }
+    }
+    window.addEventListener('beforeunload', handleBeforeUnload)
+    return () => window.removeEventListener('beforeunload', handleBeforeUnload)
+  }, [duelFinished])
+
   const handleSpellSubmit = async (spellKeyParam) => {
     const keyToSubmit = spellKeyParam || selectedSpell
     if (!keyToSubmit || isSubmitting) return
@@ -296,6 +327,16 @@ export default function DuelRoom() {
             <div className={`text-xl font-black italic ${timeLeft < 5 ? 'text-impact-red animate-pulse' : 'text-magical-gold'}`}>
                {timeLeft}s
             </div>
+            {!duelFinished && (
+              <button 
+                onClick={handleAbandon}
+                className="mt-1 p-1 bg-white/5 rounded-lg hover:bg-red-500/20 text-white/20 hover:text-red-400 transition-all flex items-center gap-1"
+                title="Abandonar Duelo"
+              >
+                <Flag className="w-3 h-3" />
+                <span className="text-[7px] font-black uppercase">Abandonar</span>
+              </button>
+            )}
           </div>
           <div className="flex-1">
             <HealthBar label="Tú" value={myHp} house={myHouse} compact />

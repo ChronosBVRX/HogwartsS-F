@@ -2,18 +2,19 @@ import { useEffect, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '../../context/AuthContext'
 import { supabase } from '../../lib/supabase'
-import { Wand2, Trophy, ShoppingBag, BarChart2, Swords, Shield, Zap, Sparkles } from 'lucide-react'
+import { Wand2, Trophy, ShoppingBag, BarChart2, Swords, Shield, Zap, Sparkles, Repeat, Flag } from 'lucide-react'
 import audioManager from '../../lib/audioManager'
 import AudioToggle from '../../components/AudioToggle'
 
 export default function DuelHome() {
   const { profile } = useAuth()
   const [duelProfile, setDuelProfile] = useState(null)
+  const [activeDuel, setActiveDuel] = useState(null)
   const [loading, setLoading] = useState(true)
   const navigate = useNavigate()
 
   useEffect(() => {
-    fetchDuelProfile()
+    fetchDuelData()
     audioManager.initAudio()
     
     // Unlock and play on first interaction if not done
@@ -27,15 +28,29 @@ export default function DuelHome() {
     return () => window.removeEventListener('pointerdown', handleFirstTouch)
   }, [profile])
 
-  const fetchDuelProfile = async () => {
+  const fetchDuelData = async () => {
     if (!profile) return
-    const { data } = await supabase
+    
+    // Fetch profile stats
+    const { data: pData } = await supabase
       .from('hsf_duel_profiles')
       .select('*')
       .eq('user_id', profile.user_id)
       .maybeSingle()
+    if (pData) setDuelProfile(pData)
+
+    // Check for active duels (Reconnection)
+    const { data: dData } = await supabase
+      .from('hsf_duels')
+      .select('id, status, mode')
+      .or(`player_one.eq.${profile.user_id},player_two.eq.${profile.user_id}`)
+      .in('status', ['active', 'waiting'])
+      .order('created_at', { ascending: false })
+      .limit(1)
+      .maybeSingle()
     
-    if (data) setDuelProfile(data)
+    if (dData) setActiveDuel(dData)
+    
     setLoading(false)
   }
 
@@ -96,6 +111,43 @@ export default function DuelHome() {
           </div>
         ))}
       </div>
+
+      {/* Active Duel Reconnection Card */}
+      {activeDuel && (
+        <section className="animate-in slide-in-from-bottom-6 duration-700">
+          <div className="bg-gradient-to-r from-magical-gold/20 via-magical-gold/5 to-transparent border border-magical-gold/30 rounded-3xl p-6 md:p-8 flex flex-col md:flex-row items-center justify-between gap-6 backdrop-blur-sm shadow-[0_0_50px_rgba(212,175,55,0.1)]">
+            <div className="flex items-center gap-6">
+              <div className="w-16 h-16 rounded-2xl bg-magical-gold/20 flex items-center justify-center border border-magical-gold/30 animate-pulse">
+                <Repeat className="w-8 h-8 text-magical-gold" />
+              </div>
+              <div className="space-y-1">
+                <h2 className="text-2xl font-black uppercase italic italic text-white tracking-tighter">Duelo en curso</h2>
+                <p className="text-[10px] text-magical-gold font-black uppercase tracking-[0.3em]">Tienes una batalla pendiente</p>
+              </div>
+            </div>
+            <div className="flex items-center gap-4 w-full md:w-auto">
+              <button 
+                onClick={() => navigate(activeDuel.status === 'waiting' ? `/duelos/espera/${activeDuel.id}` : `/duelos/sala/${activeDuel.id}`)}
+                className="flex-1 md:flex-none btn-gold px-10 py-4 text-xs font-black uppercase italic shadow-xl hover:scale-105 transition-transform"
+              >
+                Continuar Duelo
+              </button>
+              <button 
+                onClick={async () => {
+                  if (window.confirm('¿Deseas cerrar esta sala y perder el duelo?')) {
+                    await supabase.rpc('hsf_abandon_duel', { p_duel_id: activeDuel.id })
+                    setActiveDuel(null)
+                  }
+                }}
+                className="p-4 bg-white/5 border border-white/10 rounded-2xl text-white/40 hover:bg-red-500/10 hover:text-red-400 transition-all"
+                title="Abandonar"
+              >
+                <Flag className="w-5 h-5" />
+              </button>
+            </div>
+          </div>
+        </section>
+      )}
 
       {/* Main Actions */}
       <div className="grid md:grid-cols-2 gap-8">
