@@ -167,50 +167,48 @@ export default function DuelRanking() {
                   const pct = (points / maxPoints) * 100
 
                   return (
-                    <div key={slug} className="magic-card p-6 md:p-8 border-white/5 space-y-6 group overflow-hidden relative min-h-[160px] flex flex-col justify-between">
+                    <div key={slug} className="magic-card p-5 border-white/5 space-y-4 group overflow-hidden relative flex flex-col">
                       <div className={`absolute inset-0 bg-gradient-to-br ${data.gradient} opacity-0 group-hover:opacity-10 transition-opacity duration-700`} />
                       
                       <div className="flex justify-between items-center relative z-10">
-                        <div className="flex items-center gap-4">
-                          <div className="w-12 h-12 md:w-14 md:h-14 rounded-2xl bg-black/40 flex items-center justify-center text-2xl md:text-3xl border border-white/5 group-hover:scale-110 transition-transform">
+                        <div className="flex items-center gap-3">
+                          <div className="w-10 h-10 rounded-xl bg-black/40 flex items-center justify-center text-xl border border-white/5 group-hover:scale-110 transition-transform">
                             {data.icon}
                           </div>
                           <div className="flex flex-col">
-                            <span className={`text-lg md:text-xl font-black uppercase tracking-tighter ${data.color}`}>{data.name}</span>
-                            <span className="text-[9px] font-black text-text-gray uppercase tracking-widest">Puntuación Total</span>
+                            <span className={`text-base font-black uppercase tracking-tighter ${data.color}`}>{data.name}</span>
+                            <span className="text-[8px] font-black text-text-gray uppercase tracking-widest">Copa Mensual</span>
                           </div>
                         </div>
                         <div className="text-right">
-                          <span className="text-2xl md:text-3xl font-black text-white tabular-nums drop-shadow-md">{points}</span>
-                          <span className="text-[10px] text-text-gray font-black uppercase ml-1">pts</span>
+                          <span className="text-xl md:text-2xl font-black text-white tabular-nums drop-shadow-md">{points}</span>
+                          <span className="text-[8px] text-text-gray font-black uppercase ml-1">pts</span>
                         </div>
                       </div>
 
-                      {/* Top 2 Wizards of this House */}
-                      <div className="relative z-10 space-y-2">
-                        <p className="text-[8px] font-black text-text-gray uppercase tracking-widest opacity-40">Líderes de Casa</p>
-                        <div className="flex flex-col gap-1">
-                          {(houseLeaders[slug === 'gryffindor' ? 'red' : slug === 'slytherin' ? 'green' : slug === 'ravenclaw' ? 'blue' : 'yellow'] || []).map((leader, li) => (
-                            <div key={leader.user_id} className="flex items-center justify-between text-[10px] font-bold">
-                              <span className="text-white/80 flex items-center gap-2">
-                                <span className={data.color}>{li === 0 ? '★' : '•'}</span>
-                                {leader.display_name}
-                              </span>
-                              <span className="text-white/40">{leader.mmr} MMR</span>
+                      {/* Top 2 Wizards of this House - Compact */}
+                      <div className="relative z-10 grid grid-cols-2 gap-2 pt-2 border-t border-white/5">
+                        {(houseLeaders[slug === 'gryffindor' ? 'red' : slug === 'slytherin' ? 'green' : slug === 'ravenclaw' ? 'blue' : 'yellow'] || []).map((leader, li) => (
+                          <div key={leader.user_id} className="flex flex-col">
+                            <span className="text-[7px] font-black text-text-gray uppercase tracking-widest opacity-40 mb-0.5">#{li + 1} Líder</span>
+                            <div className="flex items-center gap-1.5 truncate">
+                              <span className={`text-[10px] font-bold text-white/80 truncate`}>{leader.display_name}</span>
                             </div>
-                          ))}
-                          {(!houseLeaders[slug === 'gryffindor' ? 'red' : slug === 'slytherin' ? 'green' : slug === 'ravenclaw' ? 'blue' : 'yellow'] || houseLeaders[slug === 'gryffindor' ? 'red' : slug === 'slytherin' ? 'green' : slug === 'ravenclaw' ? 'blue' : 'yellow'].length === 0) && (
-                            <p className="text-[9px] text-white/20 italic">Sin duelistas activos</p>
-                          )}
-                        </div>
+                            <span className={`text-[8px] font-black ${data.color}`}>{leader.mmr} MMR</span>
+                          </div>
+                        ))}
+                        {(!houseLeaders[slug === 'gryffindor' ? 'red' : slug === 'slytherin' ? 'green' : slug === 'ravenclaw' ? 'blue' : 'yellow'] || houseLeaders[slug === 'gryffindor' ? 'red' : slug === 'slytherin' ? 'green' : slug === 'ravenclaw' ? 'blue' : 'yellow'].length === 0) && (
+                          <div className="col-span-2 py-1 text-center">
+                             <p className="text-[8px] text-white/10 italic uppercase font-black tracking-widest">Sin duelistas activos</p>
+                          </div>
+                        )}
                       </div>
 
-                      <div className="h-2 bg-black/40 rounded-full overflow-hidden p-[2px] border border-white/5 relative z-10">
+                      <div className="h-1.5 bg-black/40 rounded-full overflow-hidden p-[1px] border border-white/5 relative z-10">
                         <div 
                           className={`h-full rounded-full transition-all duration-[1.5s] ease-out bg-gradient-to-r from-magical-navy via-current to-white/20 ${data.color}`}
                           style={{ width: `${pct}%` }}
                         />
-                        <div className="scanline" />
                       </div>
                     </div>
                   )
