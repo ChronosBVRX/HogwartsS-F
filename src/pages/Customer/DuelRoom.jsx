@@ -111,6 +111,13 @@ export default function DuelRoom() {
       await audioManager.unlockAudio()
       setAudioReady(true)
       audioManager.playAmbient('duel_hall')
+      
+      // Play instructions on first load
+      const hasSeenInstructions = sessionStorage.getItem('hsf_duel_instructions_played')
+      if (!hasSeenInstructions) {
+        audioManager.playVoice('instructions', { force: true, delayMs: 1000 })
+        sessionStorage.setItem('hsf_duel_instructions_played', 'true')
+      }
       try {
         if (!document.fullscreenElement && document.documentElement.requestFullscreen) {
           document.documentElement.requestFullscreen().catch(() => {})
@@ -154,11 +161,9 @@ export default function DuelRoom() {
           const rivalDamage = iAmP1 ? p2_damage : p1_damage
 
           if (rivalDamage > 15) {
-            audioManager.playVoice('harry_cheer_advantage', { cooldownMs: 20000 })
+            audioManager.playVoice('turn_result_super', { cooldownMs: 20000 })
           } else if (myDamage > 10) {
-            audioManager.playVoice('snape_mock_bad_move', { cooldownMs: 20000 })
-          } else if (rivalDamage > 0) {
-            audioManager.playVoice('harry_cheer_good_move', { cooldownMs: 15000 })
+            audioManager.playVoice('turn_result_weak', { cooldownMs: 20000 })
           }
         }
 
@@ -209,6 +214,7 @@ export default function DuelRoom() {
       console.error('Error submitting turn:', error)
       alert(error.message)
     } else {
+      audioManager.playVoice('spell_confirmed', { cooldownMs: 15000 })
       setSelectedSpell(null)
     }
     setIsSubmitting(false)
@@ -218,6 +224,17 @@ export default function DuelRoom() {
     setResolutionStage('idle')
     setLastEvent(null)
     audioManager.playSfx('ui_button_magic')
+
+    // Contextual Turn Start Voice
+    if (myHp <= 30 || myEnergy <= 1) {
+      audioManager.playVoice('turn_start_pressure', { cooldownMs: 15000 })
+    } else if (myHp > rivalHp + 20) {
+      audioManager.playVoice('turn_start_advantage', { cooldownMs: 20000 })
+    } else if (rivalHp > myHp + 20) {
+      audioManager.playVoice('turn_start_disadvantage', { cooldownMs: 20000 })
+    } else {
+      audioManager.playVoice('turn_start_neutral', { cooldownMs: 30000 })
+    }
   }
 
   if (loading) return (

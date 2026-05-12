@@ -8,6 +8,23 @@ export default function DuelTurnAnnouncement({ lastEvent, isP1, onContinue }) {
     isP1
   })
 
+  React.useEffect(() => {
+    if (announcement && lastEvent) {
+      const label = announcement.effectivenessLabel.toLowerCase()
+      if (label.includes('muy efectivo')) {
+        audioManager.playVoice('turn_result_super', { cooldownMs: 10000 })
+      } else if (label.includes('no fue muy efectivo')) {
+        audioManager.playVoice('turn_result_weak', { cooldownMs: 10000 })
+      } else if (label.includes('leyó tu movimiento') || label.includes('detenido')) {
+        audioManager.playVoice('turn_result_block', { cooldownMs: 10000 })
+      } else if (label.includes('castigó')) {
+        audioManager.playVoice('turn_result_punish', { cooldownMs: 10000 })
+      } else {
+        audioManager.playVoice('turn_result_neutral', { cooldownMs: 10000 })
+      }
+    }
+  }, [lastEvent?.id, announcement?.effectivenessLabel])
+
   if (!announcement) return null
 
   const toneClass = {

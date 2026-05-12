@@ -15,8 +15,16 @@ export default function DuelHome() {
   useEffect(() => {
     fetchDuelProfile()
     audioManager.initAudio()
-    audioManager.playAmbient('castle_night')
-    audioManager.playVoice('welcome')
+    
+    // Unlock and play on first interaction if not done
+    const handleFirstTouch = async () => {
+      await audioManager.unlockAudio()
+      audioManager.playAmbient('castle_night')
+      audioManager.playVoice('welcome', { force: true, cooldownMs: 60000 })
+    }
+    window.addEventListener('pointerdown', handleFirstTouch, { once: true })
+    
+    return () => window.removeEventListener('pointerdown', handleFirstTouch)
   }, [profile])
 
   const fetchDuelProfile = async () => {
@@ -33,7 +41,9 @@ export default function DuelHome() {
 
   const startAiDuel = async () => {
     // Unlock audio and request fullscreen on user interaction
-    audioManager.unlockAudio().catch(() => {})
+    await audioManager.unlockAudio().catch(() => {})
+    audioManager.playVoice('welcome', { force: true, cooldownMs: 30000 })
+    
     try {
       if (document.documentElement.requestFullscreen) {
         document.documentElement.requestFullscreen().catch(() => {})

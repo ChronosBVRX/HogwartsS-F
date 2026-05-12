@@ -14,6 +14,11 @@ export default function DuelRanking() {
 
   useEffect(() => {
     fetchRanking()
+    const hasHeardIntro = sessionStorage.getItem('hsf_duel_ranking_intro_played')
+    if (!hasHeardIntro) {
+      audioManager.playVoice('ranking_intro', { delayMs: 1000 })
+      sessionStorage.setItem('hsf_duel_ranking_intro_played', 'true')
+    }
   }, [])
 
   const fetchRanking = async () => {

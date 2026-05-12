@@ -8,33 +8,46 @@ const STORAGE_KEY = 'hsf_audio_settings';
 
 const AUDIO_MAP = {
   ambient: {
-    duel_hall: '/audio/duels/ambient/ambient_duel_hall.mp3',
-    castle_night: '/audio/duels/ambient/ambient_castle_night.mp3',
-    magic_wind: '/audio/duels/ambient/ambient_magic_wind.mp3',
-    forest_dark: '/audio/duels/ambient/ambient_forest_dark.mp3',
-    dungeon_low: '/audio/duels/ambient/ambient_dungeon_low.mp3',
+    duel_hall: '/audio/duels/ambient/ambient_duel_hall.wav',
+    castle_night: '/audio/duels/ambient/ambient_castle_night.wav',
+    magic_wind: '/audio/duels/ambient/ambient_magic_wind.wav',
+    forest_dark: '/audio/duels/ambient/ambient_forest_dark.wav',
+    dungeon_low: '/audio/duels/ambient/ambient_dungeon_low.wav',
   },
   sfx: {
-    spell_cast_light: '/audio/duels/sfx/spell_cast_light.mp3',
-    spell_cast_heavy: '/audio/duels/sfx/spell_cast_heavy.mp3',
-    spell_impact: '/audio/duels/sfx/spell_impact.mp3',
-    shield_block: '/audio/duels/sfx/shield_block.mp3',
-    heal_magic: '/audio/duels/sfx/heal_magic.mp3',
-    energy_charge: '/audio/duels/sfx/energy_charge.mp3',
-    control_spell: '/audio/duels/sfx/control_spell.mp3',
-    damage_hit: '/audio/duels/sfx/damage_hit.mp3',
-    victory_fanfare: '/audio/duels/sfx/victory_fanfare.mp3',
-    defeat_dark: '/audio/duels/sfx/defeat_dark.mp3',
-    ui_card_select: '/audio/duels/ui/ui_card_select.mp3',
-    ui_button_magic: '/audio/duels/ui/ui_button_magic.mp3',
-    ui_timer_warning: '/audio/duels/ui/ui_timer_warning.mp3',
-    ui_reward: '/audio/duels/ui/ui_reward.mp3',
+    spell_cast_light: '/audio/duels/sfx/spell_cast_light.wav',
+    spell_cast_heavy: '/audio/duels/sfx/spell_cast_heavy.wav',
+    spell_impact: '/audio/duels/sfx/spell_impact.wav',
+    shield_block: '/audio/duels/sfx/shield_block.wav',
+    heal_magic: '/audio/duels/sfx/heal_magic.wav',
+    energy_charge: '/audio/duels/sfx/energy_charge.wav',
+    control_spell: '/audio/duels/sfx/control_spell.wav',
+    damage_hit: '/audio/duels/sfx/damage_hit.wav',
+    victory_fanfare: '/audio/duels/sfx/victory_fanfare.wav',
+    defeat_dark: '/audio/duels/sfx/defeat_dark.wav',
+    ui_card_select: '/audio/duels/ui/ui_card_select.wav',
+    ui_card_confirm: '/audio/duels/ui/ui_card_confirm.wav',
+    ui_button_magic: '/audio/duels/ui/ui_button_magic.wav',
+    ui_timer_warning: '/audio/duels/ui/ui_timer_warning.wav',
+    ui_reward: '/audio/duels/ui/ui_reward.wav',
   },
   voices: {
-    welcome: '/audio/duels/voices/welcome.mp3',
-    instructions: '/audio/duels/voices/instructions.mp3',
+    // Basic Narrative
+    welcome: [
+      '/audio/duels/voices/variants/welcome/welcome_01.mp3',
+      '/audio/duels/voices/variants/welcome/welcome_02.mp3',
+      '/audio/duels/voices/variants/welcome/welcome_03.mp3'
+    ],
+    instructions: [
+      '/audio/duels/voices/variants/instructions/instructions_01.mp3',
+      '/audio/duels/voices/variants/instructions/instructions_02.mp3'
+    ],
+    spell_guide_intro: [
+      '/audio/duels/voices/variants/spell_guide_intro/spell_guide_intro_01.mp3',
+      '/audio/duels/voices/variants/spell_guide_intro/spell_guide_intro_02.mp3'
+    ],
     
-    // New Dynamic Variants
+    // Turn Management
     turn_start_neutral: [
       '/audio/duels/voices/variants/turn_start_neutral/turn_start_neutral_01.mp3',
       '/audio/duels/voices/variants/turn_start_neutral/turn_start_neutral_02.mp3',
@@ -66,22 +79,84 @@ const AUDIO_MAP = {
       '/audio/duels/voices/variants/low_energy/low_energy_03.mp3',
       '/audio/duels/voices/variants/low_energy/low_energy_04.mp3'
     ],
+    spell_confirmed: [
+      '/audio/duels/voices/variants/spell_confirmed/spell_confirmed_01.mp3',
+      '/audio/duels/voices/variants/spell_confirmed/spell_confirmed_02.mp3',
+      '/audio/duels/voices/variants/spell_confirmed/spell_confirmed_03.mp3',
+      '/audio/duels/voices/variants/spell_confirmed/spell_confirmed_04.mp3'
+    ],
+
+    // Turn Results
+    turn_result_super: [
+      '/audio/duels/voices/variants/turn_result_super/turn_result_super_01.mp3',
+      '/audio/duels/voices/variants/turn_result_super/turn_result_super_02.mp3',
+      '/audio/duels/voices/variants/turn_result_super/turn_result_super_03.mp3',
+      '/audio/duels/voices/variants/turn_result_super/turn_result_super_04.mp3'
+    ],
+    turn_result_weak: [
+      '/audio/duels/voices/variants/turn_result_weak/turn_result_weak_01.mp3',
+      '/audio/duels/voices/variants/turn_result_weak/turn_result_weak_02.mp3',
+      '/audio/duels/voices/variants/turn_result_weak/turn_result_weak_03.mp3',
+      '/audio/duels/voices/variants/turn_result_weak/turn_result_weak_04.mp3'
+    ],
+    turn_result_block: [
+      '/audio/duels/voices/variants/turn_result_block/turn_result_block_01.mp3',
+      '/audio/duels/voices/variants/turn_result_block/turn_result_block_02.mp3',
+      '/audio/duels/voices/variants/turn_result_block/turn_result_block_03.mp3',
+      '/audio/duels/voices/variants/turn_result_block/turn_result_block_04.mp3'
+    ],
+    turn_result_punish: [
+      '/audio/duels/voices/variants/turn_result_punish/turn_result_punish_01.mp3',
+      '/audio/duels/voices/variants/turn_result_punish/turn_result_punish_02.mp3',
+      '/audio/duels/voices/variants/turn_result_punish/turn_result_punish_03.mp3',
+      '/audio/duels/voices/variants/turn_result_punish/turn_result_punish_04.mp3'
+    ],
+    turn_result_neutral: [
+      '/audio/duels/voices/variants/turn_result_neutral/turn_result_neutral_01.mp3',
+      '/audio/duels/voices/variants/turn_result_neutral/turn_result_neutral_02.mp3',
+      '/audio/duels/voices/variants/turn_result_neutral/turn_result_neutral_03.mp3',
+      '/audio/duels/voices/variants/turn_result_neutral/turn_result_neutral_04.mp3'
+    ],
+
+    // Game End
     victory: [
       '/audio/duels/voices/variants/victory/victory_01.mp3',
       '/audio/duels/voices/variants/victory/victory_02.mp3',
-      '/audio/duels/voices/variants/victory/victory_03.mp3'
+      '/audio/duels/voices/variants/victory/victory_03.mp3',
+      '/audio/duels/voices/variants/victory/victory_04.mp3'
     ],
     defeat: [
       '/audio/duels/voices/variants/defeat/defeat_01.mp3',
       '/audio/duels/voices/variants/defeat/defeat_02.mp3',
-      '/audio/duels/voices/variants/defeat/defeat_03.mp3'
+      '/audio/duels/voices/variants/defeat/defeat_03.mp3',
+      '/audio/duels/voices/variants/defeat/defeat_04.mp3'
+    ],
+
+    // Misc Locations
+    shop_welcome: [
+      '/audio/duels/voices/variants/shop_welcome/shop_welcome_01.mp3',
+      '/audio/duels/voices/variants/shop_welcome/shop_welcome_02.mp3'
+    ],
+    shop_purchase_success: [
+      '/audio/duels/voices/variants/shop_purchase_success/shop_purchase_success_01.mp3',
+      '/audio/duels/voices/variants/shop_purchase_success/shop_purchase_success_02.mp3',
+      '/audio/duels/voices/variants/shop_purchase_success/shop_purchase_success_03.mp3'
+    ],
+    shop_not_enough_funds: [
+      '/audio/duels/voices/variants/shop_not_enough_funds/shop_not_enough_funds_01.mp3',
+      '/audio/duels/voices/variants/shop_not_enough_funds/shop_not_enough_funds_02.mp3',
+      '/audio/duels/voices/variants/shop_not_enough_funds/shop_not_enough_funds_03.mp3'
+    ],
+    ranking_intro: [
+      '/audio/duels/voices/variants/ranking_intro/ranking_intro_01.mp3',
+      '/audio/duels/voices/variants/ranking_intro/ranking_intro_02.mp3'
     ],
     
-    // Legacy support for older keys
-    snape_mock_low_energy: '/audio/duels/voices/snape_mock_low_energy.mp3',
-    snape_mock_bad_move: '/audio/duels/voices/snape_mock_bad_move.mp3',
-    harry_cheer_good_move: '/audio/duels/voices/harry_cheer_good_move.mp3',
-    harry_cheer_advantage: '/audio/duels/voices/harry_cheer_advantage.mp3',
+    // Legacy support for older keys (mapping to new variants or keeping if specific)
+    snape_mock_low_energy: '/audio/duels/voices/variants/low_energy/low_energy_01.mp3',
+    snape_mock_bad_move: '/audio/duels/voices/variants/turn_result_weak/turn_result_weak_01.mp3',
+    harry_cheer_good_move: '/audio/duels/voices/variants/turn_result_super/turn_result_super_01.mp3',
+    harry_cheer_advantage: '/audio/duels/voices/variants/turn_start_advantage/turn_start_advantage_01.mp3',
   }
 };
 

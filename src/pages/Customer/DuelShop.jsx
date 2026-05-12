@@ -3,6 +3,7 @@ import { useAuth } from '../../context/AuthContext'
 import { supabase } from '../../lib/supabase'
 import { ShoppingBag, Star, Zap, Wand2, Box, ChevronLeft } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
+import audioManager from '../../lib/audioManager'
 
 export default function DuelShop() {
   const { profile } = useAuth()
@@ -14,6 +15,12 @@ export default function DuelShop() {
 
   useEffect(() => {
     fetchData()
+    // Play shop welcome
+    const hasHeardWelcome = sessionStorage.getItem('hsf_duel_shop_welcome_played')
+    if (!hasHeardWelcome) {
+      audioManager.playVoice('shop_welcome', { delayMs: 1000 })
+      sessionStorage.setItem('hsf_duel_shop_welcome_played', 'true')
+    }
   }, [profile])
 
   const fetchData = async () => {
@@ -36,6 +43,7 @@ export default function DuelShop() {
     const canAffordShards = item.price_shards > 0 && duelProfile.duel_shards >= item.price_shards
 
     if (!canAffordGalleons && !canAffordShards) {
+      audioManager.playVoice('shop_not_enough_funds')
       alert('No tienes suficientes fondos (Galeones o Fragmentos)')
       return
     }
@@ -66,6 +74,7 @@ export default function DuelShop() {
       }).eq('user_id', profile.user_id)
     }
 
+    audioManager.playVoice('shop_purchase_success')
     alert(`¡Has adquirido ${item.name}!`)
     fetchData()
     setPurchasing(null)

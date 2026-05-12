@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom'
 import { SPELLS, HOUSE_POWERS } from '../../lib/duelSpells'
 import { ChevronLeft, Wand2, Shield, Zap, Heart, Sparkles, Sword, RefreshCcw } from 'lucide-react'
 import AudioToggle from '../../components/AudioToggle'
+import audioManager from '../../lib/audioManager'
 
 const FAMILY_LABELS = {
   attack: 'Ataque directo',
@@ -49,6 +50,14 @@ const HOUSE_GRADIENTS = {
 
 export default function DuelSpellGuide() {
   const spells = Object.values(SPELLS)
+
+  React.useEffect(() => {
+    const hasHeardIntro = sessionStorage.getItem('hsf_duel_spell_guide_intro_played')
+    if (!hasHeardIntro) {
+      audioManager.playVoice('spell_guide_intro', { delayMs: 1000 })
+      sessionStorage.setItem('hsf_duel_spell_guide_intro_played', 'true')
+    }
+  }, [])
 
   return (
     <div className="flex-1 max-w-6xl mx-auto w-full p-4 md:p-8 pb-32 space-y-16 animate-in fade-in duration-1000">
