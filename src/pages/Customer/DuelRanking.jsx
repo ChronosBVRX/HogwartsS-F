@@ -40,35 +40,26 @@ export default function DuelRanking() {
         setHousePoints(currentMonthData)
       }
 
-      // 2. Fetch Player Ranking (Directly use fallback if common relation error is expected)
-      // We try the join first, if it fails we do the multi-step fetch
-      const { data: playerRes, error: pError } = await supabase
+      // 2. Fetch Player Ranking - Use multi-step fetch to avoid console 400 errors from missing relationships
+      const { data: rawPlayers, error: rawError } = await supabase
         .from('hsf_duel_profiles')
-        .select('*, user:hsf_profiles(display_name, house_slug)')
+        .select('*')
         .order('mmr', { ascending: false })
         .limit(10)
-
-      if (pError) {
-        console.warn('Join query failed, using manual profile resolution fallback...', pError)
-        
-        // Manual Fallback: Get top profiles first
-        const { data: rawPlayers, error: rawError } = await supabase
-          .from('hsf_duel_profiles')
-          .select('*')
-          .order('mmr', { ascending: false })
-          .limit(10)
-        
-        if (!rawError && rawPlayers) {
-          const playersWithData = await Promise.all(rawPlayers.map(async (p) => {
-            const { data: u } = await supabase.from('hsf_profiles').select('display_name, house_slug').eq('user_id', p.user_id).maybeSingle()
-            return { ...p, user: u }
-          }))
-          setTopPlayers(playersWithData)
-        } else {
-          setPlayerError('No se pudo cargar el ranking de jugadores.')
-        }
-      } else {
-        setTopPlayers(playerRes || [])
+      
+      if (rawError) {
+        console.error('Error fetching duel profiles:', rawError)
+        setPlayerError('No se pudo cargar el ranking de jugadores.')
+      } else if (rawPlayers) {
+        const playersWithData = await Promise.all(rawPlayers.map(async (p) => {
+          const { data: u } = await supabase
+            .from('hsf_profiles')
+            .select('display_name, house_slug')
+            .eq('user_id', p.user_id)
+            .maybeSingle()
+          return { ...p, user: u }
+        }))
+        setTopPlayers(playersWithData)
       }
     } catch (err) {
       console.error('General ranking error:', err)
