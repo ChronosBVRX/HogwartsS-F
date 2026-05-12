@@ -2,14 +2,15 @@ import { useEffect, useState } from 'react'
 import { supabase } from '../../lib/supabase'
 import { Trophy, Shield, Star, Crown, ChevronLeft, Wand2, AlertTriangle, Info } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
+import audioManager from '../../lib/audioManager'
 
 export default function DuelRanking() {
   const [housePoints, setHousePoints] = useState([])
   const [topPlayers, setTopPlayers] = useState([])
   const [loading, setLoading] = useState(true)
   const [houseError, setHouseError] = useState(null)
-  const [playerError, setPlayerError] = useState(null)
-  const [debugData, setDebugData] = useState(null)
+   const [playerError, setPlayerError] = useState(null)
+  const [houseLeaders, setHouseLeaders] = useState({})
   const navigate = useNavigate()
 
   useEffect(() => {
@@ -64,6 +65,36 @@ export default function DuelRanking() {
         }))
         setTopPlayers(playersWithData)
       }
+
+      // 3. Fetch Top 2 Players per House
+      const slugs = ['red', 'green', 'blue', 'yellow']
+      const leaders = {}
+
+      for (const slug of slugs) {
+        // Fetch users in this house
+        const { data: houseUsers } = await supabase
+          .from('hsf_profiles')
+          .select('user_id, display_name')
+          .eq('house_slug', slug)
+        
+        if (houseUsers && houseUsers.length > 0) {
+          const uids = houseUsers.map(u => u.user_id)
+          const { data: houseDuelProfs } = await supabase
+            .from('hsf_duel_profiles')
+            .select('*')
+            .in('user_id', uids)
+            .order('mmr', { ascending: false })
+            .limit(2)
+          
+          if (houseDuelProfs) {
+            leaders[slug] = houseDuelProfs.map(hp => ({
+              ...hp,
+              display_name: houseUsers.find(hu => hu.user_id === hp.user_id)?.display_name || 'Mago'
+            }))
+          }
+        }
+      }
+      setHouseLeaders(leaders)
     } catch (err) {
       console.error('General ranking error:', err)
     } finally {
@@ -155,7 +186,26 @@ export default function DuelRanking() {
                         </div>
                       </div>
 
-                      <div className="h-3 bg-black/40 rounded-full overflow-hidden p-[2px] border border-white/5 relative z-10">
+                      {/* Top 2 Wizards of this House */}
+                      <div className="relative z-10 space-y-2">
+                        <p className="text-[8px] font-black text-text-gray uppercase tracking-widest opacity-40">Líderes de Casa</p>
+                        <div className="flex flex-col gap-1">
+                          {(houseLeaders[slug === 'gryffindor' ? 'red' : slug === 'slytherin' ? 'green' : slug === 'ravenclaw' ? 'blue' : 'yellow'] || []).map((leader, li) => (
+                            <div key={leader.user_id} className="flex items-center justify-between text-[10px] font-bold">
+                              <span className="text-white/80 flex items-center gap-2">
+                                <span className={data.color}>{li === 0 ? '★' : '•'}</span>
+                                {leader.display_name}
+                              </span>
+                              <span className="text-white/40">{leader.mmr} MMR</span>
+                            </div>
+                          ))}
+                          {(!houseLeaders[slug === 'gryffindor' ? 'red' : slug === 'slytherin' ? 'green' : slug === 'ravenclaw' ? 'blue' : 'yellow'] || houseLeaders[slug === 'gryffindor' ? 'red' : slug === 'slytherin' ? 'green' : slug === 'ravenclaw' ? 'blue' : 'yellow'].length === 0) && (
+                            <p className="text-[9px] text-white/20 italic">Sin duelistas activos</p>
+                          )}
+                        </div>
+                      </div>
+
+                      <div className="h-2 bg-black/40 rounded-full overflow-hidden p-[2px] border border-white/5 relative z-10">
                         <div 
                           className={`h-full rounded-full transition-all duration-[1.5s] ease-out bg-gradient-to-r from-magical-navy via-current to-white/20 ${data.color}`}
                           style={{ width: `${pct}%` }}
