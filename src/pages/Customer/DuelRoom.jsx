@@ -276,7 +276,7 @@ export default function DuelRoom() {
     setAudioReady(true)
     
     setIsSubmitting(true)
-    audioManager.playSfx('ui_button_magic')
+    audioManager.playSfx('strategy_confirm')
     
     try {
       // Create simplified actions array for the database
@@ -411,7 +411,7 @@ export default function DuelRoom() {
                     key={s.key}
                     onClick={() => {
                       setSelectedStance(s.key)
-                      audioManager.playSfx('ui_button_magic')
+                      audioManager.playSfx('stance_select')
                     }}
                     className={`flex-1 p-2 rounded-xl border-2 transition-all duration-300 flex flex-col items-center gap-1 ${
                       selectedStance === s.key 
@@ -493,7 +493,21 @@ export default function DuelRoom() {
         </section>
       )}
 
-      {/* Spell Detail Modal */}
+  // Result Audio Effect
+  useEffect(() => {
+    if (showResult && !resultAudioPlayed) {
+      setResultAudioPlayed(true)
+      if (iWon) {
+        audioManager.playSfx('victory_fanfare')
+        audioManager.playVoice('victory', { force: true })
+      } else if (iLost) {
+        audioManager.playSfx('defeat_dark')
+        audioManager.playVoice('defeat', { force: true })
+      }
+    }
+  }, [showResult, iWon, iLost, resultAudioPlayed])
+
+  // Spell Detail Modal
       {detailedSpell && (
         <SpellDetailModal 
           spell={detailedSpell} 

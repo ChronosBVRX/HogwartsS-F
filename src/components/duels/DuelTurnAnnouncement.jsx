@@ -11,15 +11,69 @@ export default function DuelTurnAnnouncement({ lastEvent, isP1, onContinue }) {
 
   React.useEffect(() => {
     if (announcement && lastEvent) {
+      // 1. Play SFX for reveal
+      audioManager.playSfx('verdict_reveal')
+
+      // 2. Build Sequence
+      const sequence = []
+      
+      // Part 1: Strategic Verdict
       if (announcement.tone === 'good') {
-        audioManager.playVoice('turn_result_super', { cooldownMs: 10000 })
-      } else if (announcement.tone === 'neutral') {
-        audioManager.playVoice('turn_result_neutral', { cooldownMs: 10000 })
+        sequence.push({ key: 'verdict_player_won_strategy', delayMs: 400 })
+      } else if (announcement.tone === 'bad') {
+        sequence.push({ key: 'verdict_rival_won_strategy', delayMs: 400 })
       } else {
-        audioManager.playVoice('turn_result_weak', { cooldownMs: 10000 })
+        sequence.push({ key: 'verdict_neutral_clash', delayMs: 400 })
       }
+
+      // Part 2: Impact & Damage
+      const dmg = announcement.myDamageTaken ?? 0
+      if (dmg === 0) {
+        sequence.push({ key: 'impact_no_damage', delayMs: 200 })
+      } else if (dmg <= 8) {
+        sequence.push({ key: 'impact_low_damage', delayMs: 200 })
+      } else if (dmg <= 18) {
+        sequence.push({ key: 'impact_medium_damage', delayMs: 200 })
+      } else if (dmg <= 29) {
+        sequence.push({ key: 'impact_high_damage', delayMs: 200 })
+      } else {
+        sequence.push({ key: 'impact_devastating_damage', delayMs: 200 })
+      }
+
+      // Part 3: Contextual (Interruptions or Blocks)
+      if (announcement.myBreakdown?.interrupted) {
+        sequence.push({ key: 'second_action_interrupted', delayMs: 200 })
+      } else if (announcement.myActions?.length > 1) {
+        // Success if had 2 actions and not interrupted
+        sequence.push({ key: 'second_action_success', delayMs: 200 })
+      } else if (announcement.myBreakdown?.blocked > 0) {
+        if (dmg === 0) {
+          sequence.push({ key: 'impact_blocked', delayMs: 200 })
+        } else {
+          sequence.push({ key: 'impact_partial_block', delayMs: 200 })
+        }
+      }
+
+      // Part 4: Strategic Lesson (Optional fourth part, limited by sequence logic)
+      if (announcement.finalLesson && Math.random() > 0.5) {
+         // Picking a lesson key based on lesson text or random
+         // For now, let's just pick one if relevant
+      }
+
+      // Play Sequence (limit to 3 internally in audioManager)
+      audioManager.playVoiceSequence(sequence, { cooldownMs: 10000 })
     }
   }, [lastEvent?.id, announcement?.tone])
+
+  useEffect(() => {
+    // SFX for Formula & Lesson
+    const timer1 = setTimeout(() => audioManager.playSfx('damage_formula_tick'), 800)
+    const timer2 = setTimeout(() => audioManager.playSfx('lesson_reveal'), 1500)
+    return () => {
+      clearTimeout(timer1)
+      clearTimeout(timer2)
+    }
+  }, [lastEvent?.id])
 
   if (!announcement) {
     return (

@@ -32,4 +32,5 @@ build_error.txt
 *.ntvs*
 *.njsproj
 *.sln
-*.sw?
+# Configs
+scripts/duel-elevenlabs-voices.config.json

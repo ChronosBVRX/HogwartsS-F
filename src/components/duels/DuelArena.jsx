@@ -20,13 +20,50 @@ export default function DuelArena({ duel, lastEvent, isResolving, player, oppone
   const rivalDamageTaken = isP1 ? p2Damage : p1Damage
 
   useEffect(() => {
-    if (isResolving) {
-      audioManager.playSfx('spell_impact');
-      if (p1Damage > 0 || p2Damage > 0) {
-        setTimeout(() => audioManager.playSfx('damage_hit'), 500);
+    if (isResolving && lastEvent?.payload) {
+      const payload = lastEvent.payload
+      const myPrefix = isP1 ? 'p1_' : 'p2_'
+      const rivalPrefix = isP1 ? 'p2_' : 'p1_'
+
+      // 1. Casting SFX
+      const mySpells = payload[myPrefix + 'spells'] || []
+      const rivalSpells = payload[rivalPrefix + 'spells'] || []
+      const allSpells = [...mySpells, ...rivalSpells]
+      
+      const hasHeavy = allSpells.some(s => s.cost >= 2)
+      if (hasHeavy) {
+        audioManager.playSfx('spell_cast_heavy')
+      } else if (allSpells.length > 0) {
+        audioManager.playSfx('spell_cast_light')
+      }
+
+      // 2. Impact & Shield SFX
+      setTimeout(() => {
+        audioManager.playSfx('spell_impact')
+        
+        if (payload[myPrefix + 'blocked'] > 0 || payload[rivalPrefix + 'blocked'] > 0) {
+          audioManager.playSfx('shield_block')
+        }
+        
+        if (payload[myPrefix + 'interrupted'] || payload[rivalPrefix + 'interrupted']) {
+          audioManager.playSfx('interruption_hit')
+        }
+
+        if (myDamageTaken > 0 || rivalDamageTaken > 0) {
+          setTimeout(() => audioManager.playSfx('damage_hit'), 300)
+        }
+      }, 500)
+
+      // 3. Status Effects
+      if (payload[myPrefix + 'energy_change'] > 0 || payload[rivalPrefix + 'energy_change'] > 0) {
+        setTimeout(() => audioManager.playSfx('energy_charge'), 800)
+      }
+      
+      if (payload[myPrefix + 'hp_change'] > 0 || payload[rivalPrefix + 'hp_change'] > 0) {
+        setTimeout(() => audioManager.playSfx('heal_magic'), 1000)
       }
     }
-  }, [isResolving]);
+  }, [isResolving, lastEvent?.id])
 
   return (
     <section className="relative h-[400px] md:h-[600px] rounded-[2.5rem] overflow-hidden border border-magical-gold/20 shadow-[0_0_50px_rgba(0,0,0,0.5)] bg-magical-navy">
