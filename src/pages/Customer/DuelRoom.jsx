@@ -105,18 +105,25 @@ export default function DuelRoom() {
   if (loading) return <div className="flex-1 flex items-center justify-center font-black uppercase tracking-widest text-magical-gold animate-pulse">Entrando a la Arena...</div>
 
   return (
-    <div className="flex-1 max-w-5xl mx-auto w-full p-4 md:p-6 pb-24 flex flex-col space-y-6 animate-in fade-in duration-700">
-      {/* Header Info */}
-      <div className="flex justify-between items-center bg-white/5 p-4 rounded-3xl border border-white/10">
-        <HealthBar label="Tú" value={myHp} house={myHouse} />
-        <div className="px-8 text-center">
-          <div className="text-[10px] font-black text-white/20 uppercase tracking-[0.3em]">VS</div>
-          <div className="text-xl font-black text-white italic tracking-tighter uppercase italic">{rivalName}</div>
+    <div className="flex-1 max-w-5xl mx-auto w-full p-4 md:p-8 pb-32 flex flex-col space-y-8 animate-in fade-in duration-1000">
+      {/* Header Info - Premium Stat Bar */}
+      <div className="flex justify-between items-center bg-night-blue/60 backdrop-blur-xl p-6 rounded-[2rem] border border-magical-gold/20 shadow-2xl">
+        <div className="flex-1">
+          <HealthBar label="Tu Vitalidad" value={myHp} house={myHouse} />
         </div>
-        <HealthBar label="Rival" value={rivalHp} house={duel?.mode === 'ai' ? 'ai' : rivalHouse} />
+        
+        <div className="px-10 flex flex-col items-center">
+          <div className="text-[10px] font-black text-magical-gold/40 uppercase tracking-[0.6em] mb-1">Duelo</div>
+          <div className="w-12 h-[1px] bg-magical-gold/20 mb-2" />
+          <div className="text-xl font-black text-white italic tracking-tighter uppercase">{rivalName}</div>
+        </div>
+
+        <div className="flex-1">
+          <HealthBar label="Energía Rival" value={rivalHp} house={duel?.mode === 'ai' ? 'ai' : rivalHouse} />
+        </div>
       </div>
 
-      {/* Main Arena */}
+      {/* Main Arena Section */}
       <DuelArena 
         duel={duel} 
         lastEvent={lastEvent} 
@@ -125,58 +132,81 @@ export default function DuelRoom() {
         opponent={{ name: rivalName, house: duel?.mode === 'ai' ? 'ai' : rivalHouse }}
       />
 
-      {/* Controls Area */}
-      <div className="space-y-6">
-        <div className="flex justify-between items-center">
-          <EnergyBar value={myEnergy} />
-          <div className="flex items-center gap-3">
-             <div className={`px-4 py-2 rounded-2xl border ${timeLeft < 5 ? 'bg-red-500/20 border-red-500 text-red-500 animate-pulse' : 'bg-magical-gold/10 border-magical-gold text-magical-gold'}`}>
-               <span className="text-[8px] font-black uppercase tracking-widest mr-2 opacity-60">Tiempo</span>
-               <span className="text-lg font-black tabular-nums">{timeLeft}s</span>
-             </div>
+      {/* Controls & Hand Area */}
+      <div className="premium-panel fixed bottom-0 left-0 right-0 p-6 pt-10 z-50 rounded-t-[3rem] border-t border-magical-gold/20">
+        <div className="max-w-5xl mx-auto space-y-8">
+          <div className="flex justify-between items-center">
+            <EnergyBar value={myEnergy} />
+            
+            {/* Timer Badge */}
+            <div className={`relative px-6 py-3 rounded-2xl border transition-all duration-300 ${timeLeft < 5 ? 'bg-impact-red/20 border-impact-red text-impact-red animate-pulse' : 'bg-night-blue border-magical-gold/40 text-magical-gold'}`}>
+               <div className="flex items-center gap-3">
+                 <Clock className={`w-4 h-4 ${timeLeft < 5 ? 'animate-spin-slow' : ''}`} />
+                 <span className="text-xl font-black tabular-nums">{timeLeft}s</span>
+               </div>
+               <div className="absolute -top-2 left-4 bg-magical-navy px-2">
+                 <span className="text-[7px] font-black uppercase tracking-widest opacity-60">Tiempo</span>
+               </div>
+            </div>
           </div>
-        </div>
 
-        <div className="grid grid-cols-3 gap-3 md:gap-6">
-          {availableHand.map(spell => (
-            <SpellCard 
-              key={spell.key}
-              spell={spell}
-              selected={selectedSpell === spell.key}
-              disabled={isResolving || myEnergy < spell.cost || selectedSpell}
-              onClick={() => handleSpellSubmit(spell.key)}
-            />
-          ))}
+          <div className="grid grid-cols-3 gap-4 md:gap-8 overflow-x-auto pb-4 custom-scrollbar">
+            {availableHand.map(spell => (
+              <SpellCard 
+                key={spell.key}
+                spell={spell}
+                selected={selectedSpell === spell.key}
+                disabled={isResolving || myEnergy < spell.cost || selectedSpell}
+                onClick={() => handleSpellSubmit(spell.key)}
+              />
+            ))}
+          </div>
         </div>
       </div>
 
-      {/* Result Modal */}
+      {/* Result Modal - Redesigned */}
       {showResult && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-6 backdrop-blur-xl bg-black/60 animate-in fade-in duration-500">
-          <div className="glass-card max-w-sm w-full p-10 text-center space-y-8 border-magical-gold/30">
-            <div className={`w-24 h-24 mx-auto rounded-full flex items-center justify-center border-4 ${duel.winner_id === profile.user_id ? 'bg-magical-gold/20 border-magical-gold text-magical-gold' : 'bg-red-500/20 border-red-500 text-red-500'}`}>
-              {duel.winner_id === profile.user_id ? <Trophy className="w-12 h-12" /> : <XCircle className="w-12 h-12" />}
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-6 backdrop-blur-2xl bg-magical-navy/80 animate-in fade-in zoom-in duration-500">
+          <div className="glass-card max-w-md w-full p-12 text-center space-y-10 border-magical-gold/40 shadow-[0_0_100px_rgba(212,175,55,0.2)]">
+            {/* Badge Icon */}
+            <div className={`w-32 h-32 mx-auto rounded-full flex items-center justify-center border-4 relative ${duel.winner_id === profile.user_id ? 'bg-magical-gold/10 border-magical-gold text-magical-gold' : 'bg-impact-red/10 border-impact-red text-impact-red'}`}>
+              {duel.winner_id === profile.user_id ? (
+                <>
+                  <Trophy className="w-16 h-16 animate-float" />
+                  <div className="absolute inset-0 bg-magical-gold/20 rounded-full animate-ping" />
+                </>
+              ) : (
+                <XCircle className="w-16 h-16" />
+              )}
             </div>
             
-            <div className="space-y-2">
-              <h2 className="text-4xl font-black uppercase italic tracking-tighter text-white">
+            <div className="space-y-3">
+              <h2 className="text-5xl font-black uppercase italic tracking-tighter text-white">
                 {duel.winner_id === profile.user_id ? '¡Victoria!' : 'Derrota'}
               </h2>
-              <p className="text-white/40 text-[10px] font-black uppercase tracking-widest leading-relaxed">
+              <div className="h-1 w-24 bg-magical-gold/30 mx-auto rounded-full" />
+              <p className="text-text-gray text-xs font-black uppercase tracking-widest leading-relaxed">
                 {duel.winner_id === profile.user_id 
-                  ? 'Has defendido el honor de tu casa con valentía.' 
-                  : 'Incluso los mejores magos tienen días difíciles en la arena.'}
+                  ? 'Has defendido el honor de tu casa con valentía incomparable.' 
+                  : 'Incluso los magos más poderosos caen. Levántate y vuelve a intentar.'}
               </p>
             </div>
 
-            <div className="bg-white/5 border border-white/10 p-5 rounded-2xl flex justify-between items-center">
-              <span className="text-[10px] font-black text-white/40 uppercase tracking-widest">Fragmentos Ganados</span>
-              <span className="text-xl font-black text-blue-400">+{duel.winner_id === profile.user_id ? 15 : 5} 💠</span>
+            {/* Rewards Card */}
+            <div className="bg-night-blue/60 border border-magical-gold/20 p-6 rounded-2xl flex justify-between items-center group overflow-hidden relative">
+              <div className="relative z-10">
+                <p className="text-[10px] font-black text-text-gray uppercase tracking-widest text-left">Fragmentos Ganados</p>
+                <p className="text-2xl font-black text-white">+{duel.winner_id === profile.user_id ? 15 : 5}</p>
+              </div>
+              <div className="w-16 h-16 bg-spell-blue/20 rounded-2xl flex items-center justify-center border border-spell-blue/30 relative z-10">
+                <span className="text-3xl">💠</span>
+              </div>
+              <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000" />
             </div>
 
             <button 
               onClick={() => navigate('/duelos')}
-              className="btn-gold w-full py-5 text-sm font-black uppercase"
+              className="btn-gold w-full py-6 text-base font-black shadow-[0_10px_30px_rgba(212,175,55,0.3)]"
             >
               Regresar al Castillo
             </button>
@@ -184,5 +214,6 @@ export default function DuelRoom() {
         </div>
       )}
     </div>
+
   )
 }

@@ -2,32 +2,45 @@ export default function HealthBar({ value = 100, label, house }) {
   const pct = Math.max(0, Math.min(100, value))
   
   const houseColors = {
-    gryffindor: 'from-red-600 via-red-500 to-amber-500',
-    slytherin: 'from-green-700 via-green-600 to-emerald-400',
-    ravenclaw: 'from-blue-700 via-blue-600 to-cyan-400',
-    hufflepuff: 'from-yellow-600 via-yellow-500 to-amber-400',
-    ai: 'from-purple-600 via-purple-500 to-pink-400'
+    gryffindor: 'from-impact-red via-red-500 to-amber-500',
+    slytherin: 'from-healing-green via-green-600 to-emerald-400',
+    ravenclaw: 'from-spell-blue via-blue-600 to-cyan-400',
+    hufflepuff: 'from-magical-gold via-yellow-500 to-amber-400',
+    ai: 'from-control-purple via-purple-500 to-pink-400'
   }
 
-  const colorClass = houseColors[house] || 'from-red-500 via-yellow-400 to-green-400'
+  const colorClass = houseColors[house] || 'from-impact-red via-magical-gold to-healing-green'
 
   return (
-    <div className="space-y-1.5 w-full">
-      <div className="flex justify-between items-end px-1">
-        <span className="text-[10px] uppercase tracking-[0.2em] text-white/40 font-black italic">
+    <div className="space-y-2 w-full">
+      <div className="flex justify-between items-center px-2">
+        <span className="text-[10px] uppercase tracking-[0.3em] text-text-gray font-black">
           {label}
         </span>
-        <span className="text-sm text-white font-black tabular-nums">
-          {pct}<span className="text-[10px] text-white/40 ml-0.5">HP</span>
-        </span>
+        <div className="flex items-baseline gap-1">
+          <span className="text-lg text-white font-black tabular-nums drop-shadow-md">
+            {pct}
+          </span>
+          <span className="text-[8px] text-text-gray font-black uppercase">HP</span>
+        </div>
       </div>
 
-      <div className="h-3 bg-white/5 rounded-full overflow-hidden border border-white/10 p-[1px]">
-        <div
-          className={`h-full rounded-full transition-all duration-700 ease-out bg-gradient-to-r ${colorClass} shadow-[0_0_15px_rgba(255,255,255,0.1)]`}
+      <div className="h-4 bg-black/40 rounded-lg overflow-hidden border border-white/10 p-[2px] shadow-inner relative">
+        {/* Glow Effect */}
+        <div 
+          className="absolute inset-y-0 left-0 bg-white/20 blur-sm pointer-events-none transition-all duration-700"
           style={{ width: `${pct}%` }}
         />
+        
+        <div
+          className={`h-full rounded-md transition-all duration-700 ease-out bg-gradient-to-r ${colorClass} relative`}
+          style={{ width: `${pct}%` }}
+        >
+          {/* Shine overlay */}
+          <div className="absolute inset-0 bg-gradient-to-b from-white/20 to-transparent" />
+        </div>
       </div>
     </div>
   )
 }
+

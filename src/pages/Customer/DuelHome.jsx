@@ -32,93 +32,115 @@ export default function DuelHome() {
   }
 
   return (
-    <div className="flex-1 max-w-5xl mx-auto w-full p-4 md:p-6 pb-24 space-y-8 animate-in fade-in duration-700">
-      <header className="relative h-64 md:h-80 rounded-[2.5rem] overflow-hidden flex items-center justify-center text-center">
-        <div className="absolute inset-0 bg-gradient-to-b from-magical-gold/20 to-magical-navy z-10" />
-        <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1518709268805-4e9042af9f23?auto=format&fit=crop&q=80')] bg-cover bg-center opacity-40" />
+    <div className="flex-1 max-w-5xl mx-auto w-full p-4 md:p-8 pb-32 space-y-10 animate-in fade-in duration-1000">
+      {/* Premium Hero Header */}
+      <header className="relative h-72 md:h-96 rounded-[3rem] overflow-hidden flex flex-col items-center justify-center text-center border border-magical-gold/20 shadow-2xl">
+        <div className="absolute inset-0 bg-magical-navy">
+          <img 
+            src="/assets/duels/arenas/home_bg.webp" 
+            className="w-full h-full object-cover opacity-60 scale-105" 
+            alt="Castle Home" 
+          />
+          <div className="absolute inset-0 bg-gradient-to-t from-magical-navy via-magical-navy/20 to-transparent" />
+        </div>
         
-        <div className="relative z-20 space-y-2 px-6">
-          <h1 className="text-4xl md:text-7xl font-black text-white tracking-tighter uppercase italic drop-shadow-2xl">
+        <div className="relative z-20 space-y-4 px-6">
+          <div className="inline-block px-4 py-1 rounded-full bg-magical-gold/10 border border-magical-gold/30 backdrop-blur-md mb-2">
+            <p className="text-[10px] font-black text-magical-gold uppercase tracking-[0.4em]">Temporada I</p>
+          </div>
+          <h1 className="text-5xl md:text-8xl font-black text-white tracking-tighter uppercase italic drop-shadow-[0_10px_20px_rgba(0,0,0,0.8)]">
             Duelos <span className="text-magical-gold">Mágicos</span>
           </h1>
-          <p className="text-white/60 font-bold text-xs md:text-sm tracking-[0.3em] uppercase">Reta al destino y defiende tu honor</p>
+          <p className="text-smoke-white font-bold text-xs md:text-sm tracking-[0.3em] uppercase opacity-60">Reta al destino y defiende tu honor</p>
         </div>
+
+        {/* Decorative particles */}
+        <div className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-magical-navy to-transparent z-15" />
       </header>
 
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <div className="bg-white/5 border border-white/10 p-5 rounded-3xl text-center space-y-1">
-          <p className="text-[10px] font-black text-white/30 uppercase tracking-widest">Victorias</p>
-          <p className="text-2xl font-black text-white">{duelProfile?.wins || 0}</p>
-        </div>
-        <div className="bg-white/5 border border-white/10 p-5 rounded-3xl text-center space-y-1">
-          <p className="text-[10px] font-black text-white/30 uppercase tracking-widest">MMR</p>
-          <p className="text-2xl font-black text-magical-gold">{duelProfile?.mmr || 1000}</p>
-        </div>
-        <div className="bg-white/5 border border-white/10 p-5 rounded-3xl text-center space-y-1">
-          <p className="text-[10px] font-black text-white/30 uppercase tracking-widest">Fragmentos</p>
-          <p className="text-2xl font-black text-blue-400">{duelProfile?.duel_shards || 0} 💠</p>
-        </div>
-        <div className="bg-white/5 border border-white/10 p-5 rounded-3xl text-center space-y-1">
-          <p className="text-[10px] font-black text-white/30 uppercase tracking-widest">Duelos</p>
-          <p className="text-2xl font-black text-white">{duelProfile?.duels_played || 0}</p>
-        </div>
+      {/* Stats Quick View */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
+        {[
+          { label: 'Victorias', value: duelProfile?.wins || 0, color: 'text-white' },
+          { label: 'Rango MMR', value: duelProfile?.mmr || 1000, color: 'text-magical-gold' },
+          { label: 'Fragmentos', value: `${duelProfile?.duel_shards || 0} 💠`, color: 'text-spell-blue' },
+          { label: 'Duelos', value: duelProfile?.duels_played || 0, color: 'text-smoke-white' }
+        ].map((stat, i) => (
+          <div key={i} className="glass-card p-6 text-center space-y-1 group hover:border-magical-gold/40 transition-colors">
+            <p className="text-[9px] font-black text-text-gray uppercase tracking-widest">{stat.label}</p>
+            <p className={`text-3xl font-black ${stat.color} drop-shadow-sm`}>{stat.value}</p>
+            <div className="w-8 h-1 bg-magical-gold/10 mx-auto rounded-full mt-2 group-hover:w-12 group-hover:bg-magical-gold/30 transition-all" />
+          </div>
+        ))}
       </div>
 
-      <div className="grid md:grid-cols-2 gap-6">
+      {/* Main Actions */}
+      <div className="grid md:grid-cols-2 gap-8">
         <button 
           onClick={startAiDuel}
-          className="group relative h-64 rounded-[2.5rem] overflow-hidden border border-white/10 transition-all hover:scale-[1.02] hover:border-magical-gold/50"
+          className="group relative h-80 rounded-[2.5rem] overflow-hidden border border-magical-gold/20 transition-all duration-500 hover:scale-[1.02] hover:border-magical-gold shadow-xl"
         >
-          <div className="absolute inset-0 bg-gradient-to-t from-magical-navy via-magical-navy/40 to-transparent z-10" />
-          <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1551269901-5c5e14c25df7?auto=format&fit=crop&q=80')] bg-cover bg-center opacity-20 group-hover:scale-110 transition-transform duration-1000" />
+          <div className="absolute inset-0 bg-magical-navy">
+            <img 
+              src="/assets/duels/arenas/arena_great_hall_mobile.webp" 
+              className="w-full h-full object-cover opacity-30 group-hover:scale-110 group-hover:opacity-50 transition-all duration-1000" 
+              alt="AI Training" 
+            />
+            <div className="absolute inset-0 bg-gradient-to-t from-magical-navy via-transparent to-transparent" />
+          </div>
           
-          <div className="absolute inset-0 p-8 flex flex-col justify-end items-center text-center space-y-4 z-20">
-            <div className="p-4 rounded-2xl bg-magical-gold text-magical-navy shadow-2xl group-hover:scale-110 transition-transform">
-              <Swords className="w-6 h-6" />
+          <div className="absolute inset-0 p-10 flex flex-col justify-end items-start text-left space-y-4 z-20">
+            <div className="p-5 rounded-2xl bg-magical-gold text-magical-navy shadow-2xl group-hover:rotate-12 transition-transform">
+              <Swords className="w-8 h-8" />
             </div>
             <div>
-              <h3 className="text-2xl font-black text-white uppercase italic tracking-tighter">Entrenamiento IA</h3>
-              <p className="text-[10px] text-white/40 font-black uppercase tracking-widest">Perfecciona tus hechizos contra el Rival Encantado</p>
+              <h3 className="text-3xl font-black text-white uppercase italic tracking-tighter">Entrenamiento IA</h3>
+              <p className="text-[10px] text-text-gray font-black uppercase tracking-widest leading-relaxed">Perfecciona tus hechizos contra el Rival Encantado</p>
             </div>
           </div>
         </button>
 
         <Link 
           to="/duelos/retar"
-          className="group relative h-64 rounded-[2.5rem] overflow-hidden border border-white/10 transition-all hover:scale-[1.02] hover:border-blue-500/50"
+          className="group relative h-80 rounded-[2.5rem] overflow-hidden border border-spell-blue/20 transition-all duration-500 hover:scale-[1.02] hover:border-spell-blue shadow-xl"
         >
-          <div className="absolute inset-0 bg-gradient-to-t from-magical-navy via-magical-navy/40 to-transparent z-10" />
-          <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1534447677768-be436bb09401?auto=format&fit=crop&q=80')] bg-cover bg-center opacity-20 group-hover:scale-110 transition-transform duration-1000" />
+          <div className="absolute inset-0 bg-magical-navy">
+            <div className="absolute inset-0 bg-gradient-to-tr from-spell-blue/20 to-transparent opacity-40" />
+            <div className="absolute inset-0 bg-gradient-to-t from-magical-navy via-transparent to-transparent" />
+            {/* Could add a specific image here if available */}
+          </div>
           
-          <div className="absolute inset-0 p-8 flex flex-col justify-end items-center text-center space-y-4 z-20">
-            <div className="p-4 rounded-2xl bg-blue-500 text-white shadow-2xl group-hover:scale-110 transition-transform">
-              <Wand2 className="w-6 h-6" />
+          <div className="absolute inset-0 p-10 flex flex-col justify-end items-start text-left space-y-4 z-20">
+            <div className="p-5 rounded-2xl bg-spell-blue text-white shadow-2xl group-hover:-rotate-12 transition-transform">
+              <Wand2 className="w-8 h-8" />
             </div>
             <div>
-              <h3 className="text-2xl font-black text-white uppercase italic tracking-tighter">Retar a otro Mago</h3>
-              <p className="text-[10px] text-white/40 font-black uppercase tracking-widest">Duelo en tiempo real contra un oponente humano</p>
+              <h3 className="text-3xl font-black text-white uppercase italic tracking-tighter">Duelo Real</h3>
+              <p className="text-[10px] text-text-gray font-black uppercase tracking-widest leading-relaxed">Reta a otros magos en tiempo real por el honor de tu casa</p>
             </div>
           </div>
         </Link>
       </div>
 
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+      {/* Sub Actions Grid */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
         {[
-          { icon: <ShoppingBag />, label: 'Tienda', to: '/duelos/tienda', color: 'text-emerald-400' },
-          { icon: <Trophy />, label: 'Ranking', to: '/duelos/ranking', color: 'text-amber-400' },
-          { icon: <BarChart2 />, label: 'Logros', to: '#', color: 'text-purple-400' },
-          { icon: <Sparkles />, label: 'Hechizos', to: '#', color: 'text-blue-400' }
+          { icon: <ShoppingBag className="w-6 h-6" />, label: 'Tienda', to: '/duelos/tienda', color: 'text-healing-green', border: 'hover:border-healing-green' },
+          { icon: <Trophy className="w-6 h-6" />, label: 'Ranking', to: '/duelos/ranking', color: 'text-magical-gold', border: 'hover:border-magical-gold' },
+          { icon: <BarChart2 className="w-6 h-6" />, label: 'Logros', to: '#', color: 'text-control-purple', border: 'hover:border-control-purple' },
+          { icon: <Sparkles className="w-6 h-6" />, label: 'Colección', to: '#', color: 'text-spell-blue', border: 'hover:border-spell-blue' }
         ].map((item, i) => (
           <Link 
             key={i}
             to={item.to}
-            className="bg-white/5 border border-white/10 p-6 rounded-[2rem] flex flex-col items-center gap-3 hover:bg-white/10 transition-all border-b-4 hover:border-b-magical-gold"
+            className={`glass-card p-8 flex flex-col items-center gap-4 transition-all duration-300 hover:-translate-y-2 border-b-4 ${item.border}`}
           >
-            <div className={item.color}>{item.icon}</div>
-            <span className="text-[10px] font-black uppercase tracking-[0.2em] text-white/60">{item.label}</span>
+            <div className={`${item.color} drop-shadow-[0_0_10px_rgba(255,255,255,0.2)]`}>{item.icon}</div>
+            <span className="text-[10px] font-black uppercase tracking-[0.3em] text-text-gray">{item.label}</span>
           </Link>
         ))}
       </div>
     </div>
+
   )
 }
