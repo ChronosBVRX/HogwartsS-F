@@ -267,11 +267,22 @@ begin
   if v_duel.winner_id is not null then
     select house_slug into v_winner_house from hsf_profiles where user_id = v_duel.winner_id;
     
-    if v_winner_house is not null then
+    -- Normalizar slug si viene de Quiz (red, blue, etc) a nombres oficiales
+    v_winner_house := case 
+      when v_winner_house = 'red' then 'gryffindor'
+      when v_winner_house = 'green' then 'slytherin'
+      when v_winner_house = 'blue' then 'ravenclaw'
+      when v_winner_house = 'yellow' then 'hufflepuff'
+      else lower(v_winner_house)
+    end;
+    
+    if v_winner_house is not null and v_winner_house != '' then
       insert into hsf_duel_house_points (month_key, house_slug, points)
       values (v_month_key, v_winner_house, v_winner_points)
       on conflict (month_key, house_slug) 
       do update set points = hsf_duel_house_points.points + v_winner_points;
+      
+      raise notice 'Puntos otorgados a la casa: %', v_winner_house;
     end if;
   end if;
 end;

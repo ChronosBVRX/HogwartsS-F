@@ -194,9 +194,25 @@ export default function DuelRanking() {
                           {player.user?.display_name || 'Mago Anónimo'}
                         </p>
                         <div className="flex items-center gap-2">
-                          <div className={`w-2 h-2 rounded-full ${houseData[player.user?.house_slug]?.color.replace('text-', 'bg-') || 'bg-white/20'}`} />
-                          <p className={`text-[9px] font-black uppercase tracking-[0.2em] ${houseData[player.user?.house_slug]?.color || 'text-text-gray/40'}`}>
-                            {player.user?.house_slug || 'Sin Casa'}
+                          <div className={`w-2 h-2 rounded-full ${houseData[
+                            player.user?.house_slug === 'red' ? 'gryffindor' :
+                            player.user?.house_slug === 'green' ? 'slytherin' :
+                            player.user?.house_slug === 'blue' ? 'ravenclaw' :
+                            player.user?.house_slug === 'yellow' ? 'hufflepuff' :
+                            player.user?.house_slug
+                          ]?.color.replace('text-', 'bg-') || 'bg-white/20'}`} />
+                          <p className={`text-[9px] font-black uppercase tracking-[0.2em] ${houseData[
+                            player.user?.house_slug === 'red' ? 'gryffindor' :
+                            player.user?.house_slug === 'green' ? 'slytherin' :
+                            player.user?.house_slug === 'blue' ? 'ravenclaw' :
+                            player.user?.house_slug === 'yellow' ? 'hufflepuff' :
+                            player.user?.house_slug
+                          ]?.color || 'text-text-gray/40'}`}>
+                            {player.user?.house_slug === 'red' ? 'Gryffindor' :
+                             player.user?.house_slug === 'green' ? 'Slytherin' :
+                             player.user?.house_slug === 'blue' ? 'Ravenclaw' :
+                             player.user?.house_slug === 'yellow' ? 'Hufflepuff' :
+                             player.user?.house_slug || 'Sin Casa'}
                           </p>
                         </div>
                       </div>
