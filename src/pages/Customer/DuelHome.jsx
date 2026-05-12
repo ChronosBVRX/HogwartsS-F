@@ -16,6 +16,7 @@ export default function DuelHome() {
     fetchDuelProfile()
     audioManager.initAudio()
     audioManager.playAmbient('castle_night')
+    audioManager.playVoice('welcome')
   }, [profile])
 
   const fetchDuelProfile = async () => {

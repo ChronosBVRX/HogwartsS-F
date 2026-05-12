@@ -20,6 +20,11 @@ export default function SpellCard({ spell, disabled, selected, onClick, cooldown
     <button
       disabled={disabled || cooldown > 0}
       onClick={() => {
+        if (disabled && !cooldown) {
+          audioManager.playVoice('low_energy');
+          return;
+        }
+        
         audioManager.playSfx('ui_card_select');
         
         // Family specific sfx

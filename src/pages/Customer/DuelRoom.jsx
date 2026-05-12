@@ -44,8 +44,10 @@ export default function DuelRoom() {
           setShowResult(true)
           if (payload.new.winner_id === profile.user_id) {
             audioManager.playSfx('victory_fanfare')
+            audioManager.playVoice('victory')
           } else {
             audioManager.playSfx('defeat_dark')
+            audioManager.playVoice('defeat')
           }
         }
       })
@@ -63,6 +65,16 @@ export default function DuelRoom() {
       audioManager.stopAmbient()
     }
   }, [duelId])
+
+  useEffect(() => {
+    if (duel?.status === 'active' && !isResolving) {
+      if (duel.turn_number === 1) {
+        audioManager.playVoice('instructions')
+      } else {
+        audioManager.playVoice('turn_start')
+      }
+    }
+  }, [duel?.turn_number, isResolving])
 
   useEffect(() => {
     if (duel && !isResolving && duel.status === 'active') {

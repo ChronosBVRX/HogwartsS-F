@@ -29,6 +29,14 @@ const AUDIO_MAP = {
     ui_button_magic: '/audio/duels/ui/ui_button_magic.mp3',
     ui_timer_warning: '/audio/duels/ui/ui_timer_warning.mp3',
     ui_reward: '/audio/duels/ui/ui_reward.mp3',
+  },
+  voices: {
+    welcome: '/audio/duels/voices/welcome.mp3',
+    instructions: '/audio/duels/voices/instructions.mp3',
+    victory: '/audio/duels/voices/victory.mp3',
+    defeat: '/audio/duels/voices/defeat.mp3',
+    turn_start: '/audio/duels/voices/turn_start.mp3',
+    low_energy: '/audio/duels/voices/low_energy.mp3',
   }
 };
 
@@ -144,6 +152,27 @@ class AudioManager {
     audio.volume = this.sfxVolume;
     audio.play().catch(err => {
       console.warn('SFX play failed', err);
+    });
+  }
+
+  playVoice(key) {
+    if (typeof window === 'undefined' || !this.enabled || !this.isUnlocked) return;
+
+    const url = AUDIO_MAP.voices[key];
+    if (!url) return;
+
+    // We use a new Audio object to allow voices to overlap with SFX but we might want to stop current voice?
+    // For narrations, usually we want one at a time.
+    if (this.currentVoice) {
+      this.currentVoice.pause();
+    }
+
+    const audio = new Audio(url);
+    audio.volume = 1.0; // Voices should be clear
+    this.currentVoice = audio;
+    
+    audio.play().catch(err => {
+      console.warn('Voice play failed', err);
     });
   }
 
