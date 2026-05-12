@@ -1,5 +1,6 @@
 import React from 'react'
 import { buildTurnAnnouncement } from '../../lib/duelNarration'
+import { Zap, Heart, Shield, Swords } from 'lucide-react'
 
 export default function DuelTurnAnnouncement({ lastEvent, isP1, onContinue }) {
   const announcement = buildTurnAnnouncement({
@@ -25,6 +26,7 @@ export default function DuelTurnAnnouncement({ lastEvent, isP1, onContinue }) {
 
   return (
     <div className={`rounded-[2rem] border p-6 md:p-8 shadow-2xl backdrop-blur-2xl animate-in fade-in slide-in-from-bottom-8 duration-700 ${toneClass}`}>
+      {/* Spell Clash Header */}
       <div className="grid grid-cols-2 gap-4 mb-6">
         <div className="bg-black/40 rounded-2xl p-4 border border-white/5">
           <p className="text-[9px] uppercase tracking-[0.2em] text-magical-gold font-black mb-1">Tú</p>
@@ -43,7 +45,8 @@ export default function DuelTurnAnnouncement({ lastEvent, isP1, onContinue }) {
         </div>
       </div>
 
-      <div className="space-y-4 text-center px-2 mb-6">
+      {/* Main Narrative Result */}
+      <div className="space-y-4 text-center px-2 mb-8">
         <p className={`text-xl md:text-3xl font-black uppercase italic tracking-tight ${textToneClass} animate-pulse`}>
           {announcement.effectivenessLabel}
         </p>
@@ -52,70 +55,98 @@ export default function DuelTurnAnnouncement({ lastEvent, isP1, onContinue }) {
         </p>
       </div>
 
-      {/* Numerical Breakdown */}
-      <div className="grid grid-cols-2 gap-4 mb-8">
+      {/* Stats Breakdown Grid */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
         <BreakdownCard 
-          label="Tu Resultado" 
-          total={-announcement.rivalDamageTaken} 
+          label="Tu Impacto" 
+          total={announcement.rivalDamageTaken} 
           details={announcement.myBreakdown}
           isAttacker={true}
+          heal={announcement.myBreakdown.heal}
         />
         <BreakdownCard 
-          label="Resultado Rival" 
-          total={-announcement.myDamageTaken} 
+          label="Impacto Rival" 
+          total={announcement.myDamageTaken} 
           details={announcement.rivalBreakdown}
           isAttacker={false}
+          heal={announcement.rivalBreakdown.heal}
         />
       </div>
 
-      <button
-        onClick={onContinue}
-        className="w-full py-4 md:py-6 bg-magical-gold text-magical-navy font-black uppercase italic tracking-widest rounded-2xl shadow-[0_10px_30px_rgba(212,175,55,0.4)] hover:scale-[1.02] active:scale-[0.98] transition-all"
-      >
-        Continuar Duelo
-      </button>
+      {/* Energy & Action Row */}
+      <div className="flex flex-col md:flex-row gap-4">
+        <div className="flex-1 bg-night-blue/60 rounded-2xl p-4 border border-magical-gold/20 flex items-center justify-between">
+           <div className="flex items-center gap-3">
+             <div className="w-10 h-10 rounded-xl bg-magical-gold/10 flex items-center justify-center border border-magical-gold/30">
+               <Zap className="w-5 h-5 text-magical-gold" />
+             </div>
+             <div>
+               <p className="text-[10px] font-black text-magical-gold uppercase tracking-widest">Energía</p>
+               <p className="text-xs font-bold text-white">
+                 {announcement.myBreakdown.energyCost > 0 && `Gasto: -${announcement.myBreakdown.energyCost}`}
+                 {announcement.myBreakdown.energyGain > 0 && ` Carga: +${announcement.myBreakdown.energyGain}`}
+               </p>
+             </div>
+           </div>
+           <div className="text-right">
+             <p className="text-xl font-black text-white">
+               {announcement.myBreakdown.energyGain - announcement.myBreakdown.energyCost >= 0 ? '+' : ''}
+               {announcement.myBreakdown.energyGain - announcement.myBreakdown.energyCost}
+             </p>
+           </div>
+        </div>
+
+        <button
+          onClick={onContinue}
+          className="flex-[2] py-4 md:py-6 bg-magical-gold text-magical-navy font-black uppercase italic tracking-widest rounded-2xl shadow-[0_10px_30px_rgba(212,175,55,0.4)] hover:scale-[1.02] active:scale-[0.98] transition-all"
+        >
+          Continuar Duelo
+        </button>
+      </div>
     </div>
   )
 }
 
-function BreakdownCard({ label, total, details, isAttacker }) {
+function BreakdownCard({ label, total, details, isAttacker, heal }) {
   const colorClass = isAttacker ? 'text-healing-green' : 'text-impact-red'
   
   return (
-    <div className="bg-black/60 rounded-2xl p-4 border border-white/5 space-y-3">
-      <div className="flex justify-between items-end border-b border-white/5 pb-2">
-        <p className="text-[8px] md:text-[10px] uppercase tracking-widest text-white/30 font-black">{label}</p>
+    <div className="bg-black/60 rounded-2xl p-5 border border-white/5 space-y-4 relative overflow-hidden">
+      <div className="flex justify-between items-start border-b border-white/5 pb-3 relative z-10">
+        <div className="flex items-center gap-2">
+          {isAttacker ? <Swords className="w-3 h-3 text-magical-gold" /> : <Shield className="w-3 h-3 text-impact-red" />}
+          <p className="text-[9px] md:text-[11px] uppercase tracking-widest text-white/40 font-black">{label}</p>
+        </div>
         <div className="text-right">
-           <p className={`text-xl md:text-2xl font-black ${colorClass}`}>{total > 0 ? `+${total}` : total}</p>
-           {details.heal > 0 && <p className="text-[9px] font-bold text-healing-green">+{details.heal} HP 💖</p>}
+           <p className={`text-2xl md:text-3xl font-black ${colorClass}`}>-{total}</p>
+           {heal > 0 && (
+             <div className="flex items-center justify-end gap-1 text-healing-green">
+               <Heart className="w-3 h-3 fill-current" />
+               <span className="text-[10px] font-black">+{heal} HP</span>
+             </div>
+           )}
         </div>
       </div>
       
-      <div className="space-y-1">
-        {details.base > 0 && <StatRow label="Base" value={details.base} />}
-        {details.bonus > 0 && <StatRow label="Ventaja" value={`+${details.bonus}`} color="text-healing-green" />}
+      <div className="grid grid-cols-1 gap-2 relative z-10">
+        {details.base > 0 && <StatRow label="Daño Base" value={details.base} />}
+        {details.bonus > 0 && <StatRow label="Bonus Estratégico" value={`+${details.bonus}`} color="text-healing-green" />}
         {details.penalty > 0 && <StatRow label="Penalización" value={`-${details.penalty}`} color="text-impact-red" />}
-        {details.block > 0 && <StatRow label="Bloqueo" value={`-${details.block}`} color="text-spell-blue" />}
-        
-        {/* Energy info for player */}
-        {details.energyChange !== undefined && (
-          <div className="pt-2 border-t border-white/5 mt-2">
-            <StatRow 
-              label="Energía" 
-              value={details.energyChange >= 0 ? `+${details.energyChange}` : details.energyChange} 
-              color={details.energyChange >= 0 ? "text-magical-gold" : "text-white/40"} 
-            />
-          </div>
-        )}
+        {details.block > 0 && <StatRow label="Defensa Rival" value={`-${details.block}`} color="text-spell-blue" />}
+      </div>
+      
+      {/* Subtle background icon */}
+      <div className="absolute -right-4 -bottom-4 opacity-[0.03] rotate-12">
+        {isAttacker ? <Swords className="w-24 h-24" /> : <Shield className="w-24 h-24" />}
       </div>
     </div>
   )
 }
 
-function StatRow({ label, value, color = "text-white/40" }) {
+function StatRow({ label, value, color = "text-white/50" }) {
   return (
-    <div className="flex justify-between items-center text-[8px] md:text-[9px] uppercase font-bold tracking-widest">
-      <span>{label}</span>
+    <div className="flex justify-between items-center text-[9px] md:text-[10px] uppercase font-bold tracking-wider">
+      <span className="text-white/30">{label}</span>
       <span className={color}>{value}</span>
     </div>
   )
