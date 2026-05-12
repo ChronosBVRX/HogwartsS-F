@@ -221,17 +221,19 @@ export default function DuelRoom() {
       {/* Header Info - Premium Stat Bar */}
       <div className="flex justify-between items-center bg-night-blue/60 backdrop-blur-xl p-3 md:p-6 rounded-2xl md:rounded-[2rem] border border-magical-gold/20 shadow-2xl">
         <div className="flex-1 min-w-0">
-          <HealthBar label="Tu Vida" value={myHp} house={myHouse} />
+          <HealthBar label="Rival" value={rivalHp} house={duel?.mode === 'ai' ? 'ai' : rivalHouse} />
         </div>
         
         <div className="px-4 md:px-10 flex flex-col items-center">
           <div className="text-[7px] md:text-[10px] font-black text-magical-gold/40 uppercase tracking-[0.4em] mb-1">Duelo</div>
-          <div className="w-8 md:w-12 h-[1px] bg-magical-gold/20 mb-2" />
-          <div className="text-xs md:text-xl font-black text-white italic tracking-tighter uppercase truncate max-w-[80px] md:max-w-none">{rivalName}</div>
+          <p className="text-magical-gold text-xs md:text-sm font-black uppercase italic tracking-widest leading-none mb-2">
+            Turno {duel?.turn_number || 1} / 12
+          </p>
+          <div className="text-xs md:text-xl font-black text-white italic tracking-tighter uppercase">VS</div>
         </div>
 
         <div className="flex-1 min-w-0">
-          <HealthBar label="Rival" value={rivalHp} house={duel?.mode === 'ai' ? 'ai' : rivalHouse} />
+          <HealthBar label="Tu Vida" value={myHp} house={myHouse} />
         </div>
       </div>
 
