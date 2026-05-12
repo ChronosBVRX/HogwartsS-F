@@ -16,7 +16,12 @@ dist-ssr
 .env.development.local
 .env.test.local
 .env.production.local
-scripts/.env.admin
+
+# Admin & Diagnostics
+scripts/
+scratch/
+build_error.txt
+.env.admin
 
 # Editor directories and files
 .vscode/*
