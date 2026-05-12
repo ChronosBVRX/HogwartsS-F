@@ -220,6 +220,10 @@ BEGIN
     'p2_cooldowns', v_p2_cd,
     'p1_energy_change', v_p1_gain - v_p1_cost,
     'p2_energy_change', v_p2_gain - v_p2_cost,
+    'p1_bonus', v_p1_stance_dmg,
+    'p2_bonus', v_p2_stance_dmg,
+    'p1_penalty', CASE WHEN v_p1_turn.stance = 'offensive' THEN 4 ELSE 0 END,
+    'p2_penalty', CASE WHEN v_p2_stance = 'offensive' THEN 4 ELSE 0 END,
     'turn_number', p_turn_number
   ));
 

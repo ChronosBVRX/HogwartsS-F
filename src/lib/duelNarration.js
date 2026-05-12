@@ -12,11 +12,11 @@ const FAMILY_NAMES = {
 }
 
 const STANCE_NAMES = {
-  offensive: 'Ofensiva (Ataque Valiente)',
-  defensive: 'Defensiva (Guardia Protegida)',
-  concentrated: 'Concentrada (Enfoque Arcano)',
-  cunning: 'Astuta (Lectura Táctica)',
-  desperate: 'Desesperada (Último Recurso)',
+  offensive: 'Ataque Valiente',
+  defensive: 'Guardia Protegida',
+  concentrated: 'Enfoque Arcano',
+  cunning: 'Lectura Táctica',
+  desperate: 'Último Recurso',
   neutral: 'Neutral'
 }
 
@@ -36,17 +36,22 @@ const STRATEGIC_REASONS = {
 export function buildTurnAnnouncement({ payload, isP1 }) {
   if (!payload) return null
 
-  // Normalización de datos
+  // Normalización de datos con lectura profunda de bonus y fallbacks
   const getPData = (pNum) => {
     const prefix = pNum === 1 ? 'p1_' : 'p2_';
+    const rivalPrefix = pNum === 1 ? 'p2_' : 'p1_';
+    
     return {
       actions: payload[prefix + 'actions'] || [],
       stance: payload[prefix + 'stance'] || 'neutral',
       damageTaken: payload[prefix + 'damage'] ?? 0,
-      damageDealt: payload[pNum === 1 ? 'p2_damage_dealt' : 'p1_damage_dealt'] ?? 0,
+      damageDealt: payload[prefix + 'damage_dealt'] ?? payload[rivalPrefix + 'damage'] ?? 0,
       blocked: payload[prefix + 'blocked'] ?? 0,
+      bonus: payload[prefix + 'bonus'] ?? 0,
+      penalty: payload[prefix + 'penalty'] ?? 0,
       energyChange: payload[prefix + 'energy_change'] ?? 0,
-      heal: payload[prefix + 'heal'] ?? 0
+      heal: payload[prefix + 'heal'] ?? 0,
+      interrupted: payload[prefix + 'interrupted'] ?? false
     }
   }
 
@@ -63,9 +68,8 @@ export function buildTurnAnnouncement({ payload, isP1 }) {
   const myWon = mySpell.beats.includes(rivalSpell.family)
   const rivalWon = rivalSpell.beats.includes(mySpell.family)
 
-  // 1. Veredicto Estratégico
+  // 1. Veredicto Estratégico Específico
   let verdictTitle = "Choque Neutral"
-  let verdictText = "Ambos chocaron sin una ventaja clara en este intercambio."
   let strategicReason = "Ninguna estrategia dominó por completo."
 
   const reasonKey = `${mySpell.family}_beats_${rivalSpell.family}`
@@ -74,57 +78,69 @@ export function buildTurnAnnouncement({ payload, isP1 }) {
   if (myWon && !rivalWon) {
     verdictTitle = "¡Leíste mejor al rival!"
     strategicReason = STRATEGIC_REASONS[reasonKey] || `Tu ${mySpell.name} superó su ${rivalSpell.name}.`
-    verdictText = `Usaste ${mySpell.name} justo cuando el rival intentó ${rivalSpell.name}. ${strategicReason}`
   } else if (rivalWon && !myWon) {
     verdictTitle = "El rival te leyó mejor"
     strategicReason = STRATEGIC_REASONS[rivalReasonKey] || `Su ${rivalSpell.name} superó tu ${mySpell.name}.`
-    verdictText = `Intentaste usar ${mySpell.name}, pero el rival respondió con ${rivalSpell.name}. ${strategicReason}`
   }
 
-  // 2. Severidad y Fórmula de Daño
-  const getSeverity = (dmg) => {
-    if (dmg === 0) return "No recibiste daño."
-    if (dmg < 10) return "El daño fue bajo."
-    if (dmg < 20) return "El daño fue moderado."
-    if (dmg < 35) return "El daño fue alto."
-    return "¡El golpe fue devastador!"
+  const verdictText = myWon && !rivalWon 
+    ? `Usaste ${mySpell.name} (${FAMILY_NAMES[mySpell.family]}) contra su ${rivalSpell.name} (${FAMILY_NAMES[rivalSpell.family]}). ${strategicReason}`
+    : rivalWon && !myWon
+    ? `Intentaste usar ${mySpell.name}, pero el rival respondió con ${rivalSpell.name}. ${strategicReason}`
+    : `Ambos lanzaron sus hechizos con convicción. ${strategicReason}`;
+
+  // 2. Razón de Daño Específica y Posturas
+  let damageReason = ""
+  if (my.damageTaken > 0) {
+    damageReason = `Recibiste ${my.damageTaken} de daño porque el ${rivalSpell.name} del rival impactó tu estrategia.`
+    if (rivalWon) damageReason += ` Al ser ${FAMILY_NAMES[rivalSpell.family]}, tuvo ventaja contra tu ${FAMILY_NAMES[mySpell.family]}.`
+    if (rival.stance === 'offensive') damageReason += ` Además, el rival usó ${STANCE_NAMES.offensive}, aumentando su potencia.`
+    if (my.stance === 'offensive') damageReason += ` Tu postura de ${STANCE_NAMES.offensive} te dejó más vulnerable.`
+  } else {
+    damageReason = `Tu ${mySpell.name} y tu postura de ${STANCE_NAMES[my.stance]} neutralizaron el ataque rival.`
   }
 
-  const damageSeverityText = getSeverity(my.damageTaken)
-  const damageReason = my.damageTaken > 0 
-    ? (rivalWon ? `Recibiste daño alto porque el rival tenía ventaja estratégica.` : `Recibiste daño porque el poder del rival superó tu defensa.`)
-    : "Tu estrategia defensiva fue impecable."
-
-  // Construir fórmula (Simplificada con los datos disponibles)
+  // 3. Fórmula de Daño Real (Matemática)
+  // El bonus real puede venir de la postura del rival + la ventaja táctica
   const damageFormula = [
-    { label: `Poder de ${rivalSpell.name}`, value: rivalSpell.damage || 15, type: 'danger' },
-    { label: "Bonus por postura/ventaja", value: rivalWon ? "+5" : (rival.stance === 'offensive' ? "+5" : "+0"), type: 'danger' },
-    { label: "Tu bloqueo aplicado", value: my.blocked > 0 ? `-${my.blocked}` : "0", type: 'defense' },
-    { label: "Daño final recibido", value: my.damageTaken, type: 'final' }
+    { label: `Poder base de ${rivalSpell.name}`, value: rivalSpell.damage || 15, type: 'danger' },
   ]
+  
+  if (rival.bonus > 0) damageFormula.push({ label: "Bonus del rival (Postura/Ventaja)", value: `+${rival.bonus}`, type: 'danger' })
+  if (my.penalty > 0) damageFormula.push({ label: "Penalización por postura", value: `+${my.penalty}`, type: 'danger' })
+  if (my.blocked > 0) damageFormula.push({ label: "Tu bloqueo aplicado", value: `-${my.blocked}`, type: 'defense' })
+  
+  damageFormula.push({ label: "Daño final recibido", value: my.damageTaken, type: 'final' })
 
-  // 3. Lección
-  let finalLesson = "Prueba a observar el nivel de energía del rival antes de cargar la tuya."
-  if (rivalWon && rivalSpell.family === 'heavy') finalLesson = "Lección: Protego es una buena respuesta contra ataques pesados."
-  if (my.stance === 'offensive' && my.damageTaken > 20) finalLesson = "Lección: La postura ofensiva te hace más fuerte, pero muy vulnerable."
-  if (rivalSpell.family === 'defense' && my.damageTaken === 0) finalLesson = "Lección: Si el rival se defiende mucho, prueba hechizos de Control."
+  const damageFormulaExact = (payload.p1_bonus !== undefined || payload.p2_bonus !== undefined)
 
-  // 4. Timeline (Cinematográfica)
+  // 4. Lección
+  let finalLesson = "Observa los AP y energía del rival; un ataque pesado requiere 2 movimientos y mucha energía."
+  if (rivalWon && rivalSpell.family === 'heavy') finalLesson = "Consejo: Usa Protego o Desarme cuando sospeches que el rival lanzará un ataque pesado."
+  if (my.stance === 'offensive' && my.damageTaken > 20) finalLesson = "Consejo: No uses la postura ofensiva si tu salud es baja, el riesgo es demasiado alto."
+  if (rivalSpell.family === 'defense' && my.damageTaken === 0) finalLesson = "Consejo: Si el rival se protege constantemente, rómpelo con hechizos de Control."
+
+  // 5. Timeline Refinada
   const timeline = [
     `Levantaste tu ${STANCE_NAMES[my.stance]} para encarar el turno.`,
     `Lanzaste ${mySpell.name} como tu movimiento principal.`,
-    `El rival intentó responder con ${rivalSpell.name}.`,
   ]
-  if (myWon) timeline.push(`¡Éxito! ${strategicReason}`)
-  if (rivalWon) timeline.push(`¡Cuidado! ${strategicReason}`)
-  if (my.blocked > 0) timeline.push(`Tu defensa logró contener ${my.blocked} puntos de daño rival.`)
-  timeline.push(damageSeverityText)
+  
+  if (my.damageTaken > 0 || !myWon) {
+    timeline.push(`El rival respondió con ${rivalSpell.name}.`)
+  } else {
+    timeline.push(`El rival intentó responder con ${rivalSpell.name}, pero tu estrategia lo contuvo.`)
+  }
+
+  if (myWon) timeline.push(`¡Ventaja estratégica! ${strategicReason}`)
+  if (my.blocked > 0) timeline.push(`Tu defensa absorbió ${my.blocked} puntos de daño.`)
 
   return {
     verdictTitle,
     verdictText,
     damageReason,
     damageFormula,
+    damageFormulaExact,
     finalLesson,
     timeline,
     tone: myWon ? 'good' : rivalWon ? 'bad' : 'neutral',

@@ -52,9 +52,14 @@ export default function DuelTurnAnnouncement({ lastEvent, isP1, onContinue }) {
 
       {/* 2. DESGLOSE DE DAÑO (LA FÓRMULA) */}
       <div className="bg-black/60 rounded-[2.5rem] border border-white/5 p-8 space-y-6">
-        <div className="flex items-center gap-2 mb-2">
-          <Target className="w-4 h-4 text-magical-gold" />
-          <h3 className="text-[10px] font-black uppercase text-magical-gold tracking-widest">Por qué recibiste daño</h3>
+        <div className="flex items-center justify-between mb-2">
+          <div className="flex items-center gap-2">
+            <Target className="w-4 h-4 text-magical-gold" />
+            <h3 className="text-[10px] font-black uppercase text-magical-gold tracking-widest">Análisis del Impacto</h3>
+          </div>
+          {!announcement.damageFormulaExact && (
+            <span className="text-[8px] font-black uppercase text-white/20 tracking-tighter">Desglose parcial</span>
+          )}
         </div>
         
         <p className="text-sm text-white/60 italic px-2">
