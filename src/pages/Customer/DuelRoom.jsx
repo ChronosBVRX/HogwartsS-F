@@ -6,6 +6,7 @@ import HealthBar from '../../components/duels/HealthBar'
 import SpellCard from '../../components/duels/SpellCard'
 import DuelArena from '../../components/duels/DuelArena'
 import DuelTurnAnnouncement from '../../components/duels/DuelTurnAnnouncement'
+import SpellDetailModal from '../../components/duels/SpellDetailModal'
 import { SPELLS } from '../../lib/duelSpells'
 import audioManager from '../../lib/audioManager'
 import { Trophy, Skull, Swords, Repeat, Home, BarChart3, Volume2 } from 'lucide-react'
@@ -16,19 +17,15 @@ export default function DuelRoom() {
   const navigate = useNavigate()
   
   const [duel, setDuel] = useState(null)
-  
-  // Protect PvP entry
-  useEffect(() => {
-    if (duel && duel.mode === 'pvp' && duel.status === 'waiting') {
-      navigate(`/duelos/espera/${duelId}`)
-    }
-  }, [duel?.status, duel?.mode, duelId])
   const [loading, setLoading] = useState(true)
   const [selectedSpell, setSelectedSpell] = useState(null)
+  const [detailedSpell, setDetailedSpell] = useState(null)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [lastEvent, setLastEvent] = useState(null)
   const [resolutionStage, setResolutionStage] = useState('idle') // idle, casting, impact, narrative
   const [showResult, setShowResult] = useState(false)
+  const [timeLeft, setTimeLeft] = useState(20)
+  const [cooldowns, setCooldowns] = useState({})
   
   // Audio state
   const [audioReady, setAudioReady] = useState(audioManager.isUnlocked)
@@ -48,26 +45,37 @@ export default function DuelRoom() {
   const isDraw = duelFinished && duel?.mode === 'pvp' && !duel?.winner_id && duel?.player_one_hp === duel?.player_two_hp
   const iLost = duelFinished && !iWon && !isDraw
 
-  const fetchDuel = async () => {
+  const fetchDuel = async (retryCount = 0) => {
     try {
       const { data, error } = await supabase
         .from('hsf_duels')
         .select('*')
         .eq('id', duelId)
-        .single()
+        .maybeSingle()
 
       if (error) throw error
+      if (!data) {
+        if (retryCount < 3) {
+           setTimeout(() => fetchDuel(retryCount + 1), 1000)
+           return
+        }
+        throw new Error('Duelo no encontrado')
+      }
+
+      // Safeguard for PvP entry
+      if (data.mode === 'pvp' && data.status === 'waiting') {
+        navigate(`/duelos/espera/${duelId}`)
+        return
+      }
 
       // Fetch names separately to avoid complex join errors (400)
-      let p1_name = 'Mago 1', p1_house = 'neutral'
-      let p2_name = 'Mago 2', p2_house = 'neutral'
+      let p1_name = data.player_one_name || 'Mago 1', p1_house = data.player_one_house || 'neutral'
+      let p2_name = data.player_two_name || 'Mago 2', p2_house = data.player_two_house || 'neutral'
 
-      if (data.player_one) {
-        const { data: p1 } = await supabase.from('hsf_profiles').select('display_name, house_slug').eq('user_id', data.player_one).maybeSingle()
-        if (p1) {
-          p1_name = p1.display_name
-          p1_house = p1.house_slug
-        }
+      const { data: p1 } = await supabase.from('hsf_profiles').select('display_name, house_slug').eq('user_id', data.player_one).maybeSingle()
+      if (p1) {
+        p1_name = p1.display_name
+        p1_house = p1.house_slug
       }
 
       if (data.player_two) {
@@ -212,34 +220,30 @@ export default function DuelRoom() {
     }
   }, [duel?.status, resolutionStage, isSubmitting, duel?.turn_number])
 
-  const handleSpellSubmit = async () => {
-    if (!selectedSpell || isSubmitting) return
+  const handleSpellSubmit = async (spellKeyParam) => {
+    const keyToSubmit = spellKeyParam || selectedSpell
+    if (!keyToSubmit || isSubmitting) return
     
     await audioManager.unlockAudio()
     setAudioReady(true)
     
     setIsSubmitting(true)
-    audioManager.playSfx('ui_card_confirm')
+    audioManager.playSfx('ui_button_magic')
+    
+    try {
+      const { error } = await supabase.rpc('hsf_submit_duel_turn', {
+        p_duel_id: duelId,
+        p_spell_key: keyToSubmit,
+        p_turn_number: duel.turn_number
+      })
 
-    console.log('RPC hsf_submit_duel_turn enviada', {
-      duelId,
-      selectedSpell,
-      turnNumber: duel.turn_number
-    })
-
-    const { error } = await supabase.rpc('hsf_submit_duel_turn', {
-      p_duel_id: duelId,
-      p_spell_key: selectedSpell,
-      p_turn_number: duel.turn_number
-    })
-
-    if (error) {
-      console.error('Error submitting turn:', error)
-      alert(error.message)
-      setIsSubmitting(false)
-    } else {
+      if (error) throw error
+      setSelectedSpell(null) 
       audioManager.playVoice('spell_confirmed', { cooldownMs: 15000 })
-      // We don't set isSubmitting false here, we wait for the resolution
+    } catch (err) {
+      console.error('Error submitting turn:', err)
+      alert('Error al lanzar hechizo: ' + err.message)
+      setIsSubmitting(false)
     }
   }
 
@@ -348,7 +352,7 @@ export default function DuelRoom() {
                   key={key}
                   spell={spell}
                   selected={selectedSpell === key}
-                  onClick={() => setSelectedSpell(key)}
+                  onClick={() => setDetailedSpell(spell)}
                   disabled={myEnergy < spell.cost || isSubmitting}
                   compact
                 />
@@ -356,6 +360,22 @@ export default function DuelRoom() {
             </div>
           </div>
         </section>
+      )}
+
+      {/* Spell Detail Modal */}
+      {detailedSpell && (
+        <SpellDetailModal 
+          spell={detailedSpell} 
+          onClose={() => setDetailedSpell(null)}
+          canCast={myEnergy >= detailedSpell.cost && !isSubmitting}
+          onCast={() => {
+            setSelectedSpell(detailedSpell.key)
+            // If they are already in narrative/resolving, don't submit
+            if (resolutionStage === 'idle') {
+               handleSpellSubmit(detailedSpell.key)
+            }
+          }}
+        />
       )}
 
       {/* Result Overlay */}

@@ -246,7 +246,7 @@ function PlayerCard({ profile, isReady, label, isMe, waiting }) {
                <div className="h-2 w-2 bg-white/20 rounded-full"></div>
              </div>
            ) : (
-             <div className="text-3xl drop-shadow-md">{meta.icon}</div>
+             <img src={`/assets/houses/${normHouse}.png`} className="w-12 h-12 object-contain drop-shadow-md" alt={normHouse} />
            )}
         </div>
 
