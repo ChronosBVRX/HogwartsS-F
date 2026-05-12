@@ -1,5 +1,55 @@
 
 -- ==========================================
+-- 1. SUBMIT TURN FUNCTION
+-- ==========================================
+
+create or replace function hsf_submit_duel_turn(p_duel_id uuid, p_spell_key text, p_turn_number int)
+returns jsonb
+language plpgsql
+security definer
+as $$
+declare
+  v_user_id uuid;
+  v_duel record;
+  v_existing_turn record;
+  v_p2_turn record;
+begin
+  v_user_id := auth.uid();
+  
+  select * into v_duel from hsf_duels where id = p_duel_id;
+  if not found then raise exception 'Duelo no encontrado'; end if;
+  if v_duel.status != 'active' then raise exception 'El duelo ya no está activo'; end if;
+  
+  -- Verificar si ya envió turno
+  select * into v_existing_turn from hsf_duel_turns 
+  where duel_id = p_duel_id and turn_number = p_turn_number and player_id = v_user_id;
+  
+  if found then raise exception 'Ya has enviado tu hechizo para este turno'; end if;
+
+  -- Insertar turno
+  insert into hsf_duel_turns (duel_id, turn_number, player_id, spell_key)
+  values (p_duel_id, p_turn_number, v_user_id, p_spell_key);
+
+  -- Si es modo AI, resolver inmediatamente
+  if v_duel.mode = 'ai' then
+    perform hsf_resolve_duel_turn(p_duel_id, p_turn_number);
+    return jsonb_build_object('status', 'resolved_ai');
+  end if;
+
+  -- Si es PvP, ver si el otro ya envió
+  select * into v_p2_turn from hsf_duel_turns 
+  where duel_id = p_duel_id and turn_number = p_turn_number and player_id != v_user_id;
+
+  if found then
+    perform hsf_resolve_duel_turn(p_duel_id, p_turn_number);
+    return jsonb_build_object('status', 'resolved_pvp');
+  end if;
+
+  return jsonb_build_object('status', 'waiting');
+end;
+$$;
+
+-- ==========================================
 -- 2. LÓGICA DE CÁLCULO DE DAÑO (MEJORA: MECÁNICA DE INTERRUPCIÓN)
 -- ==========================================
 
