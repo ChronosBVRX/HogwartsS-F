@@ -81,6 +81,13 @@ export default function DuelTurnAnnouncement({ lastEvent, isP1 }) {
           </p>
         </div>
       </div>
+
+      <button
+        onClick={onContinue}
+        className="w-full mt-6 py-4 bg-magical-gold text-magical-navy font-black uppercase italic tracking-widest rounded-2xl shadow-[0_10px_20px_rgba(212,175,55,0.3)] hover:scale-[1.02] active:scale-[0.98] transition-all"
+      >
+        Continuar Duelo
+      </button>
     </div>
   )
 }

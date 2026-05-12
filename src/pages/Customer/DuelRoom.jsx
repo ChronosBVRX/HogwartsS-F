@@ -166,12 +166,15 @@ export default function DuelRoom() {
       setResolutionStage('narrative')
     }, 3500)
 
-    // Stage 4: Reset
-    setTimeout(() => {
-      setResolutionStage(null)
-      setIsResolving(false)
-      setSelectedSpell(null)
-    }, 7000)
+    // Stage 4: Reset (NOW MANUAL)
+    // We removed the automatic timeout here
+  }
+
+  const nextTurn = () => {
+    setResolutionStage(null)
+    setIsResolving(false)
+    setSelectedSpell(null)
+    audioManager.playSfx('ui_button_magic')
   }
 
   const handleSpellSubmit = async (spellKey) => {
@@ -245,10 +248,12 @@ export default function DuelRoom() {
         )}
       </div>
 
-      {/* Turn Announcement - Pokémon Style */}
+      {/* Turn Announcement - Pokémon Style (Overlaying bottom area) */}
       {resolutionStage === 'narrative' && lastEvent && (
-        <div className="animate-in fade-in zoom-in slide-in-from-bottom-8 duration-700">
-          <DuelTurnAnnouncement lastEvent={lastEvent} isP1={isP1} />
+        <div className="fixed inset-0 z-[60] flex items-end justify-center p-4 md:p-8 animate-in fade-in slide-in-from-bottom-8 duration-700 bg-black/20 pointer-events-none">
+          <div className="w-full max-w-5xl pointer-events-auto">
+            <DuelTurnAnnouncement lastEvent={lastEvent} isP1={isP1} onContinue={nextTurn} />
+          </div>
         </div>
       )}
 
