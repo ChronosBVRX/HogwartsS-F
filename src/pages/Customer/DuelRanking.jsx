@@ -139,7 +139,7 @@ export default function DuelRanking() {
         </div>
       </header>
 
-      <div className="grid md:grid-cols-2 gap-16">
+      <div className="grid md:grid-cols-2 gap-16 items-start">
         {/* HOUSE RANKING */}
         <div className="space-y-10">
           <div className="flex items-center gap-4 border-b border-white/5 pb-4">
