@@ -19,7 +19,8 @@ export default function SpellCard({ spell, disabled, selected, onClick, cooldown
   return (
     <button
       disabled={disabled || cooldown > 0}
-      onClick={() => {
+      onClick={async () => {
+        await audioManager.unlockAudio();
         if (disabled && !cooldown) {
           audioManager.playVoice('low_energy');
           return;
