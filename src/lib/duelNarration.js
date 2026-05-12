@@ -104,7 +104,7 @@ export function buildTurnAnnouncement({ payload, isP1 }) {
   }
 
   // 3. Fórmula de Daño con Reconciliación Matemática
-  const baseDamage = rivalSpell.damage || 15
+  const baseDamage = rivalSpell.damage ?? 0
   const rivalBonus = rival.bonus || 0
   const myPenalty = my.penalty || 0
   const myBlock = my.blocked || 0
@@ -130,12 +130,17 @@ export function buildTurnAnnouncement({ payload, isP1 }) {
   
   damageFormula.push({ label: "Daño final recibido", value: my.damageTaken, type: 'final' })
 
+  const myPrefix = isP1 ? 'p1_' : 'p2_'
+  const rivalPrefix = isP1 ? 'p2_' : 'p1_'
+
   const damageFormulaExact = (
-    payload[isP1 ? 'p1_damage' : 'p2_damage'] !== undefined && 
-    payload[isP1 ? 'p2_bonus' : 'p1_bonus'] !== undefined
+    payload[myPrefix + 'damage'] !== undefined &&
+    payload[myPrefix + 'blocked'] !== undefined &&
+    payload[rivalPrefix + 'bonus'] !== undefined &&
+    payload[myPrefix + 'penalty'] !== undefined
   )
 
-  // 4. Timeline Completa (Restaurada)
+  // 4. Timeline Completa
   const timeline = [
     `Levantaste tu ${STANCE_NAMES[my.stance]} para encarar el turno.`,
     `Lanzaste ${mySpell.name} como tu movimiento principal.`,
@@ -168,7 +173,7 @@ export function buildTurnAnnouncement({ payload, isP1 }) {
   let finalLesson = "Observa los AP y energía del rival; las jugadas potentes son predecibles si vigilas sus recursos."
   if (rivalWon && rivalSpell.family === 'heavy') finalLesson = `Consejo: ${rivalSpell.name} es devastador contra Cargas Mágicas. ¡Usa Protego para defenderte!`
   if (my.stance === 'offensive' && my.damageTaken > 20) finalLesson = "Consejo: La postura ofensiva es una apuesta arriesgada. Si tienes poca vida, elige Guardia Protegida."
-  if (rivalSpell.family === 'defense' && my.damageTaken === 0) finalLesson = "Consejo: Si el rival se protege constantemente, rómpelo con hechizos de Control como Accio."
+  if (rivalSpell.family === 'defense' && my.damageTaken === 0) finalLesson = "Consejo: Si el rival se protege constantemente, rómpelo con hechizos de Control como Confundus o Petrificus Totalus."
 
   return {
     verdictTitle,

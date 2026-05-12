@@ -1,6 +1,6 @@
 import React from 'react'
 import { buildTurnAnnouncement } from '../../lib/duelNarration'
-import { AlertTriangle, Info, Zap, Shield, Target } from 'lucide-react'
+import { AlertTriangle, Info, Target } from 'lucide-react'
 import audioManager from '../../lib/audioManager'
 
 export default function DuelTurnAnnouncement({ lastEvent, isP1, onContinue }) {
