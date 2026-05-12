@@ -236,30 +236,30 @@ begin
 
   -- 1. Actualizar perfiles de duelo (MMR y Estadísticas)
   -- Jugador 1
-  insert into hsf_duel_profiles (user_id, mmr, wins, losses, total_duels)
+  insert into hsf_duel_profiles (user_id, mmr, wins, losses, duels_played)
   values (v_duel.player_one, 100, 0, 0, 0)
   on conflict (user_id) do nothing;
 
   if v_duel.winner_id = v_duel.player_one then
-    update hsf_duel_profiles set mmr = mmr + v_winner_points, wins = wins + 1, total_duels = total_duels + 1 where user_id = v_duel.player_one;
+    update hsf_duel_profiles set mmr = mmr + v_winner_points, wins = wins + 1, duels_played = duels_played + 1 where user_id = v_duel.player_one;
   elsif v_duel.winner_id is null and v_duel.status = 'finished' then
-    update hsf_duel_profiles set mmr = mmr + v_draw_points, total_duels = total_duels + 1 where user_id = v_duel.player_one;
+    update hsf_duel_profiles set mmr = mmr + v_draw_points, duels_played = duels_played + 1 where user_id = v_duel.player_one;
   else
-    update hsf_duel_profiles set mmr = mmr + v_loser_points, losses = losses + 1, total_duels = total_duels + 1 where user_id = v_duel.player_one;
+    update hsf_duel_profiles set mmr = mmr + v_loser_points, losses = losses + 1, duels_played = duels_played + 1 where user_id = v_duel.player_one;
   end if;
 
   -- Jugador 2 (Si no es AI)
   if v_duel.mode = 'pvp' then
-    insert into hsf_duel_profiles (user_id, mmr, wins, losses, total_duels)
+    insert into hsf_duel_profiles (user_id, mmr, wins, losses, duels_played)
     values (v_duel.player_two, 100, 0, 0, 0)
     on conflict (user_id) do nothing;
 
     if v_duel.winner_id = v_duel.player_two then
-      update hsf_duel_profiles set mmr = mmr + v_winner_points, wins = wins + 1, total_duels = total_duels + 1 where user_id = v_duel.player_two;
+      update hsf_duel_profiles set mmr = mmr + v_winner_points, wins = wins + 1, duels_played = duels_played + 1 where user_id = v_duel.player_two;
     elsif v_duel.winner_id is null and v_duel.status = 'finished' then
-      update hsf_duel_profiles set mmr = mmr + v_draw_points, total_duels = total_duels + 1 where user_id = v_duel.player_two;
+      update hsf_duel_profiles set mmr = mmr + v_draw_points, duels_played = duels_played + 1 where user_id = v_duel.player_two;
     else
-      update hsf_duel_profiles set mmr = mmr + v_loser_points, losses = losses + 1, total_duels = total_duels + 1 where user_id = v_duel.player_two;
+      update hsf_duel_profiles set mmr = mmr + v_loser_points, losses = losses + 1, duels_played = duels_played + 1 where user_id = v_duel.player_two;
     end if;
   end if;
 

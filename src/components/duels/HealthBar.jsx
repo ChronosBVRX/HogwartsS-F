@@ -1,4 +1,4 @@
-export default function HealthBar({ value = 100, label, house }) {
+export default function HealthBar({ value = 100, label, house, compact = false }) {
   const pct = Math.max(0, Math.min(100, value))
   
   const houseColors = {
@@ -12,20 +12,20 @@ export default function HealthBar({ value = 100, label, house }) {
   const colorClass = houseColors[house] || 'from-impact-red via-magical-gold to-healing-green'
 
   return (
-    <div className="space-y-2 w-full">
+    <div className={`${compact ? 'space-y-1' : 'space-y-2'} w-full`}>
       <div className="flex justify-between items-center px-2">
-        <span className="text-[10px] uppercase tracking-[0.3em] text-text-gray font-black">
+        <span className={`${compact ? 'text-[8px]' : 'text-[10px]'} uppercase tracking-[0.3em] text-text-gray font-black`}>
           {label}
         </span>
         <div className="flex items-baseline gap-1">
-          <span className="text-lg text-white font-black tabular-nums drop-shadow-md">
+          <span className={`${compact ? 'text-sm' : 'text-lg'} text-white font-black tabular-nums drop-shadow-md`}>
             {pct}
           </span>
           <span className="text-[8px] text-text-gray font-black uppercase">HP</span>
         </div>
       </div>
 
-      <div className="h-4 bg-black/40 rounded-lg overflow-hidden border border-white/10 p-[2px] shadow-inner relative">
+      <div className={`${compact ? 'h-3' : 'h-4'} bg-black/40 rounded-lg overflow-hidden border border-white/10 p-[2px] shadow-inner relative`}>
         {/* Glow Effect */}
         <div 
           className="absolute inset-y-0 left-0 bg-white/20 blur-sm pointer-events-none transition-all duration-700"

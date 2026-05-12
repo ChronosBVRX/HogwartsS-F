@@ -23,7 +23,7 @@ export default function DuelLobby() {
     setError(null)
     const { data, error: err } = await supabase.rpc('hsf_create_pvp_duel')
     if (err) setError(err.message)
-    else if (data && data[0]) navigate(`/duelos/sala/${data[0].duel_id}`)
+    else if (data && data[0]) navigate(`/duelos/espera/${data[0].duel_id}`)
     setLoading(false)
   }
 
@@ -42,7 +42,7 @@ export default function DuelLobby() {
     setError(null)
     const { data, error: err } = await supabase.rpc('hsf_join_pvp_duel', { p_invite_code: inviteCode })
     if (err) setError(err.message)
-    else if (data) navigate(`/duelos/sala/${data}`)
+    else if (data) navigate(`/duelos/espera/${data}`)
     setLoading(false)
   }
 

@@ -12,10 +12,17 @@ import { Trophy, Skull, Swords, Repeat, Home, BarChart3, Volume2 } from 'lucide-
 
 export default function DuelRoom() {
   const { duelId } = useParams()
-  const navigate = useNavigate()
   const { profile } = useAuth()
+  const navigate = useNavigate()
   
   const [duel, setDuel] = useState(null)
+  
+  // Protect PvP entry
+  useEffect(() => {
+    if (duel && duel.mode === 'pvp' && duel.status === 'waiting') {
+      navigate(`/duelos/espera/${duelId}`)
+    }
+  }, [duel?.status, duel?.mode, duelId])
   const [loading, setLoading] = useState(true)
   const [selectedSpell, setSelectedSpell] = useState(null)
   const [isSubmitting, setIsSubmitting] = useState(false)
@@ -185,22 +192,25 @@ export default function DuelRoom() {
     }
   }, [duelId])
 
+  const [timeLeft, setTimeLeft] = useState(20)
+  
+  // Timer logic
   useEffect(() => {
-    if (!duelFinished || resultAudioPlayed || !audioReady) return
-
-    if (iWon) {
-      audioManager.playSfx('victory_fanfare')
-      audioManager.playVoice('victory', { force: true })
-    } else if (iLost) {
-      audioManager.playSfx('defeat_dark')
-      audioManager.playVoice('defeat', { force: true })
+    if (duel?.status === 'active' && resolutionStage === 'idle' && !isSubmitting) {
+      const timer = setInterval(() => {
+        setTimeLeft(prev => {
+          if (prev <= 1) {
+            clearInterval(timer)
+            return 0
+          }
+          return prev - 1
+        })
+      }, 1000)
+      return () => clearInterval(timer)
     } else {
-      audioManager.playSfx('ui_reward')
+      setTimeLeft(20)
     }
-
-    setIsSubmitting(false)
-    setResultAudioPlayed(true)
-  }, [duelFinished, iWon, iLost, isDraw, audioReady, resultAudioPlayed])
+  }, [duel?.status, resolutionStage, isSubmitting, duel?.turn_number])
 
   const handleSpellSubmit = async () => {
     if (!selectedSpell || isSubmitting) return
@@ -229,14 +239,16 @@ export default function DuelRoom() {
       setIsSubmitting(false)
     } else {
       audioManager.playVoice('spell_confirmed', { cooldownMs: 15000 })
-      setSelectedSpell(null)
-      // Note: isSubmitting is kept true until event arrives or error
+      // We don't set isSubmitting false here, we wait for the resolution
     }
   }
 
   const nextTurn = () => {
     setResolutionStage('idle')
     setLastEvent(null)
+    setIsSubmitting(false) // CRITICAL: Reset submission state
+    setSelectedSpell(null)
+    setTimeLeft(20)
     audioManager.playSfx('ui_button_magic')
 
     // Contextual Turn Start Voice
@@ -265,29 +277,25 @@ export default function DuelRoom() {
   )
 
   return (
-    <main className="min-h-screen bg-magical-navy text-white pb-20 relative overflow-hidden">
+    <main className="h-screen bg-magical-navy text-white flex flex-col overflow-hidden relative">
       
-      {/* Header Info - Premium Stat Bar */}
-      <div className="max-w-7xl mx-auto px-4 pt-4 md:pt-8 space-y-6">
-        <div className="flex justify-between items-center bg-night-blue/60 backdrop-blur-xl p-3 md:p-6 rounded-2xl md:rounded-[2rem] border border-magical-gold/20 shadow-2xl">
-          <div className="flex-1 min-w-0">
-            <HealthBar label="Rival" value={rivalHp} house={duel?.mode === 'ai' ? 'ai' : rivalHouse} />
+      {/* Header Info - Ultra Compact */}
+      <div className="px-4 py-2 bg-night-blue/80 border-b border-white/5 flex justify-between items-center gap-4">
+          <div className="flex-1">
+            <HealthBar label="Rival" value={rivalHp} house={duel?.mode === 'ai' ? 'ai' : rivalHouse} compact />
           </div>
-          
-          <div className="px-4 md:px-10 flex flex-col items-center">
-            <div className="text-[7px] md:text-[10px] font-black text-magical-gold/40 uppercase tracking-[0.4em] mb-1">Duelo</div>
-            <p className="text-magical-gold text-xs md:text-sm font-black uppercase italic tracking-widest leading-none mb-2">
-              Turno {duel?.turn_number || 1} / 12
-            </p>
-            <div className="text-xs md:text-xl font-black text-white italic tracking-tighter uppercase">VS</div>
+          <div className="flex flex-col items-center">
+            <div className={`text-xl font-black italic ${timeLeft < 5 ? 'text-impact-red animate-pulse' : 'text-magical-gold'}`}>
+               {timeLeft}s
+            </div>
           </div>
+          <div className="flex-1">
+            <HealthBar label="Tú" value={myHp} house={myHouse} compact />
+          </div>
+      </div>
 
-          <div className="flex-1 min-w-0">
-            <HealthBar label="Tu Vida" value={myHp} house={myHouse} />
-          </div>
-        </div>
-
-        {/* Arena Layer */}
+      {/* Main Arena Area - Flexible but constrained */}
+      <div className="flex-1 min-h-0 relative">
         <DuelArena 
           duel={duel} 
           lastEvent={lastEvent} 
@@ -297,47 +305,10 @@ export default function DuelRoom() {
           isP1={isP1}
         />
         
-        {/* Waiting Overlay */}
-        {duel.status === 'active' && resolutionStage === 'idle' && (
-          <section className="bg-night-blue/40 backdrop-blur-lg p-6 md:p-10 rounded-[2.5rem] border border-white/5 shadow-inner">
-            <div className="flex justify-between items-end mb-8">
-              <div>
-                <h2 className="text-magical-gold text-xs md:text-sm font-black uppercase tracking-[0.3em] mb-2">Tus Hechizos</h2>
-                <div className="flex items-center gap-3">
-                   <ZapIcon className="text-magical-gold w-5 h-5" />
-                   <p className="text-xl md:text-3xl font-black italic tracking-tighter">{myEnergy} / 5</p>
-                </div>
-              </div>
-              <button
-                disabled={!selectedSpell || isSubmitting}
-                onClick={handleSpellSubmit}
-                className={`px-8 md:px-12 py-3 md:py-5 rounded-2xl font-black uppercase italic tracking-widest transition-all duration-300 ${
-                  selectedSpell 
-                    ? 'bg-magical-gold text-magical-navy shadow-[0_10px_30px_rgba(212,175,55,0.4)] scale-105' 
-                    : 'bg-white/5 text-white/20'
-                }`}
-              >
-                {isSubmitting ? 'Lanzando...' : '¡Lanzar Hechizo!'}
-              </button>
-            </div>
-
-            <div className="grid grid-cols-2 md:grid-cols-5 gap-3 md:gap-6">
-              {Object.entries(SPELLS).map(([key, spell]) => (
-                <SpellCard
-                  key={key}
-                  spell={spell}
-                  selected={selectedSpell === key}
-                  onClick={() => setSelectedSpell(key)}
-                  disabled={myEnergy < spell.cost || isSubmitting}
-                />
-              ))}
-            </div>
-          </section>
-        )}
-
+        {/* Cinematic Stage Overlays */}
         {resolutionStage === 'narrative' && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-magical-navy/80 backdrop-blur-md">
-            <div className="w-full max-w-xl">
+          <div className="absolute inset-0 z-50 flex items-center justify-center p-4 bg-magical-navy/80 backdrop-blur-md">
+            <div className="w-full max-w-xl animate-in fade-in zoom-in duration-300">
               <DuelTurnAnnouncement 
                 lastEvent={lastEvent} 
                 isP1={isP1} 
@@ -348,77 +319,69 @@ export default function DuelRoom() {
         )}
       </div>
 
-      {/* Cinematic End Game Overlay */}
-      {showResult && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 md:p-8 overflow-hidden">
-           <div className="absolute inset-0 bg-magical-navy/95 backdrop-blur-3xl" />
-           
-           <div className="relative w-full max-w-2xl text-center space-y-12 animate-in fade-in zoom-in duration-1000">
-              
-              <div className={`absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[300px] md:w-[600px] h-[300px] md:h-[600px] rounded-full blur-[100px] md:blur-[160px] opacity-20 ${
-                iWon ? 'bg-healing-green' : iLost ? 'bg-impact-red' : 'bg-magical-gold'
-              }`} />
+      {/* Spell Selection Area - Compact & Non-Scrollable */}
+      <section className="bg-night-blue/90 backdrop-blur-xl border-t border-magical-gold/20 p-4 pb-8 shadow-[0_-20px_50px_rgba(0,0,0,0.5)]">
+        <div className="max-w-4xl mx-auto space-y-4">
+          <div className="flex justify-between items-center">
+            <div className="flex items-center gap-3">
+               <ZapIcon className="text-magical-gold w-4 h-4" />
+               <p className="text-lg font-black italic">{myEnergy} / 5</p>
+               <span className="text-[10px] text-white/30 uppercase font-black tracking-widest ml-2">Energía</span>
+            </div>
+            <button
+              disabled={!selectedSpell || isSubmitting}
+              onClick={handleSpellSubmit}
+              className={`px-8 py-3 rounded-xl font-black uppercase italic tracking-widest text-sm transition-all duration-300 ${
+                selectedSpell 
+                  ? 'bg-magical-gold text-magical-navy shadow-lg scale-105 active:scale-95' 
+                  : 'bg-white/5 text-white/20'
+              }`}
+            >
+              {isSubmitting ? 'Esperando...' : 'Lanzar'}
+            </button>
+          </div>
 
-              <div className="space-y-6 relative z-10">
+          <div className="grid grid-cols-5 md:grid-cols-10 gap-2">
+            {Object.entries(SPELLS).map(([key, spell]) => (
+              <SpellCard
+                key={key}
+                spell={spell}
+                selected={selectedSpell === key}
+                onClick={() => setSelectedSpell(key)}
+                disabled={myEnergy < spell.cost || isSubmitting}
+                compact
+              />
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Result Overlay */}
+      {showResult && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-magical-navy/95 backdrop-blur-3xl animate-in fade-in duration-500">
+           <div className="relative w-full max-w-2xl text-center space-y-8">
+              <div className="space-y-4">
                 {iWon ? (
-                  <>
-                    <div className="inline-flex p-6 md:p-8 rounded-full bg-healing-green/10 border border-healing-green/30 mb-8 animate-bounce-slow">
-                      <Trophy className="w-16 md:w-24 h-16 md:h-24 text-healing-green drop-shadow-[0_0_20px_rgba(34,197,94,0.5)]" />
-                    </div>
-                    <h1 className="text-6xl md:text-8xl font-black italic tracking-tighter text-white uppercase drop-shadow-2xl">¡Victoria!</h1>
-                    <p className="text-healing-green text-sm md:text-xl font-bold tracking-[0.3em] uppercase">Has dominado el duelo mágico</p>
-                  </>
+                  <h1 className="text-6xl font-black italic text-white uppercase drop-shadow-2xl">¡Victoria!</h1>
                 ) : iLost ? (
-                  <>
-                    <div className="inline-flex p-6 md:p-8 rounded-full bg-impact-red/10 border border-impact-red/30 mb-8">
-                      <Skull className="w-16 md:w-24 h-16 md:h-24 text-impact-red drop-shadow-[0_0_20px_rgba(239,68,68,0.5)]" />
-                    </div>
-                    <h1 className="text-6xl md:text-8xl font-black italic tracking-tighter text-white uppercase drop-shadow-2xl">Derrota</h1>
-                    <p className="text-impact-red text-sm md:text-xl font-bold tracking-[0.3em] uppercase">El rival ha sido superior esta vez</p>
-                  </>
+                  <h1 className="text-6xl font-black italic text-white uppercase drop-shadow-2xl">Derrota</h1>
                 ) : (
-                  <>
-                    <div className="inline-flex p-6 md:p-8 rounded-full bg-magical-gold/10 border border-magical-gold/30 mb-8">
-                      <Repeat className="w-16 md:w-24 h-16 md:h-24 text-magical-gold" />
-                    </div>
-                    <h1 className="text-6xl md:text-8xl font-black italic tracking-tighter text-white uppercase tracking-tighter">Empate</h1>
-                    <p className="text-magical-gold text-sm md:text-xl font-bold tracking-[0.3em] uppercase">Ambos magos resistieron</p>
-                  </>
+                  <h1 className="text-6xl font-black italic text-white uppercase drop-shadow-2xl">Empate</h1>
                 )}
               </div>
 
-              <div className="bg-white/5 border border-white/10 rounded-3xl p-6 md:p-8 space-y-4 relative z-10">
-                 <p className="text-text-gray uppercase text-[10px] md:text-xs font-black tracking-widest">Recompensa Obtenida</p>
+              <div className="bg-white/5 border border-white/10 rounded-3xl p-6">
+                 <p className="text-text-gray uppercase text-xs font-black tracking-widest mb-4">Fragmentos Obtenidos</p>
                  <div className="flex items-center justify-center gap-4">
-                    <img src="/assets/items/shard_magical.png" className="w-10 md:w-16 h-10 md:h-16 drop-shadow-2xl" alt="Shard" />
-                    <span className="text-4xl md:text-6xl font-black italic tracking-tighter">
-                       +{iWon ? '15' : iLost ? '5' : '8'}
-                    </span>
-                    <span className="text-magical-gold font-black uppercase text-xs md:text-sm tracking-widest">Fragmentos</span>
+                    <img src="/assets/items/shard_magical.png" className="w-12 h-12" alt="Shard" />
+                    <span className="text-5xl font-black italic">+{iWon ? '15' : iLost ? '5' : '8'}</span>
                  </div>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 relative z-10">
-                <button
-                  onClick={() => navigate('/duelos')}
-                  className="flex items-center justify-center gap-2 bg-white/10 hover:bg-white/20 px-8 py-5 rounded-2xl font-black uppercase tracking-widest transition-all text-xs"
-                >
-                  <Home className="w-4 h-4" /> Inicio
-                </button>
-                <button
-                  onClick={() => navigate('/duelos/ranking')}
-                  className="flex items-center justify-center gap-2 bg-white/10 hover:bg-white/20 px-8 py-5 rounded-2xl font-black uppercase tracking-widest transition-all text-xs"
-                >
-                  <BarChart3 className="w-4 h-4" /> Ranking
-                </button>
-                <button
-                  onClick={() => navigate('/duelos/retar')}
-                  className="flex items-center justify-center gap-2 bg-magical-gold text-magical-navy px-8 py-5 rounded-2xl font-black uppercase tracking-widest transition-all shadow-xl text-xs"
-                >
-                  <Swords className="w-4 h-4" /> Nuevo Duelo
-                </button>
+              <div className="grid grid-cols-2 gap-3">
+                <button onClick={() => navigate('/duelos')} className="bg-white/10 px-6 py-4 rounded-xl font-black uppercase text-xs">Inicio</button>
+                <button onClick={() => navigate('/duelos/retar')} className="bg-magical-gold text-magical-navy px-6 py-4 rounded-xl font-black uppercase text-xs">Nuevo Duelo</button>
               </div>
-
            </div>
         </div>
       )}
