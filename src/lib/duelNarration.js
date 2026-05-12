@@ -15,7 +15,7 @@ const FAMILY_EXPLANATIONS = {
   'control_beats_defense': 'Los hechizos de control rompen defensas reduciendo su efectividad.',
   'counter_beats_control': 'El contrahechizo anuló el efecto de control antes de que hiciera efecto.',
   'heavy_beats_heal': 'El ataque pesado interrumpió la curación antes de estabilizarse.',
-  'heavy_beats_charge': 'El ataque pesado castigó severamente el intento de cargar energía.',
+  'heavy_beats_charge': 'El ataque pesado castigó severamente el intento de carga.',
   'disarm_beats_heavy': 'El desarme interrumpió el flujo de un ataque pesado.',
   'attack_beats_charge': 'El ataque directo castigó al rival mientras reunía energía.',
   'heal_beats_defense': 'La curación aprovechó la pausa defensiva para restaurar vida.',
@@ -33,7 +33,8 @@ export function buildTurnAnnouncement({ payload, isP1 }) {
     penalty: payload.p1_penalty,
     heal: payload.p1_heal,
     cost: payload.p1_energy_cost || 0,
-    gain: payload.p1_energy_gain || 0
+    gain: payload.p1_energy_gain || 0,
+    interrupted: payload.p1_interrupted || false
   }
 
   const p2 = {
@@ -44,7 +45,8 @@ export function buildTurnAnnouncement({ payload, isP1 }) {
     penalty: payload.p2_penalty,
     heal: payload.p2_heal,
     cost: payload.p2_energy_cost || 0,
-    gain: payload.p2_energy_gain || 0
+    gain: payload.p2_energy_gain || 0,
+    interrupted: payload.p2_interrupted || false
   }
 
   const my = isP1 ? p1 : p2
@@ -52,7 +54,6 @@ export function buildTurnAnnouncement({ payload, isP1 }) {
 
   if (!my.spell || !rival.spell) return null
 
-  // Determination of tone and effectiveness
   const myWon = my.spell.beats.includes(rival.spell.family)
   const rivalWon = rival.spell.beats.includes(my.spell.family)
 
@@ -64,6 +65,7 @@ export function buildTurnAnnouncement({ payload, isP1 }) {
   if (myWon && !rivalWon) {
     tone = 'good'
     result = EFFECTIVENESS.SUPER
+    if (rival.interrupted) result = EFFECTIVENESS.PUNISH
   } else if (rivalWon && !myWon) {
     tone = 'bad'
     result = EFFECTIVENESS.WEAK
@@ -83,7 +85,8 @@ export function buildTurnAnnouncement({ payload, isP1 }) {
     : `${my.spell.name} es de tipo ${my.spell.family}, mientras que ${rival.spell.name} es de tipo ${rival.spell.family}.`
 
   if (my.heal > 0) explanation += ` ¡Recuperaste ${my.heal} HP!`
-  if (rival.heal > 0) explanation += ` El rival recuperó ${rival.heal} HP.`
+  if (my.interrupted) explanation += ` ¡Tu carga de energía fue interrumpida!`
+  if (rival.interrupted) explanation += ` ¡Interrumpiste la carga del rival!`
 
   return {
     title,
@@ -102,14 +105,16 @@ export function buildTurnAnnouncement({ payload, isP1 }) {
       block: rival.blocked,
       heal: my.heal,
       energyCost: my.cost,
-      energyGain: my.gain
+      energyGain: my.gain,
+      interrupted: my.interrupted
     },
     rivalBreakdown: {
       base: rival.spell.damage || 0,
       bonus: rival.bonus,
       penalty: rival.penalty,
       block: my.blocked,
-      heal: rival.heal
+      heal: rival.heal,
+      interrupted: rival.interrupted
     },
     effectivenessLabel: result
   }

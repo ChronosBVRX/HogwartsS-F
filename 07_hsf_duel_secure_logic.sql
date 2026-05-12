@@ -1,6 +1,6 @@
 
 -- ==========================================
--- 2. LÓGICA DE CÁLCULO DE DAÑO (CORRECCIÓN DE VENTAJA Y ENERGÍA)
+-- 2. LÓGICA DE CÁLCULO DE DAÑO (MEJORA: MECÁNICA DE INTERRUPCIÓN)
 -- ==========================================
 
 create or replace function hsf_resolve_duel_turn(p_duel_id uuid, p_turn_number int)
@@ -22,6 +22,8 @@ declare
   v_p1_penalty int := 0; v_p2_penalty int := 0;
   
   v_s1_final_blk int := 0; v_s2_final_blk int := 0;
+  v_s1_final_gain int := 0; v_s2_final_gain int := 0;
+  v_p1_interrupted boolean := false; v_p2_interrupted boolean := false;
   
   v_adv_bonus int := 14;
   v_dis_penalty int := 8;
@@ -82,19 +84,38 @@ begin
     else v_s2_dmg := 10; v_s2_fam := 'attack'; v_s2_cost := 1;
   end case;
 
-  -- 4. Cálculo de Modificadores (Ventaja solo aplica si hay daño base)
+  -- 4. Cálculo de Ventajas y Mecánica de Interrupción
+  -- P1 Ataca a P2
   if v_s2_fam = any(v_s1_beats) then 
     if v_s1_dmg > 0 then v_p1_bonus := v_adv_bonus; end if;
     v_s2_final_blk := floor(v_s2_blk * 0.5);
+    
+    -- Si P2 está cargando y P1 lo vence con attack/heavy, se interrumpe
+    if v_s2_fam = 'charge' and (v_s1_fam = 'attack' or v_s1_fam = 'heavy') then
+      v_p2_interrupted := true;
+      v_s2_final_gain := 0;
+    else
+      v_s2_final_gain := v_s2_gain;
+    end if;
   else
     v_s2_final_blk := v_s2_blk;
+    v_s2_final_gain := v_s2_gain;
   end if;
   
+  -- P2 Ataca a P1
   if v_s1_fam = any(v_s2_beats) then 
     if v_s2_dmg > 0 then v_p2_bonus := v_adv_bonus; end if;
     v_s1_final_blk := floor(v_s1_blk * 0.5);
+    
+    if v_s1_fam = 'charge' and (v_s2_fam = 'attack' or v_s2_fam = 'heavy') then
+      v_p1_interrupted := true;
+      v_s1_final_gain := 0;
+    else
+      v_s1_final_gain := v_s1_gain;
+    end if;
   else
     v_s1_final_blk := v_s1_blk;
+    v_s1_final_gain := v_s1_gain;
   end if;
 
   if v_s2_fam = any(v_s1_loses) then v_p1_penalty := v_dis_penalty; end if;
@@ -109,13 +130,13 @@ begin
   set 
     player_one_hp = least(100, greatest(0, player_one_hp - v_p2_final_dmg + v_s1_heal)),
     player_two_hp = least(100, greatest(0, player_two_hp - v_p1_final_dmg + v_s2_heal)),
-    player_one_energy = least(5, greatest(0, player_one_energy - v_s1_cost + v_s1_gain)),
-    player_two_energy = least(5, greatest(0, player_two_energy - v_s2_cost + v_s2_gain)),
+    player_one_energy = least(5, greatest(0, player_one_energy - v_s1_cost + v_s1_final_gain)),
+    player_two_energy = least(5, greatest(0, player_two_energy - v_s2_cost + v_s2_final_gain)),
     turn_number = turn_number + 1
   where id = p_duel_id
   returning * into v_duel;
 
-  -- 6. Registrar Evento (Nombres de llaves corregidos para el frontend)
+  -- 6. Registrar Evento
   insert into hsf_duel_events (duel_id, turn_number, event_type, payload)
   values (p_duel_id, p_turn_number, 'turn_resolved', jsonb_build_object(
     'p1_spell', v_p1_turn.spell_key, 'p2_spell', v_p2_spell_key,
@@ -123,10 +144,11 @@ begin
     'p1_blocked', v_s1_final_blk, 'p2_blocked', v_s2_final_blk,
     'p1_heal', v_s1_heal, 'p2_heal', v_s2_heal,
     'p1_energy_cost', v_s1_cost, 'p2_energy_cost', v_s2_cost,
-    'p1_energy_gain', v_s1_gain, 'p2_energy_gain', v_s2_gain,
+    'p1_energy_gain', v_s1_final_gain, 'p2_energy_gain', v_s2_final_gain,
+    'p1_interrupted', v_p1_interrupted, 'p2_interrupted', v_p2_interrupted,
     'p1_bonus', v_p1_bonus, 'p2_bonus', v_p2_bonus,
     'p1_penalty', v_p1_penalty, 'p2_penalty', v_p2_penalty,
-    'message', '¡Impacto mágico procesado!'
+    'message', '¡Turno resuelto!'
   ));
 
   -- 7. Fin de duelo

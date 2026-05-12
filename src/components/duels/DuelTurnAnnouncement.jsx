@@ -1,6 +1,6 @@
 import React from 'react'
 import { buildTurnAnnouncement } from '../../lib/duelNarration'
-import { Zap, Heart, Shield, Swords } from 'lucide-react'
+import { Zap, Heart, Shield, Swords, AlertTriangle } from 'lucide-react'
 
 export default function DuelTurnAnnouncement({ lastEvent, isP1, onContinue }) {
   const announcement = buildTurnAnnouncement({
@@ -77,21 +77,28 @@ export default function DuelTurnAnnouncement({ lastEvent, isP1, onContinue }) {
       <div className="flex flex-col md:flex-row gap-4">
         <div className="flex-1 bg-night-blue/60 rounded-2xl p-4 border border-magical-gold/20 flex items-center justify-between">
            <div className="flex items-center gap-3">
-             <div className="w-10 h-10 rounded-xl bg-magical-gold/10 flex items-center justify-center border border-magical-gold/30">
-               <Zap className="w-5 h-5 text-magical-gold" />
+             <div className={`w-10 h-10 rounded-xl flex items-center justify-center border ${announcement.myBreakdown.interrupted ? 'bg-impact-red/10 border-impact-red/30' : 'bg-magical-gold/10 border-magical-gold/30'}`}>
+               {announcement.myBreakdown.interrupted ? <AlertTriangle className="w-5 h-5 text-impact-red" /> : <Zap className="w-5 h-5 text-magical-gold" />}
              </div>
              <div>
-               <p className="text-[10px] font-black text-magical-gold uppercase tracking-widest">Energía</p>
+               <p className={`text-[10px] font-black uppercase tracking-widest ${announcement.myBreakdown.interrupted ? 'text-impact-red' : 'text-magical-gold'}`}>
+                 {announcement.myBreakdown.interrupted ? 'Carga Interrumpida' : 'Energía'}
+               </p>
                <p className="text-xs font-bold text-white">
                  {announcement.myBreakdown.energyCost > 0 && `Gasto: -${announcement.myBreakdown.energyCost}`}
-                 {announcement.myBreakdown.energyGain > 0 && ` Carga: +${announcement.myBreakdown.energyGain}`}
+                 {announcement.myBreakdown.energyGain > 0 && !announcement.myBreakdown.interrupted && ` Carga: +${announcement.myBreakdown.energyGain}`}
+                 {announcement.myBreakdown.interrupted && ` Carga anulada`}
                </p>
              </div>
            </div>
            <div className="text-right">
-             <p className="text-xl font-black text-white">
-               {(announcement.myBreakdown.energyGain || 0) - (announcement.myBreakdown.energyCost || 0) >= 0 ? '+' : ''}
-               {(announcement.myBreakdown.energyGain || 0) - (announcement.myBreakdown.energyCost || 0)}
+             <p className={`text-xl font-black ${announcement.myBreakdown.interrupted ? 'text-impact-red' : 'text-white'}`}>
+               {announcement.myBreakdown.interrupted ? '+0' : (
+                 <>
+                   {(announcement.myBreakdown.energyGain || 0) - (announcement.myBreakdown.energyCost || 0) >= 0 ? '+' : ''}
+                   {(announcement.myBreakdown.energyGain || 0) - (announcement.myBreakdown.energyCost || 0)}
+                 </>
+               )}
              </p>
            </div>
         </div>
@@ -133,6 +140,7 @@ function BreakdownCard({ label, total, details, isAttacker, heal }) {
         {details.bonus > 0 && <StatRow label="Bonus Estratégico" value={`+${details.bonus}`} color="text-healing-green" />}
         {details.penalty > 0 && <StatRow label="Penalización" value={`-${details.penalty}`} color="text-impact-red" />}
         {details.block > 0 && <StatRow label="Defensa Rival" value={`-${details.block}`} color="text-spell-blue" />}
+        {details.interrupted && <StatRow label="Acción Interrumpida" value="SÍ" color="text-impact-red" />}
       </div>
       
       {/* Subtle background icon */}
