@@ -4,6 +4,7 @@ import { supabase } from '../../lib/supabase'
 import { useAuth } from '../../context/AuthContext'
 import { Copy, Check, Shield, Zap, ChevronLeft, Loader2, Wand2 } from 'lucide-react'
 import audioManager from '../../lib/audioManager'
+import { normalizeHouseSlug, HOUSE_META } from '../../lib/houses'
 
 export default function DuelWaitingRoom() {
   const { duelId } = useParams()
@@ -229,10 +230,11 @@ function PlayerCard({ profile, isReady, label, isMe, waiting }) {
     neutral: 'from-slate-600/20 to-slate-900/40 border-slate-500/30'
   }
 
-  const house = profile?.house_slug || 'neutral'
+  const normHouse = normalizeHouseSlug(profile?.house_slug)
+  const meta = HOUSE_META[normHouse] || { icon: '🧙‍♂️', avatar: null }
 
   return (
-    <div className={`glass-card p-6 border transition-all duration-500 bg-gradient-to-br ${waiting ? 'bg-white/5 border-white/5 opacity-50' : houseColors[house]}`}>
+    <div className={`glass-card p-6 border transition-all duration-500 bg-gradient-to-br ${waiting ? 'bg-white/5 border-white/5 opacity-50' : houseColors[normHouse] || houseColors.neutral}`}>
       <div className="flex flex-col items-center text-center space-y-3">
         <span className="text-[10px] font-black uppercase tracking-widest text-white/40">{label}</span>
         
@@ -244,7 +246,7 @@ function PlayerCard({ profile, isReady, label, isMe, waiting }) {
                <div className="h-2 w-2 bg-white/20 rounded-full"></div>
              </div>
            ) : (
-             <img src={`/assets/houses/${house}.png`} className="w-10 h-10 object-contain drop-shadow-md" alt={house} />
+             <div className="text-3xl drop-shadow-md">{meta.icon}</div>
            )}
         </div>
 

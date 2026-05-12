@@ -307,7 +307,7 @@ export default function DuelRoom() {
         
         {/* Cinematic Stage Overlays */}
         {resolutionStage === 'narrative' && (
-          <div className="absolute inset-0 z-50 flex items-center justify-center p-4 bg-magical-navy/80 backdrop-blur-md">
+          <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-magical-navy/90 backdrop-blur-md overflow-y-auto pt-20 pb-12">
             <div className="w-full max-w-xl animate-in fade-in zoom-in duration-300">
               <DuelTurnAnnouncement 
                 lastEvent={lastEvent} 
@@ -320,41 +320,43 @@ export default function DuelRoom() {
       </div>
 
       {/* Spell Selection Area - Compact & Non-Scrollable */}
-      <section className="bg-night-blue/90 backdrop-blur-xl border-t border-magical-gold/20 p-4 pb-8 shadow-[0_-20px_50px_rgba(0,0,0,0.5)]">
-        <div className="max-w-4xl mx-auto space-y-4">
-          <div className="flex justify-between items-center">
-            <div className="flex items-center gap-3">
-               <ZapIcon className="text-magical-gold w-4 h-4" />
-               <p className="text-lg font-black italic">{myEnergy} / 5</p>
-               <span className="text-[10px] text-white/30 uppercase font-black tracking-widest ml-2">Energía</span>
+      {!duelFinished && resolutionStage === 'idle' && (
+        <section className="bg-night-blue/90 backdrop-blur-xl border-t border-magical-gold/20 p-4 pb-8 shadow-[0_-20px_50px_rgba(0,0,0,0.5)]">
+          <div className="max-w-4xl mx-auto space-y-4">
+            <div className="flex justify-between items-center">
+              <div className="flex items-center gap-3">
+                 <ZapIcon className="text-magical-gold w-4 h-4" />
+                 <p className="text-lg font-black italic">{myEnergy} / 5</p>
+                 <span className="text-[10px] text-white/30 uppercase font-black tracking-widest ml-2">Energía</span>
+              </div>
+              <button
+                disabled={!selectedSpell || isSubmitting}
+                onClick={handleSpellSubmit}
+                className={`px-8 py-3 rounded-xl font-black uppercase italic tracking-widest text-sm transition-all duration-300 ${
+                  selectedSpell 
+                    ? 'bg-magical-gold text-magical-navy shadow-lg scale-105 active:scale-95' 
+                    : 'bg-white/5 text-white/20'
+                }`}
+              >
+                {isSubmitting ? 'Esperando...' : 'Lanzar'}
+              </button>
             </div>
-            <button
-              disabled={!selectedSpell || isSubmitting}
-              onClick={handleSpellSubmit}
-              className={`px-8 py-3 rounded-xl font-black uppercase italic tracking-widest text-sm transition-all duration-300 ${
-                selectedSpell 
-                  ? 'bg-magical-gold text-magical-navy shadow-lg scale-105 active:scale-95' 
-                  : 'bg-white/5 text-white/20'
-              }`}
-            >
-              {isSubmitting ? 'Esperando...' : 'Lanzar'}
-            </button>
-          </div>
 
-          <div className="grid grid-cols-5 md:grid-cols-10 gap-2">
-            {Object.entries(SPELLS).map(([key, spell]) => (
-              <SpellCard
-                key={key}
-                spell={spell}
-                selected={selectedSpell === key}
-                onClick={() => setSelectedSpell(key)}
-                disabled={myEnergy < spell.cost || isSubmitting}
-                compact
-              />
-            ))}
+            <div className="grid grid-cols-5 md:grid-cols-10 gap-2">
+              {Object.entries(SPELLS).map(([key, spell]) => (
+                <SpellCard
+                  key={key}
+                  spell={spell}
+                  selected={selectedSpell === key}
+                  onClick={() => setSelectedSpell(key)}
+                  disabled={myEnergy < spell.cost || isSubmitting}
+                  compact
+                />
+              ))}
+            </div>
           </div>
-        </div>
-      </section>
+        </section>
+      )}
 
       {/* Result Overlay */}
       {showResult && (

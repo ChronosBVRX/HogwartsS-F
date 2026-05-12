@@ -4,7 +4,7 @@ const EFFECTIVENESS = {
   SUPER: '¡Fue muy efectivo!',
   NEUTRAL: 'Ambos hechizos chocaron sin ventaja clara.',
   WEAK: 'No fue muy efectivo...',
-  BLOCK: 'El rival leyó tu movimiento.',
+  BLOCK: '¡Defensa Exitosa!',
   PUNISH: 'Tu hechizo castigó la carga del rival.',
   CRITICAL: '¡Un impacto devastador!'
 }
@@ -92,10 +92,12 @@ export function buildTurnAnnouncement({ payload, isP1 }) {
   } else if (rivalWon && !myWon) {
     tone = 'bad'
     result = EFFECTIVENESS.WEAK
-  } else if (((isP1 ? p1_damage : p2_damage) === 0) && my.spell.block > 0) {
-    // Fixed precedence bug: (damage === 0) && block > 0
+  } else if (my.damage === 0 && my.spell.block > 0) {
     tone = 'good'
-    result = EFFECTIVENESS.BLOCK
+    result = '¡Defensa Exitosa!'
+  } else if (rival.damage === 0 && rival.spell.block > 0) {
+    tone = 'bad'
+    result = 'El rival se defendió'
   }
 
   const key = myWon
