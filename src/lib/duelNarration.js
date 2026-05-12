@@ -30,6 +30,12 @@ export function buildTurnAnnouncement({ payload, isP1 }) {
 
   const myDamageTaken = isP1 ? payload.p1_damage : payload.p2_damage
   const rivalDamageTaken = isP1 ? payload.p2_damage : payload.p1_damage
+  
+  const myHeal = isP1 ? payload.p1_heal : payload.p2_heal
+  const rivalHeal = isP1 ? payload.p2_heal : payload.p1_heal
+
+  const myEnergyCost = isP1 ? payload.p1_energy_cost : payload.p2_energy_cost
+  const myEnergyGain = isP1 ? payload.p1_energy_gain : payload.p2_energy_gain
 
   const mySpell = SPELLS[mySpellKey]
   const rivalSpell = SPELLS[rivalSpellKey]
@@ -61,23 +67,31 @@ export function buildTurnAnnouncement({ payload, isP1 }) {
       ? `${rivalSpell.family}_beats_${mySpell.family}`
       : null
 
-  const explanation = key && FAMILY_EXPLANATIONS[key]
+  let explanation = key && FAMILY_EXPLANATIONS[key]
     ? FAMILY_EXPLANATIONS[key]
     : `${mySpell.name} es de tipo ${mySpell.family}, mientras que ${rivalSpell.name} es de tipo ${rivalSpell.family}.`
 
-  // Build Breakdown (Simplified reconstruction for UI)
+  // Add healing info to explanation if significant
+  if (myHeal > 0) explanation += ` ¡Recuperaste ${myHeal} HP!`
+  if (rivalHeal > 0) explanation += ` El rival recuperó ${rivalHeal} HP.`
+  if (myEnergyGain > 0) explanation += ` ¡Obtuviste +${myEnergyGain} de energía!`
+
+  // Build Breakdown
   const myBreakdown = {
     base: mySpell.damage || 0,
     bonus: myWon ? 14 : 0,
     penalty: rivalWon ? 8 : (mySpell.family === rivalSpell.family ? 6 : 0),
-    block: rivalSpell.block || 0
+    block: rivalSpell.block || 0,
+    heal: myHeal || 0,
+    energyChange: myEnergyGain - myEnergyCost
   }
 
   const rivalBreakdown = {
     base: rivalSpell.damage || 0,
     bonus: rivalWon ? 14 : 0,
     penalty: myWon ? 8 : (mySpell.family === rivalSpell.family ? 6 : 0),
-    block: mySpell.block || 0
+    block: mySpell.block || 0,
+    heal: rivalHeal || 0
   }
 
   return {
@@ -92,6 +106,8 @@ export function buildTurnAnnouncement({ payload, isP1 }) {
     rivalDamageTaken,
     myBreakdown,
     rivalBreakdown,
-    effectivenessLabel: result
+    effectivenessLabel: result,
+    myHeal,
+    rivalHeal
   }
 }

@@ -55,14 +55,14 @@ export default function DuelTurnAnnouncement({ lastEvent, isP1, onContinue }) {
       {/* Numerical Breakdown */}
       <div className="grid grid-cols-2 gap-4 mb-8">
         <BreakdownCard 
-          label="Tu Ataque" 
-          total={announcement.rivalDamageTaken} 
+          label="Tu Resultado" 
+          total={-announcement.rivalDamageTaken} 
           details={announcement.myBreakdown}
           isAttacker={true}
         />
         <BreakdownCard 
-          label="Ataque Rival" 
-          total={announcement.myDamageTaken} 
+          label="Resultado Rival" 
+          total={-announcement.myDamageTaken} 
           details={announcement.rivalBreakdown}
           isAttacker={false}
         />
@@ -85,14 +85,28 @@ function BreakdownCard({ label, total, details, isAttacker }) {
     <div className="bg-black/60 rounded-2xl p-4 border border-white/5 space-y-3">
       <div className="flex justify-between items-end border-b border-white/5 pb-2">
         <p className="text-[8px] md:text-[10px] uppercase tracking-widest text-white/30 font-black">{label}</p>
-        <p className={`text-xl md:text-2xl font-black ${colorClass}`}>-{total}</p>
+        <div className="text-right">
+           <p className={`text-xl md:text-2xl font-black ${colorClass}`}>{total > 0 ? `+${total}` : total}</p>
+           {details.heal > 0 && <p className="text-[9px] font-bold text-healing-green">+{details.heal} HP 💖</p>}
+        </div>
       </div>
       
       <div className="space-y-1">
-        <StatRow label="Base" value={details.base} />
+        {details.base > 0 && <StatRow label="Base" value={details.base} />}
         {details.bonus > 0 && <StatRow label="Ventaja" value={`+${details.bonus}`} color="text-healing-green" />}
         {details.penalty > 0 && <StatRow label="Penalización" value={`-${details.penalty}`} color="text-impact-red" />}
         {details.block > 0 && <StatRow label="Bloqueo" value={`-${details.block}`} color="text-spell-blue" />}
+        
+        {/* Energy info for player */}
+        {details.energyChange !== undefined && (
+          <div className="pt-2 border-t border-white/5 mt-2">
+            <StatRow 
+              label="Energía" 
+              value={details.energyChange >= 0 ? `+${details.energyChange}` : details.energyChange} 
+              color={details.energyChange >= 0 ? "text-magical-gold" : "text-white/40"} 
+            />
+          </div>
+        )}
       </div>
     </div>
   )
