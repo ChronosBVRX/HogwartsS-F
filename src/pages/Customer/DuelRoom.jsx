@@ -205,8 +205,7 @@ export default function DuelRoom() {
     }
   }, [duelId])
 
-  const [timeLeft, setTimeLeft] = useState(20)
-  
+
   // Timer logic
   useEffect(() => {
     if (duel?.status === 'active' && resolutionStage === 'idle' && !isSubmitting) {

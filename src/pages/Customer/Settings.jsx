@@ -2,18 +2,17 @@ import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { supabase } from '../../lib/supabase'
 import { useAuth } from '../../context/AuthContext'
-import { ChevronLeft, User, Lock, LogOut, Save, Wand2, CheckCircle2 } from 'lucide-react'
+import { ChevronLeft, User, Lock, LogOut, Save, Wand2, CheckCircle } from 'lucide-react'
 
 export default function Settings() {
   const { user, profile, signOut } = useAuth()
   const [displayName, setDisplayName] = useState(profile?.display_name || '')
   const [phone, setPhone] = useState(profile?.phone || '')
+  const [gender, setGender] = useState(profile?.gender || 'male')
   const [newPassword, setNewPassword] = useState('')
   const [loading, setLoading] = useState(false)
   const [message, setMessage] = useState(null)
   const navigate = useNavigate()
-
-  const [gender, setGender] = useState(profile?.gender || 'male')
 
   const handleUpdateProfile = async (e) => {
     e.preventDefault()
@@ -33,8 +32,7 @@ export default function Settings() {
     if (error) {
       setMessage({ type: 'error', text: 'Error al actualizar perfil' })
     } else {
-      setMessage({ type: 'success', text: 'Perfil actualizado correctamente' })
-      // Reload profile from context if possible or just wait for effect
+      setMessage({ type: 'success', text: 'Identidad mágica actualizada correctamente' })
       setTimeout(() => window.location.reload(), 1500)
     }
     setLoading(false)
@@ -75,7 +73,7 @@ export default function Settings() {
         <div className={`p-4 rounded-2xl flex items-center gap-3 animate-in slide-in-from-top-4 ${
           message.type === 'success' ? 'bg-green-500/10 text-green-400 border border-green-500/20' : 'bg-red-500/10 text-red-400 border border-red-500/20'
         }`}>
-          <CheckCircle2 className="w-5 h-5" />
+          <CheckCircle className="w-5 h-5" />
           <p className="text-sm font-bold">{message.text}</p>
         </div>
       )}
