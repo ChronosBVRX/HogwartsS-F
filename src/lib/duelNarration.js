@@ -95,8 +95,11 @@ export function buildTurnAnnouncement({ payload, isP1 }) {
   // 2. Razón de Daño y Posturas
   let damageReason = ""
   if (my.damageTaken > 0) {
-    damageReason = `Recibiste ${my.damageTaken} de daño porque el ${rivalSpell.name} del rival superó tu estrategia.`
-    if (rivalWon) damageReason += ` Al ser ${FAMILY_NAMES[rivalSpell.family]}, castigó severamente tu ${mySpell.name}.`
+    if (rivalWon) {
+      damageReason = `Recibiste ${my.damageTaken} de daño porque ${rivalSpell.name} venció a tu ${mySpell.name}.`
+    } else {
+      damageReason = `Recibiste ${my.damageTaken} de daño porque el hechizo rival logró impactar, aunque no tuvo una ventaja estratégica clara.`
+    }
     if (rival.stance === 'offensive') damageReason += ` El rival usó ${STANCE_NAMES.offensive}, potenciando su golpe.`
     if (my.stance === 'offensive') damageReason += ` Tu propia postura de ${STANCE_NAMES.offensive} te dejó más expuesto.`
   } else {
