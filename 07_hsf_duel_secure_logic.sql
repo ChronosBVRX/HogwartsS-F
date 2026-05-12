@@ -94,16 +94,16 @@ begin
   if v_s1_fam = any(v_s2_loses) then v_p2_penalty := v_dis_penalty; end if;
   if v_s1_fam = v_s2_fam then v_p1_penalty := v_p1_penalty + v_same_penalty; v_p2_penalty := v_p2_penalty + v_same_penalty; end if;
 
-  v_p1_final_dmg := max(0, v_s1_dmg + v_p1_bonus - v_p1_penalty - v_s2_blk);
-  v_p2_final_dmg := max(0, v_s2_dmg + v_p2_bonus - v_p2_penalty - v_s1_blk);
+  v_p1_final_dmg := greatest(0, v_s1_dmg + v_p1_bonus - v_p1_penalty - v_s2_blk);
+  v_p2_final_dmg := greatest(0, v_s2_dmg + v_p2_bonus - v_p2_penalty - v_s1_blk);
 
   -- 5. Actualizar Duelo
   update hsf_duels
   set 
-    player_one_hp = max(0, player_one_hp - v_p2_final_dmg + (case when v_p1_turn.spell_key = 'episkey' then 18 else 0 end)),
-    player_two_hp = max(0, player_two_hp - v_p1_final_dmg + (case when v_p2_spell_key = 'episkey' then 18 else 0 end)),
-    player_one_energy = case when v_p1_turn.spell_key = 'accio' then min(5, player_one_energy + 2) else min(5, player_one_energy + 1) end,
-    player_two_energy = case when v_p2_spell_key = 'accio' then min(5, player_two_energy + 2) else min(5, player_two_energy + 1) end,
+    player_one_hp = greatest(0, player_one_hp - v_p2_final_dmg + (case when v_p1_turn.spell_key = 'episkey' then 18 else 0 end)),
+    player_two_hp = greatest(0, player_two_hp - v_p1_final_dmg + (case when v_p2_spell_key = 'episkey' then 18 else 0 end)),
+    player_one_energy = case when v_p1_turn.spell_key = 'accio' then least(5, player_one_energy + 2) else least(5, player_one_energy + 1) end,
+    player_two_energy = case when v_p2_spell_key = 'accio' then least(5, player_two_energy + 2) else least(5, player_two_energy + 1) end,
     turn_number = turn_number + 1
   where id = p_duel_id
   returning * into v_duel;
