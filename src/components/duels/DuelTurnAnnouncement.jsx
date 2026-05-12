@@ -90,8 +90,8 @@ export default function DuelTurnAnnouncement({ lastEvent, isP1, onContinue }) {
            </div>
            <div className="text-right">
              <p className="text-xl font-black text-white">
-               {announcement.myBreakdown.energyGain - announcement.myBreakdown.energyCost >= 0 ? '+' : ''}
-               {announcement.myBreakdown.energyGain - announcement.myBreakdown.energyCost}
+               {(announcement.myBreakdown.energyGain || 0) - (announcement.myBreakdown.energyCost || 0) >= 0 ? '+' : ''}
+               {(announcement.myBreakdown.energyGain || 0) - (announcement.myBreakdown.energyCost || 0)}
              </p>
            </div>
         </div>

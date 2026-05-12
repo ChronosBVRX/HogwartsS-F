@@ -32,8 +32,8 @@ export function buildTurnAnnouncement({ payload, isP1 }) {
     bonus: payload.p1_bonus,
     penalty: payload.p1_penalty,
     heal: payload.p1_heal,
-    cost: payload.p1_cost,
-    gain: payload.p1_gain
+    cost: payload.p1_energy_cost || 0,
+    gain: payload.p1_energy_gain || 0
   }
 
   const p2 = {
@@ -43,8 +43,8 @@ export function buildTurnAnnouncement({ payload, isP1 }) {
     bonus: payload.p2_bonus,
     penalty: payload.p2_penalty,
     heal: payload.p2_heal,
-    cost: payload.p2_cost,
-    gain: payload.p2_gain
+    cost: payload.p2_energy_cost || 0,
+    gain: payload.p2_energy_gain || 0
   }
 
   const my = isP1 ? p1 : p2
@@ -67,7 +67,7 @@ export function buildTurnAnnouncement({ payload, isP1 }) {
   } else if (rivalWon && !myWon) {
     tone = 'bad'
     result = EFFECTIVENESS.WEAK
-  } else if (isP1 ? payload.p2_damage === 0 : payload.p1_damage === 0 && my.spell.block > 0) {
+  } else if (isP1 ? payload.p1_damage === 0 : payload.p2_damage === 0 && my.spell.block > 0) {
     tone = 'good'
     result = EFFECTIVENESS.BLOCK
   }
