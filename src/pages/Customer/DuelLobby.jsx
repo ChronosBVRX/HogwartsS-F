@@ -23,7 +23,7 @@ export default function DuelLobby() {
     setError(null)
     const { data, error: err } = await supabase.rpc('hsf_create_pvp_duel')
     if (err) setError(err.message)
-    else if (data && data[0]) navigate(`/duelos/espera/${data[0].duel_id}`)
+    else if (data && data.duel_id) navigate(`/duelos/espera/${data.duel_id}`)
     setLoading(false)
   }
 
