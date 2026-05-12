@@ -2,15 +2,13 @@ import { useEffect, useState } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { supabase } from '../../lib/supabase'
 import { useAuth } from '../../context/AuthContext'
-import { SPELLS } from '../../lib/duelSpells'
-import { getSpellResult, getAvailableHand } from '../../lib/duelBalance'
-import { chooseAiSpell } from '../../lib/duelAi'
+import { getAvailableHand } from '../../lib/duelBalance'
 
 import DuelArena from '../../components/duels/DuelArena'
 import HealthBar from '../../components/duels/HealthBar'
 import EnergyBar from '../../components/duels/EnergyBar'
 import SpellCard from '../../components/duels/SpellCard'
-import { Wand2, Shield, Zap, ChevronLeft, Trophy, XCircle } from 'lucide-react'
+import { Clock, Trophy, XCircle } from 'lucide-react'
 
 export default function DuelRoom() {
   const { duelId } = useParams()
@@ -60,13 +58,19 @@ export default function DuelRoom() {
   }, [duel?.turn_number, isResolving])
 
   useEffect(() => {
-    if (timeLeft > 0 && !isResolving && duel?.status === 'active') {
-      const timer = setTimeout(() => setTimeLeft(timeLeft - 1), 1000)
-      return () => clearTimeout(timer)
-    } else if (timeLeft === 0 && !selectedSpell && !isResolving) {
-      handleSpellSubmit('protego') // Auto-select weak defense
+    if (!duel || duel.status !== 'active' || isResolving || selectedSpell) return
+
+    if (timeLeft <= 0) {
+      handleSpellSubmit('protego')
+      return
     }
-  }, [timeLeft, isResolving])
+
+    const timer = setTimeout(() => {
+      setTimeLeft((prev) => Math.max(prev - 1, 0))
+    }, 1000)
+
+    return () => clearTimeout(timer)
+  }, [timeLeft, isResolving, duel?.status, selectedSpell])
 
   const fetchDuel = async () => {
     const { data } = await supabase.from('hsf_duels').select('*').eq('id', duelId).single()
@@ -76,14 +80,31 @@ export default function DuelRoom() {
     }
   }
 
+  const fetchLastEvent = async () => {
+    const { data } = await supabase
+      .from('hsf_duel_events')
+      .select('*')
+      .eq('duel_id', duelId)
+      .order('created_at', { ascending: false })
+      .limit(1)
+      .maybeSingle()
+
+    if (data) {
+      setLastEvent(data)
+      triggerResolution()
+    }
+  }
+
   const triggerResolution = () => {
     setIsResolving(true)
-    setSelectedSpell(null)
-    setTimeout(() => setIsResolving(false), 3000)
+    setTimeout(() => {
+      setIsResolving(false)
+      setSelectedSpell(null)
+    }, 3000)
   }
 
   const handleSpellSubmit = async (spellKey) => {
-    if (isResolving || duel?.status !== 'active') return
+    if (isResolving || duel?.status !== 'active' || selectedSpell) return
     
     setSelectedSpell(spellKey)
 
@@ -97,10 +118,19 @@ export default function DuelRoom() {
     if (error) {
       alert('Error en el duelo: ' + error.message)
       setSelectedSpell(null)
-    } else if (data?.status === 'waiting_opponent') {
-      // PvP logic: Just wait for Realtime update
+      return
     }
+
+    console.log('Resultado RPC duelo:', data)
+
+    if (data?.status === 'waiting_opponent') {
+      return
+    }
+
+    await fetchDuel()
+    await fetchLastEvent()
   }
+
 
   if (loading) return <div className="flex-1 flex items-center justify-center font-black uppercase tracking-widest text-magical-gold animate-pulse">Entrando a la Arena...</div>
 
