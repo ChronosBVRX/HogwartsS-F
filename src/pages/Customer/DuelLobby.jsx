@@ -12,6 +12,12 @@ export default function DuelLobby() {
 
   const createDuel = async () => {
     audioManager.unlockAudio().catch(() => {})
+    try {
+      if (document.documentElement.requestFullscreen) {
+        document.documentElement.requestFullscreen().catch(() => {})
+      }
+    } catch (e) {}
+
     audioManager.playSfx('ui_button_magic')
     setLoading(true)
     setError(null)
@@ -24,6 +30,12 @@ export default function DuelLobby() {
   const joinDuel = async (e) => {
     e.preventDefault()
     audioManager.unlockAudio().catch(() => {})
+    try {
+      if (document.documentElement.requestFullscreen) {
+        document.documentElement.requestFullscreen().catch(() => {})
+      }
+    } catch (e) {}
+
     audioManager.playSfx('ui_button_magic')
     if (!inviteCode) return
     setLoading(true)

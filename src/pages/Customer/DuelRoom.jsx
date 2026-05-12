@@ -87,8 +87,21 @@ export default function DuelRoom() {
       await audioManager.unlockAudio()
       setAudioReady(true)
       audioManager.playAmbient('duel_hall')
+      // Try fullscreen on first touch as fallback
+      try {
+        if (!document.fullscreenElement && document.documentElement.requestFullscreen) {
+          document.documentElement.requestFullscreen().catch(() => {})
+        }
+      } catch (e) {}
     }
     window.addEventListener('pointerdown', unlockOnFirstTouch, { once: true })
+
+    // Auto-try fullscreen on mount
+    try {
+      if (!document.fullscreenElement && document.documentElement.requestFullscreen) {
+        document.documentElement.requestFullscreen().catch(() => {})
+      }
+    } catch (e) {}
 
     // Listen for real-time changes in the duel
     const duelSub = supabase
@@ -197,17 +210,6 @@ export default function DuelRoom() {
   return (
     <main className="min-h-screen bg-magical-navy text-white pb-20 relative overflow-hidden">
       
-      {/* Sound Unlock Button */}
-      {!audioReady && (
-        <button
-          onClick={enableDuelAudio}
-          className="fixed top-4 right-4 z-[200] bg-magical-gold text-magical-navy px-4 py-3 rounded-2xl font-black uppercase text-[10px] shadow-[0_0_20px_rgba(212,175,55,0.3)] flex items-center gap-2 animate-pulse"
-        >
-          <Volume2 className="w-4 h-4" />
-          Activar Sonido
-        </button>
-      )}
-
       {/* Header Info - Premium Stat Bar */}
       <div className="max-w-7xl mx-auto px-4 pt-4 md:pt-8 space-y-6">
         <div className="flex justify-between items-center bg-night-blue/60 backdrop-blur-xl p-3 md:p-6 rounded-2xl md:rounded-[2rem] border border-magical-gold/20 shadow-2xl">

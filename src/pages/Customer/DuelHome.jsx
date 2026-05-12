@@ -32,6 +32,14 @@ export default function DuelHome() {
   }
 
   const startAiDuel = async () => {
+    // Unlock audio and request fullscreen on user interaction
+    audioManager.unlockAudio().catch(() => {})
+    try {
+      if (document.documentElement.requestFullscreen) {
+        document.documentElement.requestFullscreen().catch(() => {})
+      }
+    } catch (e) {}
+
     const { data, error } = await supabase.rpc('hsf_create_ai_duel')
     if (data) navigate(`/duelos/sala/${data}`)
   }
