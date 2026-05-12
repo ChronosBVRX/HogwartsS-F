@@ -19,6 +19,8 @@ export default function DuelRoom() {
   const [duel, setDuel] = useState(null)
   const [loading, setLoading] = useState(true)
   const [selectedSpell, setSelectedSpell] = useState(null)
+  const [selectedActions, setSelectedActions] = useState([])
+  const [selectedStance, setSelectedStance] = useState('neutral')
   const [detailedSpell, setDetailedSpell] = useState(null)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [lastEvent, setLastEvent] = useState(null)
@@ -26,6 +28,18 @@ export default function DuelRoom() {
   const [showResult, setShowResult] = useState(false)
   const [timeLeft, setTimeLeft] = useState(20)
   const [cooldowns, setCooldowns] = useState({})
+  
+  const STANCES = [
+    { key: 'neutral', name: 'Neutral', icon: '🪄', desc: 'Sin bonos ni penalizaciones' },
+    { key: 'offensive', name: 'Ofensiva', icon: '⚔️', desc: '+4 Daño / +3 Daño recibido' },
+    { key: 'defensive', name: 'Defensiva', icon: '🛡️', desc: '+6 Bloqueo / -3 Daño' },
+    { key: 'concentrated', name: 'Concentrada', icon: '🧘', desc: '+1 Energía si recibes < 12 daño' },
+    { key: 'cunning', name: 'Astuta', icon: '🧠', desc: 'Bonus táctico si vences la familia' }
+  ]
+
+  // Calculate used AP and Energy
+  const usedAP = selectedActions.reduce((sum, s) => sum + (s.cost >= 2 ? 2 : 1), 0)
+  const totalEnergyCost = selectedActions.reduce((sum, s) => sum + s.cost, 0)
   
   // Audio state
   const [audioReady, setAudioReady] = useState(audioManager.isUnlocked)
@@ -255,9 +269,8 @@ export default function DuelRoom() {
     return () => window.removeEventListener('beforeunload', handleBeforeUnload)
   }, [duelFinished])
 
-  const handleSpellSubmit = async (spellKeyParam) => {
-    const keyToSubmit = spellKeyParam || selectedSpell
-    if (!keyToSubmit || isSubmitting) return
+  const handleConfirmStrategy = async () => {
+    if (selectedActions.length === 0 || isSubmitting) return
     
     await audioManager.unlockAudio()
     setAudioReady(true)
@@ -266,18 +279,26 @@ export default function DuelRoom() {
     audioManager.playSfx('ui_button_magic')
     
     try {
+      // Create simplified actions array for the database
+      const actionsPayload = selectedActions.map(s => ({ type: 'spell', key: s.key }))
+
       const { error } = await supabase.rpc('hsf_submit_duel_turn', {
         p_duel_id: duelId,
-        p_spell_key: keyToSubmit,
-        p_turn_number: duel.turn_number
+        p_turn_number: duel.turn_number,
+        p_actions: actionsPayload,
+        p_stance: selectedStance
       })
 
       if (error) throw error
-      setSelectedSpell(null) 
+      
+      // Clear local selection
+      setSelectedActions([])
+      setSelectedStance('neutral')
+      
       audioManager.playVoice('spell_confirmed', { cooldownMs: 15000 })
     } catch (err) {
-      console.error('Error submitting turn:', err)
-      alert('Error al lanzar hechizo: ' + err.message)
+      console.error('Error submitting strategy:', err)
+      alert('Error al enviar estrategia: ' + err.message)
       setIsSubmitting(false)
     }
   }
@@ -376,40 +397,92 @@ export default function DuelRoom() {
         )}
       </div>
 
-      {/* Spell Selection Area - Compact & Non-Scrollable */}
+      {/* Strategic Selection Area */}
       {!duelFinished && resolutionStage === 'idle' && (
         <section className="bg-night-blue/90 backdrop-blur-xl border-t border-magical-gold/20 p-4 pb-8 shadow-[0_-20px_50px_rgba(0,0,0,0.5)]">
-          <div className="max-w-4xl mx-auto space-y-4">
-            <div className="flex justify-between items-center">
-              <div className="flex items-center gap-3">
-                 <ZapIcon className="text-magical-gold w-4 h-4" />
-                 <p className="text-lg font-black italic">{myEnergy} / 5</p>
-                 <span className="text-[10px] text-white/30 uppercase font-black tracking-widest ml-2">Energía</span>
+          <div className="max-w-4xl mx-auto space-y-6">
+            
+            {/* Stance Selector */}
+            <div className="flex flex-col gap-2">
+              <p className="text-[10px] font-black text-magical-gold uppercase tracking-[0.3em] text-center">Elegir Postura Mágica</p>
+              <div className="flex justify-around gap-2">
+                {STANCES.map(s => (
+                  <button
+                    key={s.key}
+                    onClick={() => {
+                      setSelectedStance(s.key)
+                      audioManager.playSfx('ui_button_magic')
+                    }}
+                    className={`flex-1 p-2 rounded-xl border-2 transition-all duration-300 flex flex-col items-center gap-1 ${
+                      selectedStance === s.key 
+                        ? 'border-magical-gold bg-magical-gold/10 scale-105' 
+                        : 'border-white/5 bg-white/5 opacity-40 hover:opacity-100'
+                    }`}
+                  >
+                    <span className="text-xl">{s.icon}</span>
+                    <span className="text-[8px] font-black uppercase text-white tracking-tighter">{s.name}</span>
+                  </button>
+                ))}
               </div>
+            </div>
+
+            {/* Action Bar & Confirm */}
+            <div className="flex justify-between items-center bg-black/40 p-3 rounded-2xl border border-white/5">
+              <div className="flex flex-col gap-1">
+                <div className="flex items-center gap-2">
+                  <div className={`w-2 h-2 rounded-full ${usedAP >= 1 ? 'bg-magical-gold shadow-[0_0_8px_var(--color-magical-gold)]' : 'bg-white/10'}`} />
+                  <div className={`w-2 h-2 rounded-full ${usedAP >= 2 ? 'bg-magical-gold shadow-[0_0_8px_var(--color-magical-gold)]' : 'bg-white/10'}`} />
+                  <span className="text-[10px] font-black uppercase text-white/40 ml-2">Puntos de Acción</span>
+                </div>
+                <div className="flex items-center gap-2">
+                   <ZapIcon className="text-magical-gold w-3 h-3" />
+                   <p className="text-lg font-black italic">{myEnergy - totalEnergyCost} / 5</p>
+                   <span className="text-[9px] text-white/30 uppercase font-black tracking-widest ml-1">Energía Restante</span>
+                </div>
+              </div>
+
               <button
-                disabled={!selectedSpell || isSubmitting}
-                onClick={handleSpellSubmit}
-                className={`px-8 py-3 rounded-xl font-black uppercase italic tracking-widest text-sm transition-all duration-300 ${
-                  selectedSpell 
-                    ? 'bg-magical-gold text-magical-navy shadow-lg scale-105 active:scale-95' 
+                disabled={selectedActions.length === 0 || isSubmitting}
+                onClick={handleConfirmStrategy}
+                className={`px-6 py-4 rounded-xl font-black uppercase italic tracking-widest text-xs transition-all duration-300 flex items-center gap-2 ${
+                  selectedActions.length > 0 
+                    ? 'bg-magical-gold text-magical-navy shadow-[0_0_30px_rgba(212,175,55,0.3)] scale-105 active:scale-95' 
                     : 'bg-white/5 text-white/20'
                 }`}
               >
-                {isSubmitting ? 'Esperando...' : 'Lanzar'}
+                {isSubmitting ? 'Esperando...' : 'Confirmar Estrategia'}
+                <Swords className="w-4 h-4" />
               </button>
             </div>
 
+            {/* Spell Grid */}
             <div className="grid grid-cols-5 md:grid-cols-10 gap-2">
-              {Object.entries(SPELLS).map(([key, spell]) => (
-                <SpellCard
-                  key={key}
-                  spell={spell}
-                  selected={selectedSpell === key}
-                  onClick={() => setDetailedSpell(spell)}
-                  disabled={myEnergy < spell.cost || isSubmitting}
-                  compact
-                />
-              ))}
+              {Object.entries(SPELLS).map(([key, spell]) => {
+                const isSelected = selectedActions.some(a => a.key === key)
+                const spellAP = spell.cost >= 2 ? 2 : 1
+                const canAdd = usedAP + spellAP <= 2 && myEnergy >= (totalEnergyCost + spell.cost)
+                
+                return (
+                  <SpellCard
+                    key={key}
+                    spell={spell}
+                    selected={isSelected}
+                    onClick={() => {
+                      if (isSelected) {
+                        setSelectedActions(prev => prev.filter(a => a.key !== key))
+                      } else if (canAdd) {
+                        setSelectedActions(prev => [...prev, spell])
+                        audioManager.playSfx('ui_card_select')
+                      } else {
+                        setDetailedSpell(spell)
+                      }
+                    }}
+                    disabled={(usedAP >= 2 && !isSelected) || isSubmitting}
+                    cooldown={cooldowns[key] || 0}
+                    compact
+                  />
+                )
+              })}
             </div>
           </div>
         </section>
