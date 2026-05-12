@@ -25,23 +25,23 @@ export default function DuelRanking() {
     const monthKey = now.toISOString().substring(0, 7) // YYYY-MM
     
     try {
-      // Fetch house points without strict month filter first to see if there's any data
+      // 1. Fetch House Points (Diagnostic mode: fetch all then filter)
       const { data: allHousePoints, error: hError } = await supabase
         .from('hsf_duel_house_points')
         .select('*')
       
-      console.log('Raw House Points from DB:', allHousePoints)
-      setDebugData(allHousePoints)
-
       if (hError) {
         console.error('Error ranking casas:', hError)
         setHouseError('No se pudo cargar la Copa de las Casas.')
       } else {
-        // Filter by current month in JS for more control
+        console.log('House Points DB:', allHousePoints)
+        setDebugData(allHousePoints || [])
         const currentMonthData = allHousePoints?.filter(p => p.month_key === monthKey) || []
         setHousePoints(currentMonthData)
       }
 
+      // 2. Fetch Player Ranking (Directly use fallback if common relation error is expected)
+      // We try the join first, if it fails we do the multi-step fetch
       const { data: playerRes, error: pError } = await supabase
         .from('hsf_duel_profiles')
         .select('*, user:hsf_profiles(display_name, house_slug)')
@@ -49,25 +49,21 @@ export default function DuelRanking() {
         .limit(10)
 
       if (pError) {
-        console.error('Error ranking jugadores:', pError)
+        console.warn('Join query failed, using manual profile resolution fallback...', pError)
         
-        // Fallback multi-query
-        if (pError.code === 'PGRST200') {
-           const { data: rawPlayers, error: rawError } = await supabase
-             .from('hsf_duel_profiles')
-             .select('*')
-             .order('mmr', { ascending: false })
-             .limit(10)
-           
-           if (!rawError && rawPlayers) {
-             const playersWithData = await Promise.all(rawPlayers.map(async (p) => {
-               const { data: u } = await supabase.from('hsf_profiles').select('display_name, house_slug').eq('user_id', p.user_id).maybeSingle()
-               return { ...p, user: u }
-             }))
-             setTopPlayers(playersWithData)
-           } else {
-             setPlayerError('No se pudo cargar el ranking de jugadores.')
-           }
+        // Manual Fallback: Get top profiles first
+        const { data: rawPlayers, error: rawError } = await supabase
+          .from('hsf_duel_profiles')
+          .select('*')
+          .order('mmr', { ascending: false })
+          .limit(10)
+        
+        if (!rawError && rawPlayers) {
+          const playersWithData = await Promise.all(rawPlayers.map(async (p) => {
+            const { data: u } = await supabase.from('hsf_profiles').select('display_name, house_slug').eq('user_id', p.user_id).maybeSingle()
+            return { ...p, user: u }
+          }))
+          setTopPlayers(playersWithData)
         } else {
           setPlayerError('No se pudo cargar el ranking de jugadores.')
         }
@@ -245,23 +241,30 @@ export default function DuelRanking() {
         </div>
       </div>
 
-      {/* Debug Info for User - Only if empty */}
-      {housePoints.length === 0 && debugData && debugData.length > 0 && (
+      {/* Diagnostic Box - Visible if table is empty or mismatch */}
+      {debugData && (
         <div className="bg-magical-gold/5 border border-magical-gold/20 p-6 rounded-3xl space-y-4">
           <div className="flex items-center gap-2 text-magical-gold">
             <Info className="w-5 h-5" />
-            <h3 className="font-black uppercase text-xs tracking-widest">Información de Diagnóstico</h3>
+            <h3 className="font-black uppercase text-xs tracking-widest">Panel de Sincronización</h3>
           </div>
-          <p className="text-text-gray text-xs">
-            Se encontraron registros en la base de datos, pero ninguno coincide con el mes actual ({new Date().toISOString().substring(0, 7)}).
+          {debugData.length === 0 ? (
+            <p className="text-impact-red text-xs font-black uppercase">⚠️ La tabla hsf_duel_house_points está VACÍA en Supabase.</p>
+          ) : (
+            <div className="space-y-2">
+              <p className="text-text-gray text-xs">Registros encontrados en el servidor:</p>
+              <div className="flex flex-wrap gap-2">
+                {debugData.map((d, i) => (
+                  <span key={i} className="bg-white/5 px-3 py-1 rounded-full text-[9px] text-white/40 font-mono">
+                    {d.month_key}: {d.house_slug} ({d.points}pts)
+                  </span>
+                ))}
+              </div>
+            </div>
+          )}
+          <p className="text-[9px] text-text-gray opacity-40 italic">
+            Si la tabla está vacía tras ejecutar el SQL, asegúrate de que el SQL Editor no devolvió errores.
           </p>
-          <div className="flex flex-wrap gap-2">
-            {debugData.map((d, i) => (
-              <span key={i} className="bg-white/5 px-3 py-1 rounded-full text-[9px] text-white/40 font-mono">
-                {d.month_key}: {d.house_slug} ({d.points}pts)
-              </span>
-            ))}
-          </div>
         </div>
       )}
 
