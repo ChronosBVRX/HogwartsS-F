@@ -40,7 +40,7 @@ export default function DuelRoom() {
   const rivalHp = isP1 ? duel?.player_two_hp : duel?.player_one_hp
   const myEnergy = isP1 ? duel?.player_one_energy : duel?.player_two_energy
   const myHouse = profile?.house_slug || profile?.house?.slug || 'neutral'
-  const rivalHouse = isP1 ? duel?.player_two_house : duel?.player_one_house
+  const rivalHouse = isP1 ? duel?.p2_house : duel?.p1_house
   const rivalName = isP1 ? (duel?.mode === 'ai' ? 'Profesor Snape' : duel?.p2_name) : duel?.p1_name
 
   const duelFinished = duel?.status === 'finished'

@@ -17,104 +17,82 @@ export default function SpellCard({ spell, disabled, selected, onClick, cooldown
   const Icon = config.icon
 
   return (
-    <button
-      disabled={disabled || cooldown > 0}
-      onClick={async () => {
-        await audioManager.unlockAudio();
-        if (disabled && !cooldown) {
-          audioManager.playVoice('low_energy');
-          return;
-        }
-        
-        audioManager.playSfx('ui_card_select');
-        
-        // Family specific sfx
-        if (spell.family === 'attack' || spell.family === 'heavy') audioManager.playSfx('spell_cast_heavy');
-        else if (spell.family === 'heal') audioManager.playSfx('heal_magic');
-        else if (spell.family === 'charge') audioManager.playSfx('energy_charge');
-        else if (spell.family === 'control') audioManager.playSfx('control_spell');
-        else audioManager.playSfx('spell_cast_light');
+    <div className="flex flex-col items-center gap-1 group">
+      <button
+        disabled={disabled || cooldown > 0}
+        onClick={async () => {
+          await audioManager.unlockAudio();
+          if (disabled && !cooldown) {
+            audioManager.playVoice('low_energy');
+            return;
+          }
+          
+          audioManager.playSfx('ui_card_select');
+          
+          if (spell.family === 'attack' || spell.family === 'heavy') audioManager.playSfx('spell_cast_heavy');
+          else if (spell.family === 'heal') audioManager.playSfx('heal_magic');
+          else if (spell.family === 'charge') audioManager.playSfx('energy_charge');
+          else if (spell.family === 'control') audioManager.playSfx('control_spell');
+          else audioManager.playSfx('spell_cast_light');
 
-        onClick();
-      }}
-      className={`
-        magic-card flex flex-col ${compact ? 'p-1.5' : 'p-3 md:p-4'} text-left transition-all duration-300
-        ${compact ? 'aspect-[2/2.5]' : 'aspect-[2.5/3.5]'}
-        ${selected ? 'selected scale-[1.02] -translate-y-1' : 'hover:-translate-y-1'}
-        ${(disabled || cooldown > 0) ? 'opacity-40 grayscale-[0.5] cursor-not-allowed scale-95' : ''}
-      `}
-      style={{ 
-        '--beam-color': config.color,
-        borderColor: selected ? config.color : 'rgba(212, 175, 55, 0.2)',
-        boxShadow: selected ? `0 0 20px ${config.color}44` : 'none'
-      }}
-    >
-      {/* Energy Cost Badge */}
-      <div className={`absolute ${compact ? 'top-1 right-1' : 'top-2 right-2'} z-20`}>
-        <div className={`bg-night-blue/90 border border-magical-gold/40 ${compact ? 'w-5 h-5' : 'w-7 h-7 md:w-8 md:h-8'} rounded-full flex items-center justify-center shadow-lg backdrop-blur-md`}>
-          <span className={`${compact ? 'text-[8px]' : 'text-[10px] md:text-xs'} font-black text-magical-gold leading-none`}>{spell.cost}</span>
-          {!compact && <Zap className="w-2 h-2 text-magical-gold fill-magical-gold ml-0.5" />}
-        </div>
-      </div>
-
-      {/* Card Body */}
-      <div className={`relative z-10 flex flex-col h-full ${compact ? 'space-y-1' : 'space-y-2 md:space-y-3'}`}>
-        {/* Type Icon & Name */}
-        <div className={`flex items-center ${compact ? 'gap-1' : 'gap-3'}`}>
-          <div className={`${compact ? 'w-6 h-6' : 'w-8 h-8 md:w-10 md:h-10'} rounded-lg md:rounded-xl flex items-center justify-center border border-white/10 ${config.bg} backdrop-blur-sm shrink-0`}>
-            <Icon className={`${compact ? 'w-3 h-3' : 'w-4 h-4 md:w-5 md:h-5'}`} style={{ color: config.color }} />
+          onClick();
+        }}
+        className={`
+          magic-card relative flex flex-col ${compact ? 'p-1' : 'p-3'} transition-all duration-300
+          ${compact ? 'w-16 h-24' : 'w-24 h-36 md:w-32 md:h-48'}
+          ${selected ? 'selected scale-[1.05] -translate-y-1' : 'hover:-translate-y-1'}
+          ${(disabled || cooldown > 0) ? 'opacity-40 grayscale-[0.5] cursor-not-allowed scale-95' : ''}
+          overflow-hidden rounded-xl border-2
+        `}
+        style={{ 
+          '--beam-color': config.color,
+          borderColor: selected ? config.color : 'rgba(212, 175, 55, 0.2)',
+          boxShadow: selected ? `0 0 20px ${config.color}66` : 'none'
+        }}
+      >
+        {/* Energy Cost Badge */}
+        <div className="absolute top-1 right-1 z-20">
+          <div className={`bg-night-blue/90 border border-magical-gold/40 ${compact ? 'w-4 h-4' : 'w-6 h-6 md:w-7 md:h-7'} rounded-full flex items-center justify-center shadow-lg backdrop-blur-md`}>
+            <span className={`${compact ? 'text-[7px]' : 'text-[10px] md:text-xs'} font-black text-magical-gold leading-none`}>{spell.cost}</span>
           </div>
-          {!compact && (
-            <div className="flex-1 min-w-0">
-              <h3 className="text-[10px] md:text-sm font-black uppercase italic tracking-tighter text-white leading-tight truncate">
-                {spell.name}
-              </h3>
-              <p className="text-[6px] md:text-[7px] font-black uppercase tracking-[0.2em] opacity-60" style={{ color: config.color }}>
-                {spell.family}
-              </p>
-            </div>
-          )}
-          {compact && (
-            <h3 className="text-[8px] font-black uppercase italic tracking-tighter text-white leading-tight truncate">
-              {spell.name}
-            </h3>
-          )}
         </div>
 
-        {/* Illustration - HIDDEN IN COMPACT */}
-        {!compact && (
-          <div className="flex-1 rounded-lg bg-black/60 border border-white/5 flex items-center justify-center overflow-hidden relative min-h-[60px] md:min-h-[80px]">
-            <img 
-              src={config.art} 
-              alt={spell.name} 
-              className="absolute inset-0 w-full h-full object-cover opacity-60 group-hover:opacity-80 group-hover:scale-110 transition-all duration-700" 
-            />
-            <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent" />
-            <div className="scanline" />
-          </div>
-        )}
+        {/* Illustration - ALWAYS VISIBLE */}
+        <div className="absolute inset-0 z-0">
+          <img 
+            src={`/assets/spells/${spell.key}.jpg`} 
+            alt={spell.name} 
+            className="w-full h-full object-cover opacity-80 group-hover:opacity-100 transition-all duration-500"
+            onError={(e) => { e.target.src = config.art }}
+          />
+          <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/20 to-transparent" />
+          <div className="scanline opacity-20" />
+        </div>
 
-        {/* Description - HIDDEN IN COMPACT */}
-        {!compact && (
-          <div className="bg-black/30 p-2 rounded-lg border border-white/5 backdrop-blur-sm">
-            <p className="text-[7px] md:text-[9px] text-text-gray leading-tight italic line-clamp-2">
-              {spell.description}
-            </p>
-          </div>
-        )}
+        {/* Type Icon Overlay */}
+        <div className={`absolute left-1 bottom-1 z-10 ${compact ? 'w-4 h-4' : 'w-6 h-6 md:w-8 md:h-8'} rounded-lg flex items-center justify-center bg-black/40 backdrop-blur-sm border border-white/10 shadow-lg`}>
+          <Icon className={`${compact ? 'w-2.5 h-2.5' : 'w-4 h-4 md:w-5 md:h-5'}`} style={{ color: config.color }} />
+        </div>
 
         {/* Cooldown Overlay */}
         {cooldown > 0 && (
-          <div className="absolute inset-0 bg-magical-navy/80 backdrop-blur-[2px] flex flex-col items-center justify-center space-y-1 rounded-lg z-30">
+          <div className="absolute inset-0 bg-magical-navy/80 backdrop-blur-[2px] flex flex-col items-center justify-center z-30">
             <Clock className={`${compact ? 'w-3 h-3' : 'w-6 h-6'} text-magical-gold animate-spin-slow`} />
             <span className={`${compact ? 'text-xs' : 'text-lg'} font-black text-white`}>{cooldown}</span>
           </div>
         )}
-      </div>
 
-      {/* Decorative Shine Effect */}
-      <div className="absolute inset-0 bg-gradient-to-tr from-transparent via-white/5 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1500 pointer-events-none" />
-    </button>
+        {/* Decorative Shine */}
+        <div className="absolute inset-0 bg-gradient-to-tr from-transparent via-white/5 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000 pointer-events-none" />
+      </button>
+
+      {/* Spell Name Label - BELOW the card */}
+      <div className={`text-center px-1 max-w-full ${compact ? 'mt-0.5' : 'mt-1'}`}>
+         <p className={`${compact ? 'text-[6px]' : 'text-[9px] md:text-[10px]'} font-black uppercase italic tracking-tighter text-white/80 group-hover:text-magical-gold transition-colors leading-tight truncate`}>
+           {spell.name}
+         </p>
+      </div>
+    </div>
   )
 }
 
