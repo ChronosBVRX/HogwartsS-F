@@ -129,42 +129,48 @@ export default function DuelRanking() {
             </div>
           ) : (
             <div className="space-y-6">
-              {['gryffindor', 'slytherin', 'ravenclaw', 'hufflepuff'].map((slug) => {
-                const points = housePoints.find(p => p.house_slug === slug)?.points || 0
-                const data = houseData[slug]
-                const maxPoints = Math.max(...housePoints.map(p => p.points), 1)
-                const pct = (points / maxPoints) * 100
+              {['gryffindor', 'slytherin', 'ravenclaw', 'hufflepuff']
+                .sort((a, b) => {
+                  const ptsA = housePoints.find(p => p.house_slug === a)?.points || 0
+                  const ptsB = housePoints.find(p => p.house_slug === b)?.points || 0
+                  return ptsB - ptsA
+                })
+                .map((slug) => {
+                  const points = housePoints.find(p => p.house_slug === slug)?.points || 0
+                  const data = houseData[slug]
+                  const maxPoints = Math.max(...housePoints.map(p => p.points), 100)
+                  const pct = (points / maxPoints) * 100
 
-                return (
-                  <div key={slug} className={`magic-card p-8 border-white/5 space-y-6 group overflow-hidden relative`}>
-                    <div className={`absolute inset-0 bg-gradient-to-br ${data.gradient} opacity-0 group-hover:opacity-10 transition-opacity duration-700`} />
-                    
-                    <div className="flex justify-between items-center relative z-10">
-                      <div className="flex items-center gap-4">
-                        <div className="w-14 h-14 rounded-2xl bg-black/40 flex items-center justify-center text-3xl border border-white/5 group-hover:scale-110 transition-transform">
-                          {data.icon}
+                  return (
+                    <div key={slug} className="magic-card p-6 md:p-8 border-white/5 space-y-6 group overflow-hidden relative min-h-[160px] flex flex-col justify-between">
+                      <div className={`absolute inset-0 bg-gradient-to-br ${data.gradient} opacity-0 group-hover:opacity-10 transition-opacity duration-700`} />
+                      
+                      <div className="flex justify-between items-center relative z-10">
+                        <div className="flex items-center gap-4">
+                          <div className="w-12 h-12 md:w-14 md:h-14 rounded-2xl bg-black/40 flex items-center justify-center text-2xl md:text-3xl border border-white/5 group-hover:scale-110 transition-transform">
+                            {data.icon}
+                          </div>
+                          <div className="flex flex-col">
+                            <span className={`text-lg md:text-xl font-black uppercase tracking-tighter ${data.color}`}>{data.name}</span>
+                            <span className="text-[9px] font-black text-text-gray uppercase tracking-widest">Puntuación Total</span>
+                          </div>
                         </div>
-                        <div className="flex flex-col">
-                          <span className={`text-xl font-black uppercase tracking-tighter ${data.color}`}>{data.name}</span>
-                          <span className="text-[9px] font-black text-text-gray uppercase tracking-widest">Puntuación Total</span>
+                        <div className="text-right">
+                          <span className="text-2xl md:text-3xl font-black text-white tabular-nums drop-shadow-md">{points}</span>
+                          <span className="text-[10px] text-text-gray font-black uppercase ml-1">pts</span>
                         </div>
                       </div>
-                      <div className="text-right">
-                        <span className="text-3xl font-black text-white tabular-nums drop-shadow-md">{points}</span>
-                        <span className="text-[10px] text-text-gray font-black uppercase ml-1">pts</span>
+
+                      <div className="h-3 bg-black/40 rounded-full overflow-hidden p-[2px] border border-white/5 relative z-10">
+                        <div 
+                          className={`h-full rounded-full transition-all duration-[1.5s] ease-out bg-gradient-to-r from-magical-navy via-current to-white/20 ${data.color}`}
+                          style={{ width: `${pct}%` }}
+                        />
+                        <div className="scanline" />
                       </div>
                     </div>
-
-                    <div className="h-3 bg-black/40 rounded-full overflow-hidden p-[2px] border border-white/5 relative">
-                      <div 
-                        className={`h-full rounded-full transition-all duration-[1.5s] ease-out bg-gradient-to-r from-magical-navy via-current to-white/20 ${data.color}`}
-                        style={{ width: `${pct}%` }}
-                      />
-                      <div className="scanline" />
-                    </div>
-                  </div>
-                )
-              })}
+                  )
+                })}
             </div>
           )}
         </div>
