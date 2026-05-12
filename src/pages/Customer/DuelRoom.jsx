@@ -46,8 +46,8 @@ export default function DuelRoom() {
       .from('hsf_duels')
       .select(`
         *,
-        p1_profile:player_one(display_name, house),
-        p2_profile:player_two(display_name, house)
+        p1_profile:hsf_profiles!player_one(display_name, house),
+        p2_profile:hsf_profiles!player_two(display_name, house)
       `)
       .eq('id', duelId)
       .single()
