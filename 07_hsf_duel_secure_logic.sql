@@ -265,14 +265,18 @@ begin
 
   -- 2. Copa de las Casas (Solo si hay un ganador y es un jugador)
   if v_duel.winner_id is not null then
-    select house_slug into v_winner_house from hsf_profiles where user_id = v_duel.winner_id;
+    -- Intentar obtener slug directo o vía relación con hsf_houses
+    select coalesce(p.house_slug, h.slug) into v_winner_house 
+    from hsf_profiles p
+    left join hsf_houses h on p.house_id = h.id
+    where p.user_id = v_duel.winner_id;
     
-    -- Normalizar slug si viene de Quiz (red, blue, etc) a nombres oficiales
+    -- Normalizar slug
     v_winner_house := case 
-      when v_winner_house = 'red' then 'gryffindor'
-      when v_winner_house = 'green' then 'slytherin'
-      when v_winner_house = 'blue' then 'ravenclaw'
-      when v_winner_house = 'yellow' then 'hufflepuff'
+      when lower(v_winner_house) in ('red', 'gryffindor') then 'gryffindor'
+      when lower(v_winner_house) in ('green', 'slytherin') then 'slytherin'
+      when lower(v_winner_house) in ('blue', 'ravenclaw') then 'ravenclaw'
+      when lower(v_winner_house) in ('yellow', 'hufflepuff') then 'hufflepuff'
       else lower(v_winner_house)
     end;
     
@@ -287,3 +291,13 @@ begin
   end if;
 end;
 $$;
+
+-- PARCHE MANUAL: Si Ravenclaw ya ganó pero no se sumó, ejecutamos este bloque una vez
+-- para sincronizar los puntos de la victoria actual.
+do $$
+begin
+  insert into hsf_duel_house_points (month_key, house_slug, points)
+  values (to_char(now(), 'YYYY-MM'), 'ravenclaw', 15)
+  on conflict (month_key, house_slug) 
+  do update set points = hsf_duel_house_points.points + 15;
+end $$;
