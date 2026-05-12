@@ -4,28 +4,28 @@ export const SPELLS = {
     name: 'Expelliarmus',
     family: 'disarm',
     cost: 1,
-    damage: 14,
+    damage: 12,
     block: 0,
     heal: 0,
     cooldown: 1,
-    beats: ['heavy'],
+    beats: ['heavy', 'attack'],
     losesTo: ['defense'],
     animation: 'red_disarm',
-    description: 'Hechizo de desarme. Si vence, el rival pierde 1 energía.'
+    description: 'Desarma e interrumpe. Si golpea un ataque pesado, reduce su daño un 50%.'
   },
   stupefy: {
     key: 'stupefy',
     name: 'Stupefy',
     family: 'heavy',
     cost: 2,
-    damage: 26,
+    damage: 30,
     block: 0,
     heal: 0,
     cooldown: 2,
     beats: ['heal', 'charge'],
     losesTo: ['disarm', 'defense'],
     animation: 'blue_impact',
-    description: 'Ataque pesado con gran daño de impacto.'
+    description: 'Ataque pesado (2 AP). Impacto devastador que ignora bloqueos menores.'
   },
   protego: {
     key: 'protego',
@@ -33,13 +33,13 @@ export const SPELLS = {
     family: 'defense',
     cost: 1,
     damage: 0,
-    block: 20,
+    block: 22,
     heal: 0,
     cooldown: 1,
     beats: ['attack', 'heavy'],
     losesTo: ['control'],
     animation: 'gold_shield',
-    description: 'Escudo protector que reduce el daño recibido.'
+    description: 'Defensa activa. Si bloquea un ataque fuerte, recuperas +1 Energía.'
   },
   petrificus: {
     key: 'petrificus',
@@ -53,7 +53,7 @@ export const SPELLS = {
     beats: ['defense'],
     losesTo: ['counter'],
     animation: 'stone_bind',
-    description: 'Inmovilización total. Reduce la energía rival.'
+    description: 'Control (2 AP). Reduce la energía rival y bloquea su segunda acción.'
   },
   finite: {
     key: 'finite',
@@ -67,7 +67,7 @@ export const SPELLS = {
     beats: ['control'],
     losesTo: ['attack'],
     animation: 'silver_cancel',
-    description: 'Cancela los efectos de control enemigos.'
+    description: 'Contrahechizo. Anula efectos de control y recupera energía.'
   },
   episkey: {
     key: 'episkey',
@@ -76,19 +76,19 @@ export const SPELLS = {
     cost: 2,
     damage: 0,
     block: 0,
-    heal: 18,
+    heal: 20,
     cooldown: 3,
     beats: ['defense'],
     losesTo: ['heavy'],
     animation: 'green_heal',
-    description: 'Magia sanadora que recupera vida.'
+    description: 'Curación táctica. Recupera 20 HP. Vulnerable a ataques pesados.'
   },
   incendio: {
     key: 'incendio',
     name: 'Incendio',
     family: 'attack',
     cost: 2,
-    damage: 16,
+    damage: 14,
     burn: 5,
     block: 0,
     heal: 0,
@@ -96,7 +96,7 @@ export const SPELLS = {
     beats: ['charge'],
     losesTo: ['defense'],
     animation: 'fire_bolt',
-    description: 'Ataque de fuego con daño por quemadura.'
+    description: 'Fuego mágico. Inflige 5 de daño extra durante 2 turnos.'
   },
   confundus: {
     key: 'confundus',
@@ -110,7 +110,7 @@ export const SPELLS = {
     beats: ['defense'],
     losesTo: ['counter'],
     animation: 'purple_mist',
-    description: 'Confunde al rival limitando sus opciones.'
+    description: 'Confusión (2 AP). Oculta las pistas del rival el próximo turno.'
   },
   accio: {
     key: 'accio',
@@ -125,7 +125,7 @@ export const SPELLS = {
     beats: ['counter'],
     losesTo: ['attack', 'heavy'],
     animation: 'energy_pull',
-    description: 'Atrae energía mágica (+2 ⚡).'
+    description: 'Atrae energía (+2 ⚡). +3 si estás en postura concentrada.'
   },
   rictusempra: {
     key: 'rictusempra',
@@ -139,25 +139,25 @@ export const SPELLS = {
     beats: ['charge'],
     losesTo: ['defense'],
     animation: 'gold_spark',
-    description: 'Hechizo de cosquillas que reduce el daño rival.'
+    description: 'Ataque ligero. Reduce ligeramente el daño del próximo ataque rival.'
   }
 }
 
 export const HOUSE_POWERS = {
   red: {
     name: "Coraje Final",
-    description: "Al bajar de 35 HP, ganas +1 concentración y +4 de daño este turno."
+    description: "Al bajar de 35 HP, recibes un bono automático de +6 de daño."
   },
   green: {
     name: "Astucia",
-    description: "Puedes ver una pista del próximo movimiento rival."
+    description: "Muestra pistas más precisas sobre la estrategia del rival."
   },
   blue: {
     name: "Claridad Mental",
-    description: "Reduce cooldown en 1. Contrahechizo exitoso da +1 concentración."
+    description: "Reducción de cooldowns acelerada y bonus por Finite exitoso."
   },
   yellow: {
     name: "Resistencia Leal",
-    description: "Primera curación +6 HP. Primera defensa exitosa +6 bloqueo."
+    description: "Tus defensas y curaciones son un 25% más efectivas."
   }
 }
