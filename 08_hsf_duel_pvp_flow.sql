@@ -4,12 +4,17 @@
 -- Implementación del flujo de sala de espera PvP
 -- ==========================================
 
--- 1. Actualizar tabla hsf_duels
+-- 1. Limpiar funciones anteriores para evitar error de tipos
+-- (Importante para cambiar el retorno de UUID a JSONB)
+drop function if exists public.hsf_create_pvp_duel();
+drop function if exists public.hsf_join_pvp_duel(text);
+
+-- 2. Actualizar tabla hsf_duels
 alter table public.hsf_duels
 add column if not exists player_one_ready boolean not null default false,
 add column if not exists player_two_ready boolean not null default false;
 
--- 2. Modificar hsf_create_pvp_duel
+-- 3. Nueva hsf_create_pvp_duel
 create or replace function hsf_create_pvp_duel()
 returns jsonb
 language plpgsql
@@ -53,7 +58,7 @@ begin
 end;
 $$;
 
--- 3. Modificar hsf_join_pvp_duel
+-- 4. Nueva hsf_join_pvp_duel
 create or replace function hsf_join_pvp_duel(p_invite_code text)
 returns uuid
 language plpgsql
@@ -82,7 +87,7 @@ begin
 end;
 $$;
 
--- 4. Crear hsf_set_duel_ready
+-- 5. Nueva hsf_set_duel_ready
 create or replace function hsf_set_duel_ready(p_duel_id uuid)
 returns jsonb
 language plpgsql
