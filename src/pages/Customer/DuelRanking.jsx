@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { supabase } from '../../lib/supabase'
-import { Trophy, Shield, Star, Crown, ChevronLeft, Wand2, AlertTriangle } from 'lucide-react'
+import { Trophy, Shield, Star, Crown, ChevronLeft, Wand2, AlertTriangle, Info } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 
 export default function DuelRanking() {
@@ -9,6 +9,7 @@ export default function DuelRanking() {
   const [loading, setLoading] = useState(true)
   const [houseError, setHouseError] = useState(null)
   const [playerError, setPlayerError] = useState(null)
+  const [debugData, setDebugData] = useState(null)
   const navigate = useNavigate()
 
   useEffect(() => {
@@ -20,30 +21,38 @@ export default function DuelRanking() {
     setHouseError(null)
     setPlayerError(null)
 
-    const monthKey = new Date().toISOString().substring(0, 7) // YYYY-MM
+    const now = new Date()
+    const monthKey = now.toISOString().substring(0, 7) // YYYY-MM
     
     try {
-      const [houseRes, playerRes] = await Promise.all([
-        supabase.from('hsf_duel_house_points').select('*').eq('month_key', monthKey).order('points', { ascending: false }),
-        supabase.from('hsf_duel_profiles').select('*, user:hsf_profiles(display_name, house_slug)').order('mmr', { ascending: false }).limit(10)
-      ])
+      // Fetch house points without strict month filter first to see if there's any data
+      const { data: allHousePoints, error: hError } = await supabase
+        .from('hsf_duel_house_points')
+        .select('*')
+      
+      console.log('Raw House Points from DB:', allHousePoints)
+      setDebugData(allHousePoints)
 
-      console.log('Ranking Casas Result:', houseRes)
-      console.log('Ranking Jugadores Result:', playerRes)
-
-      if (houseRes.error) {
-        console.error('Error ranking casas:', houseRes.error)
+      if (hError) {
+        console.error('Error ranking casas:', hError)
         setHouseError('No se pudo cargar la Copa de las Casas.')
       } else {
-        setHousePoints(houseRes.data || [])
+        // Filter by current month in JS for more control
+        const currentMonthData = allHousePoints?.filter(p => p.month_key === monthKey) || []
+        setHousePoints(currentMonthData)
       }
 
-      if (playerRes.error) {
-        console.error('Error ranking jugadores:', playerRes.error)
+      const { data: playerRes, error: pError } = await supabase
+        .from('hsf_duel_profiles')
+        .select('*, user:hsf_profiles(display_name, house_slug)')
+        .order('mmr', { ascending: false })
+        .limit(10)
+
+      if (pError) {
+        console.error('Error ranking jugadores:', pError)
         
-        // Si el error es por relación inexistente, intentamos fallback manual
-        if (playerRes.error.code === 'PGRST200') {
-           console.log('Intentando fallback de ranking sin join...')
+        // Fallback multi-query
+        if (pError.code === 'PGRST200') {
            const { data: rawPlayers, error: rawError } = await supabase
              .from('hsf_duel_profiles')
              .select('*')
@@ -51,7 +60,6 @@ export default function DuelRanking() {
              .limit(10)
            
            if (!rawError && rawPlayers) {
-             // Fetch names for each player
              const playersWithData = await Promise.all(rawPlayers.map(async (p) => {
                const { data: u } = await supabase.from('hsf_profiles').select('display_name, house_slug').eq('user_id', p.user_id).maybeSingle()
                return { ...p, user: u }
@@ -64,7 +72,7 @@ export default function DuelRanking() {
           setPlayerError('No se pudo cargar el ranking de jugadores.')
         }
       } else {
-        setTopPlayers(playerRes.data || [])
+        setTopPlayers(playerRes || [])
       }
     } catch (err) {
       console.error('General ranking error:', err)
@@ -236,6 +244,26 @@ export default function DuelRanking() {
           )}
         </div>
       </div>
+
+      {/* Debug Info for User - Only if empty */}
+      {housePoints.length === 0 && debugData && debugData.length > 0 && (
+        <div className="bg-magical-gold/5 border border-magical-gold/20 p-6 rounded-3xl space-y-4">
+          <div className="flex items-center gap-2 text-magical-gold">
+            <Info className="w-5 h-5" />
+            <h3 className="font-black uppercase text-xs tracking-widest">Información de Diagnóstico</h3>
+          </div>
+          <p className="text-text-gray text-xs">
+            Se encontraron registros en la base de datos, pero ninguno coincide con el mes actual ({new Date().toISOString().substring(0, 7)}).
+          </p>
+          <div className="flex flex-wrap gap-2">
+            {debugData.map((d, i) => (
+              <span key={i} className="bg-white/5 px-3 py-1 rounded-full text-[9px] text-white/40 font-mono">
+                {d.month_key}: {d.house_slug} ({d.points}pts)
+              </span>
+            ))}
+          </div>
+        </div>
+      )}
 
       <div className="pt-10 flex justify-center">
         <button 
