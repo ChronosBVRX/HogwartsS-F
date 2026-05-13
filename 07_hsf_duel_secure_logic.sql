@@ -427,7 +427,7 @@ begin
     -- Intentar obtener slug directo o vía relación con hsf_houses
     select coalesce(p.house_slug, h.slug) into v_winner_house 
     from hsf_profiles p
-    left join hsf_houses h on p.house_id = h.id
+    left join hsf_houses h on p.house_slug = h.slug
     where p.user_id = v_duel.winner_id;
     
     -- Normalizar slug

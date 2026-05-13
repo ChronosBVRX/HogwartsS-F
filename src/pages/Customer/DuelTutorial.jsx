@@ -33,7 +33,7 @@ export default function DuelTutorial() {
   return (
     <div className="min-h-screen bg-magical-navy text-white flex flex-col items-center justify-center p-6 relative overflow-hidden">
       {/* Background Decor */}
-      <div className="absolute inset-0 bg-[url('/assets/textures/magical-grid.svg')] opacity-10 pointer-events-none" />
+      <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.05)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.05)_1px,transparent_1px)] bg-[size:40px_40px] pointer-events-none" />
       <div className="absolute top-[-10%] right-[-10%] w-[50%] h-[50%] bg-magical-gold/5 blur-[120px] rounded-full" />
       
       <div className="max-w-md w-full z-10 space-y-8 animate-in fade-in zoom-in duration-700">
