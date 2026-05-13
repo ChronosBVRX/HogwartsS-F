@@ -553,6 +553,7 @@ export default function DuelRoom() {
         <SpellDetailModal 
           spell={detailedSpell} 
           onClose={() => setDetailedSpell(null)}
+          isSelected={selectedActions.some(a => a.key === detailedSpell.key)}
           canCast={usedAP + (detailedSpell.cost >= 2 ? 2 : 1) <= 2 && (myEnergy - totalEnergyCost) >= detailedSpell.cost && !isSubmitting}
           onCast={() => {
             const isSelected = selectedActions.some(a => a.key === detailedSpell.key)

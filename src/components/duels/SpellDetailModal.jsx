@@ -2,7 +2,7 @@
 import React from 'react'
 import { Zap, Shield, Swords, Info, X, AlertTriangle, TrendingUp, TrendingDown } from 'lucide-react'
 
-export default function SpellDetailModal({ spell, onClose, canCast, onCast }) {
+export default function SpellDetailModal({ spell, onClose, canCast, onCast, isSelected }) {
   if (!spell) return null
 
   const FAMILY_META = {
@@ -113,18 +113,20 @@ export default function SpellDetailModal({ spell, onClose, canCast, onCast }) {
 
           {/* Action */}
           <button
-            disabled={!canCast}
+            disabled={!canCast && !isSelected}
             onClick={() => {
                onCast();
                onClose();
             }}
             className={`w-full py-5 rounded-2xl font-black uppercase italic tracking-widest transition-all duration-300 shadow-xl
-              ${canCast 
-                ? 'bg-magical-gold text-magical-navy scale-[1.02] hover:shadow-gold-lg' 
-                : 'bg-white/5 text-white/20 border border-white/5'
+              ${isSelected
+                ? 'bg-impact-red text-white scale-[1.02]'
+                : canCast 
+                  ? 'bg-magical-gold text-magical-navy scale-[1.02] hover:shadow-gold-lg' 
+                  : 'bg-white/5 text-white/20 border border-white/5'
               }`}
           >
-            {canCast ? 'Lanzar Hechizo' : 'Sin Energía'}
+            {isSelected ? 'Quitar de Estrategia' : canCast ? 'Agregar a Estrategia' : 'Sin Energía / AP'}
           </button>
         </div>
       </div>
