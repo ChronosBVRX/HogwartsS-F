@@ -36,6 +36,14 @@ begin
   if v_duel.status != 'active' then raise exception 'El duelo ya no está activo'; end if;
   if v_duel.turn_number != p_turn_number then raise exception 'Número de turno incorrecto'; end if;
   
+  -- 1b. Validar Pertenencia
+  if v_user_id != v_duel.player_one and v_user_id != v_duel.player_two then
+    raise exception 'No perteneces a este duelo';
+  end if;
+  if v_duel.mode = 'ai' and v_user_id != v_duel.player_one then
+    raise exception 'No puedes enviar acciones por la IA';
+  end if;
+
   -- 2. Validar Stance
   if p_stance not in ('neutral', 'offensive', 'defensive', 'concentrated', 'cunning', 'desperate') then
     raise exception 'Postura inválida: %', p_stance;
@@ -46,7 +54,10 @@ begin
   where duel_id = p_duel_id and turn_number = p_turn_number and player_id = v_user_id;
   if found then raise exception 'Ya has enviado tu estrategia para este turno'; end if;
 
-  -- 4. Validar Acciones (AP, Energía, Cooldowns)
+  -- 4. Validar Acciones (Formato, AP, Energía, Cooldowns)
+  if jsonb_typeof(p_actions) != 'array' then
+    raise exception 'Las acciones deben ser un arreglo JSON';
+  end if;
   if jsonb_array_length(p_actions) = 0 then raise exception 'Debes elegir al menos una acción'; end if;
 
   for v_action in select * from jsonb_array_elements(p_actions) loop
@@ -246,45 +257,48 @@ begin
     end if;
   end loop;
 
-  -- 6. Resolución Estratégica (Matriz beats/losesTo)
+  -- 6. Bonus Hufflepuff (+25% defensa/cura)
+  if v_p1_house = 'hufflepuff' then v_p1_blk := floor(v_p1_blk * 1.25); v_p1_heal := floor(v_p1_heal * 1.25); end if;
+  if v_p2_house = 'hufflepuff' then v_p2_blk := floor(v_p2_blk * 1.25); v_p2_heal := floor(v_p2_heal * 1.25); end if;
+
+  -- 7. Cálculos de Bloqueo Base Final
+  v_p1_final_blk := v_p1_blk + v_p1_stance_blk;
+  v_p2_final_blk := v_p2_blk + v_p2_stance_blk;
+
+  -- 8. Resolución Estratégica (Matriz beats/losesTo)
   -- Ventaja P1 sobre P2
   if v_p2_fams && v_p1_beats then 
     v_p1_bonus := 14; 
-    v_p2_final_blk := floor(v_p2_blk * 0.5); 
-    if (v_p1_fams @> '{disarm}') and (v_p2_fams @> '{heavy}') then v_p2_dmg := floor(v_p2_dmg * 0.5); v_p2_interrupted := true; end if;
-    if (v_p1_fams @> '{attack, heavy}') and (v_p2_fams @> '{charge}') then v_p2_gain := 0; v_p2_interrupted := true; end if;
-    if (v_p1_fams @> '{control}') and (v_p2_fams @> '{defense}') then v_p2_final_blk := 0; end if;
+    v_p2_final_blk := floor(v_p2_final_blk * 0.5); 
+    -- Interrupción de carga y disarm
+    if (v_p1_fams && '{disarm}'::text[]) and (v_p2_fams && '{heavy}'::text[]) then v_p2_dmg := floor(v_p2_dmg * 0.5); v_p2_interrupted := true; end if;
+    if (v_p1_fams && '{attack, heavy}'::text[]) and (v_p2_fams && '{charge}'::text[]) then v_p2_gain := 0; v_p2_interrupted := true; end if;
+    if (v_p1_fams && '{control}'::text[]) and (v_p2_fams && '{defense}'::text[]) then v_p2_final_blk := 0; end if;
   end if;
   
   -- Ventaja P2 sobre P1
   if v_p1_fams && v_p2_beats then 
     v_p2_bonus := 14; 
-    v_p1_final_blk := floor(v_p1_blk * 0.5);
-    if (v_p2_fams @> '{disarm}') and (v_p1_fams @> '{heavy}') then v_p1_dmg := floor(v_p1_dmg * 0.5); v_p1_interrupted := true; end if;
-    if (v_p2_fams @> '{attack, heavy}') and (v_p1_fams @> '{charge}') then v_p1_gain := 0; v_p1_interrupted := true; end if;
-    if (v_p2_fams @> '{control}') and (v_p1_fams @> '{defense}') then v_p1_final_blk := 0; end if;
+    v_p1_final_blk := floor(v_p1_final_blk * 0.5);
+    if (v_p2_fams && '{disarm}'::text[]) and (v_p1_fams && '{heavy}'::text[]) then v_p1_dmg := floor(v_p1_dmg * 0.5); v_p1_interrupted := true; end if;
+    if (v_p2_fams && '{attack, heavy}'::text[]) and (v_p1_fams && '{charge}'::text[]) then v_p1_gain := 0; v_p1_interrupted := true; end if;
+    if (v_p2_fams && '{control}'::text[]) and (v_p1_fams && '{defense}'::text[]) then v_p1_final_blk := 0; end if;
   end if;
 
-  -- Penalizaciones por desventaja o misma familia
+  -- Penalizaciones
   if v_p2_fams && v_p1_loses then v_p1_penalty := 8; end if;
   if v_p1_fams && v_p2_loses then v_p2_penalty := 8; end if;
   if v_p1_fams && v_p2_fams then v_p1_penalty := v_p1_penalty + 6; v_p2_penalty := v_p2_penalty + 6; end if;
 
-  -- 7. Bonus Hufflepuff (+25% defensa/cura)
-  if v_p1_house = 'hufflepuff' then v_p1_blk := floor(v_p1_blk * 1.25); v_p1_heal := floor(v_p1_heal * 1.25); end if;
-  if v_p2_house = 'hufflepuff' then v_p2_blk := floor(v_p2_blk * 1.25); v_p2_heal := floor(v_p2_heal * 1.25); end if;
-
-  v_p1_final_blk := coalesce(v_p1_final_blk, v_p1_blk + v_p1_stance_blk);
-  v_p2_final_blk := coalesce(v_p2_final_blk, v_p2_blk + v_p2_stance_blk);
-
-  -- 8. Cálculos Finales
+  -- 9. Cálculos de Daño Final
   v_p1_total_dmg := greatest(0, v_p1_dmg + v_p1_stance_dmg + v_p1_bonus - v_p1_penalty - v_p2_final_blk);
   v_p2_total_dmg := greatest(0, v_p2_dmg + v_p2_stance_dmg + v_p2_bonus - v_p2_penalty - v_p1_final_blk);
   
-  if v_p1_dmg = 0 then v_p2_total_dmg := 0; end if;
-  if v_p2_dmg = 0 then v_p1_total_dmg := 0; end if;
+  -- Corregir daño cero: si el mago no genera daño base, no causa daño final (evitar daño por pura ventaja)
+  if v_p1_dmg <= 0 then v_p1_total_dmg := 0; end if;
+  if v_p2_dmg <= 0 then v_p2_total_dmg := 0; end if;
 
-  -- 9. Actualizar Estado
+  -- 10. Actualizar Estado
   update hsf_duels
   set 
     player_one_hp = least(100, greatest(0, player_one_hp - v_p2_total_dmg + v_p1_heal)),
