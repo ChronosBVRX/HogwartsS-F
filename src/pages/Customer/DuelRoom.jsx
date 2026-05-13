@@ -9,7 +9,7 @@ import DuelTurnAnnouncement from '../../components/duels/DuelTurnAnnouncement'
 import SpellDetailModal from '../../components/duels/SpellDetailModal'
 import { SPELLS } from '../../lib/duelSpells'
 import audioManager from '../../lib/audioManager'
-import { Trophy, Skull, Swords, Repeat, Home, BarChart3, Volume2, Flag } from 'lucide-react'
+import { Trophy, Skull, Swords, Repeat, Home, BarChart3, Volume2, Flag, X } from 'lucide-react'
 
 export default function DuelRoom() {
   const { duelId } = useParams()
@@ -453,7 +453,7 @@ export default function DuelRoom() {
                 onClick={() => setIsMenuOpen(false)}
                 className="bg-white/10 p-4 rounded-full hover:bg-white/20 transition-all"
               >
-                <Flag className="w-6 h-6 text-magical-gold" />
+                <X className="w-6 h-6 text-magical-gold" />
               </button>
             </div>
 
@@ -486,6 +486,20 @@ export default function DuelRoom() {
 
             {/* Action Bar & Confirm - Fixed at Bottom of Menu */}
             <div className="sticky bottom-0 left-0 right-0 pt-4 pb-2 bg-magical-navy">
+              {/* Selected Combo Summary */}
+              {selectedActions.length > 0 && (
+                <div className="flex flex-wrap gap-2 justify-center mb-3 animate-in fade-in slide-in-from-bottom-2">
+                  {selectedActions.map(action => (
+                    <span
+                      key={action.key}
+                      className="px-3 py-1 rounded-full bg-magical-gold/10 border border-magical-gold/30 text-magical-gold text-[10px] font-black uppercase tracking-widest shadow-[0_0_10px_rgba(212,175,55,0.1)]"
+                    >
+                      {action.name}
+                    </span>
+                  ))}
+                </div>
+              )}
+
               <div className="flex justify-between items-center bg-black/60 p-4 rounded-3xl border border-magical-gold/20 shadow-2xl">
                 <div className="flex flex-col gap-1">
                   <div className="flex items-center gap-2">
