@@ -18,6 +18,19 @@ export default function SpellDetailModal({ spell, onClose, canCast, onCast, isSe
   const meta = FAMILY_META[spell.family] || FAMILY_META.attack
   const Icon = meta.icon
 
+  const spellImageMap = {
+    expelliarmus: '/assets/spells/expelliarmus.jpg',
+    stupefy: '/assets/spells/stupefy.jpg',
+    protego: '/assets/spells/protego.jpg',
+    petrificus: '/assets/spells/petrificus.jpg',
+    finite: '/assets/spells/finite.jpg',
+    episkey: '/assets/spells/episkey.jpg',
+    incendio: '/assets/spells/incendio.jpg',
+    confundus: '/assets/duels/cards/control.webp',
+    accio: '/assets/spells/accio.jpg',
+    rictusempra: '/assets/duels/cards/attack.webp',
+  }
+
   return (
     <div className="fixed inset-0 z-[200] flex items-end md:items-center justify-center p-4 bg-black/60 backdrop-blur-md animate-in fade-in duration-300">
       <div 
@@ -27,7 +40,7 @@ export default function SpellDetailModal({ spell, onClose, canCast, onCast, isSe
         {/* Header Art */}
         <div className="relative h-40 md:h-48">
           <img 
-            src={`/assets/spells/${spell.key}.jpg`} 
+            src={spellImageMap[spell.key] || '/assets/duels/cards/attack.webp'}
             className="w-full h-full object-cover brightness-[0.7]"
             onError={(e) => { e.target.src = '/assets/duels/cards/attack.webp' }}
             alt={spell.name}
