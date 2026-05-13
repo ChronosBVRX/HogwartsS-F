@@ -6,7 +6,7 @@ import App from './App.jsx'
 import { registerSW } from 'virtual:pwa-register'
 
 // Register Service Worker for PWA
-registerSW({ immediate: true })
+registerSW({ immediate: false })
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>

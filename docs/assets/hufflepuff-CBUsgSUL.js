@@ -1,0 +1,1 @@
+var e=`/assets/gryffindor-BDxuvLa1.png`,t=`/assets/slytherin-9mnh79ig.png`,n=`/assets/ravenclaw-BwZFdWT9.png`,r=`/assets/hufflepuff-GnW05Ys-.png`;export{e as i,n,t as r,r as t};

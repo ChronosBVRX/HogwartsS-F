@@ -17,19 +17,12 @@ export const AuthProvider = ({ children }) => {
     }
 
     try {
-      // Use a timeout for profile fetching
-      const timeout = new Promise((_, reject) => 
-        setTimeout(() => reject(new Error('Profile fetch timeout')), 5000)
-      )
-      
-      const request = supabase
+      const { data, error } = await supabase
         .from('hsf_profiles')
         .select('*, house:hsf_houses(*)')
         .eq('user_id', userId)
         .limit(1)
         .maybeSingle()
-
-      const { data, error } = await Promise.race([request, timeout])
 
       if (error) {
         console.error('Error fetching profile:', error)
@@ -49,42 +42,56 @@ export const AuthProvider = ({ children }) => {
   useEffect(() => {
     let mounted = true
 
-    // Single listener for all auth states (including initial load)
+    const initAuth = async () => {
+      try {
+        setLoading(true)
+        
+        // 1. Get initial session immediately
+        const { data: { session }, error } = await supabase.auth.getSession()
+        
+        if (error) throw error
+
+        const currentUser = session?.user ?? null
+        if (mounted) {
+          setUser(currentUser)
+          if (currentUser) {
+            await fetchProfile(currentUser.id)
+          }
+        }
+      } catch (err) {
+        console.error('Auth initialization error:', err)
+        if (mounted) setAuthError(err.message)
+      } finally {
+        if (mounted) {
+          setLoading(false)
+          initialized.current = true
+        }
+      }
+    }
+
+    initAuth()
+
+    // 2. Listen for subsequent changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
-      console.log('Auth state change:', event, session?.user?.id)
-      
+      // Avoid re-fetching profile during initial load if initAuth is already doing it
+      if (!initialized.current && event === 'SIGNED_IN') return
+
+      console.log('Auth event:', event)
       const currentUser = session?.user ?? null
       
-      if (!mounted) return
-
-      setUser(currentUser)
-      
-      if (currentUser) {
-        await fetchProfile(currentUser.id)
-      } else {
-        setProfile(null)
-      }
-
-      // Mark as initialized after the first auth state is handled
-      if (!initialized.current) {
-        initialized.current = true
-        setLoading(false)
+      if (mounted) {
+        setUser(currentUser)
+        if (currentUser) {
+          await fetchProfile(currentUser.id)
+        } else {
+          setProfile(null)
+        }
       }
     })
-
-    // Fallback if onAuthStateChange doesn't fire for some reason
-    const timer = setTimeout(() => {
-      if (mounted && !initialized.current) {
-        console.warn('Auth initialization fallback triggered')
-        setLoading(false)
-        initialized.current = true
-      }
-    }, 6000)
 
     return () => {
       mounted = false
       subscription?.unsubscribe()
-      clearTimeout(timer)
     }
   }, [fetchProfile])
 
@@ -93,7 +100,6 @@ export const AuthProvider = ({ children }) => {
       await supabase.auth.signOut()
       setUser(null)
       setProfile(null)
-      // Force reload to clear any stale state
       window.location.href = '/'
     } catch (err) {
       console.error('signOut failed:', err)

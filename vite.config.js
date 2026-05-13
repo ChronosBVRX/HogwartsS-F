@@ -45,7 +45,12 @@ export default defineConfig({
         ]
       },
       workbox: {
-        globPatterns: ['**/*.{js,css,html,png,jpg,jpeg,svg,ico,webp,mp3,ogg,wav,webm}']
+        globPatterns: ['**/*.{js,css,html,svg,ico}'],
+        globIgnores: [
+          '**/audio/**',
+          '**/assets/duels/**',
+          '**/categories/**'
+        ]
       }
     }),
   ],
