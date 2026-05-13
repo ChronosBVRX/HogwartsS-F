@@ -133,6 +133,7 @@ export default function AdventureReward() {
           </div>
         </div>
       </div>
+      </div>
     </div>
   )
 }
