@@ -39,69 +39,83 @@ export default function Profile() {
   const [loading, setLoading] = useState(true)
   const navigate = useNavigate()
 
-  const fetchActiveSession = async () => {
-    if (!profile) return
+  const fetchActiveSession = useCallback(async () => {
+    if (!profile) {
+      setLoading(false)
+      return
+    }
     
-    // Fetch active session
-    const { data: sessionData } = await supabase
-      .from('hsf_visit_sessions')
-      .select('*')
-      .in('status', ['qr_generated', 'seated', 'closed_waiting_ticket', 'ticket_submitted'])
-      .eq('customer_id', profile.user_id)
-      .order('created_at', { ascending: false })
-      .limit(1)
-      .maybeSingle()
+    try {
+      // Fetch active session
+      const { data: sessionData, error: sessionError } = await supabase
+        .from('hsf_visit_sessions')
+        .select('*')
+        .in('status', ['qr_generated', 'seated', 'closed_waiting_ticket', 'ticket_submitted'])
+        .eq('customer_id', profile.user_id)
+        .order('created_at', { ascending: false })
+        .limit(1)
+        .maybeSingle()
 
-    if (sessionData) setActiveSession(sessionData)
+      if (sessionError) console.error('Error fetching active session:', sessionError)
+      if (sessionData) setActiveSession(sessionData)
+      else setActiveSession(null)
 
-    // Fetch ticket history
-    const { data: historyData } = await supabase
-      .from('hsf_ticket_claims')
-      .select('*')
-      .eq('customer_id', profile.user_id)
-      .order('created_at', { ascending: false })
-      .limit(10)
+      // Fetch ticket history
+      const { data: historyData, error: historyError } = await supabase
+        .from('hsf_ticket_claims')
+        .select('*')
+        .eq('customer_id', profile.user_id)
+        .order('created_at', { ascending: false })
+        .limit(10)
 
-    if (historyData) setTicketHistory(historyData)
+      if (historyError) console.error('Error fetching ticket history:', historyError)
+      setTicketHistory(historyData || [])
 
-    // Fetch monthly approved points
-    const startOfMonth = new Date()
-    startOfMonth.setDate(1)
-    startOfMonth.setHours(0, 0, 0, 0)
+      // Fetch monthly approved points
+      const startOfMonth = new Date()
+      startOfMonth.setDate(1)
+      startOfMonth.setHours(0, 0, 0, 0)
 
-    const { data: monthlyData } = await supabase
-      .from('hsf_ticket_claims')
-      .select('points_awarded')
-      .eq('customer_id', profile.user_id)
-      .eq('status', 'approved')
-      .gte('created_at', startOfMonth.toISOString())
+      const { data: monthlyData, error: monthlyError } = await supabase
+        .from('hsf_ticket_claims')
+        .select('points_awarded')
+        .eq('customer_id', profile.user_id)
+        .eq('status', 'approved')
+        .gte('created_at', startOfMonth.toISOString())
 
-    const total = monthlyData?.reduce((acc, curr) => acc + (curr.points_awarded || 0), 0) || 0
-    setMonthlyPoints(total)
-    
-    setLoading(false)
-  }
-
-  useEffect(() => {
-    if (profile) {
-      fetchActiveSession()
-
-      const channel = supabase
-        .channel(`session_updates_${profile.user_id}`)
-        .on(
-          'postgres_changes', 
-          { 
-            event: '*', 
-            table: 'hsf_visit_sessions', 
-            filter: `customer_id=eq.${profile.user_id}` 
-          }, 
-          () => fetchActiveSession()
-        )
-        .subscribe()
-
-      return () => supabase.removeChannel(channel)
+      if (monthlyError) console.error('Error fetching monthly points:', monthlyError)
+      const total = monthlyData?.reduce((acc, curr) => acc + (curr.points_awarded || 0), 0) || 0
+      setMonthlyPoints(total)
+    } catch (err) {
+      console.error('fetchActiveSession failed:', err)
+    } finally {
+      setLoading(false)
     }
   }, [profile])
+
+  useEffect(() => {
+    if (!profile) {
+      setLoading(false)
+      return
+    }
+
+    fetchActiveSession()
+
+    const channel = supabase
+      .channel(`session_updates_${profile.user_id}`)
+      .on(
+        'postgres_changes', 
+        { 
+          event: '*', 
+          table: 'hsf_visit_sessions', 
+          filter: `customer_id=eq.${profile.user_id}` 
+        }, 
+        () => fetchActiveSession()
+      )
+      .subscribe()
+
+    return () => supabase.removeChannel(channel)
+  }, [profile, fetchActiveSession])
 
   const handleEndVisit = async () => {
     if (!activeSession) return
@@ -118,8 +132,6 @@ export default function Profile() {
     if (!error) fetchActiveSession()
   }
 
-  const house = profile?.house_slug ? HOUSE_CONFIG[profile.house_slug] : null
-
   if (loading && !activeSession) {
     return (
       <div className="flex-1 flex items-center justify-center">
@@ -129,6 +141,30 @@ export default function Profile() {
       </div>
     )
   }
+
+  if (!profile) {
+    return (
+      <div className="flex-1 flex items-center justify-center p-6">
+        <div className="glass-card p-8 rounded-[2.5rem] text-center space-y-6 max-w-md border border-white/10">
+          <Wand2 className="w-16 h-16 text-magical-gold/20 mx-auto" />
+          <div className="space-y-2">
+            <h1 className="text-2xl font-black uppercase italic tracking-tighter text-white">Perfil no encontrado</h1>
+            <p className="text-white/50 text-sm leading-relaxed">
+              Tu usuario existe en el Ministerio, pero tu perfil mágico local no fue encontrado. Esto sucede tras un reinicio de la Gran Cámara.
+            </p>
+          </div>
+          <Link to="/registro" className="btn-gold w-full py-5 text-sm font-black uppercase tracking-widest">
+            Recrear Perfil Mágico
+          </Link>
+          <button onClick={() => signOut()} className="text-[10px] font-black uppercase tracking-widest text-white/20 hover:text-white/40 transition-colors">
+            Cerrar Sesión
+          </button>
+        </div>
+      </div>
+    )
+  }
+
+  const house = profile?.house_slug ? HOUSE_CONFIG[profile.house_slug] : null
 
   const currentSteps = monthlyPoints
   
