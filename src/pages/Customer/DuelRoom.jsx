@@ -9,7 +9,7 @@ import DuelTurnAnnouncement from '../../components/duels/DuelTurnAnnouncement'
 import SpellDetailModal from '../../components/duels/SpellDetailModal'
 import { SPELLS } from '../../lib/duelSpells'
 import audioManager from '../../lib/audioManager'
-import { Trophy, Skull, Swords, Repeat, Home, BarChart3, Volume2, Flag, X } from 'lucide-react'
+import { Trophy, Skull, Swords, Repeat, Home, BarChart3, Volume2, Flag, X, Zap } from 'lucide-react'
 
 export default function DuelRoom() {
   const { duelId } = useParams()
@@ -508,7 +508,7 @@ export default function DuelRoom() {
                     <span className="text-[10px] font-black uppercase text-white/40 ml-2">Movimientos</span>
                   </div>
                   <div className="flex items-center gap-2">
-                     <ZapIcon className="text-magical-gold w-4 h-4" />
+                     <Zap className="text-magical-gold w-4 h-4" />
                      <p className="text-2xl font-black italic">{myEnergy - totalEnergyCost} / 5</p>
                      <span className="text-[9px] text-white/30 uppercase font-black tracking-widest ml-1">Energía</span>
                   </div>
@@ -537,7 +537,7 @@ export default function DuelRoom() {
               <p className="text-[10px] text-white/30 font-medium italic text-center">
                 Toca una carta para inspeccionarla y agregarla a tu combo.
               </p>
-              <div className="grid grid-cols-4 md:grid-cols-6 lg:grid-cols-8 gap-3">
+              <div className="grid grid-cols-5 md:grid-cols-6 lg:grid-cols-8 gap-2 md:gap-3">
                 {Object.entries(SPELLS).map(([key, spell]) => {
                   const isSelected = selectedActions.some(a => a.key === key)
                   
