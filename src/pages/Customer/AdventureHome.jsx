@@ -49,7 +49,7 @@ export default function AdventureHome() {
     }
 
     return () => audio.stopAmbient()
-  }, [audio.enabled])
+  }, [audio.enabled, audio.playAmbient, audio.stopAmbient])
 
   useEffect(() => {
     if (!audio.enabled || loading || !state) return
@@ -65,7 +65,7 @@ export default function AdventureHome() {
     }
 
     audio.play(adventureAudio.home.intro, { volume: 0.9 })
-  }, [audio.enabled, loading, state?.blocked, state?.has_active])
+  }, [audio.enabled, audio.play, loading, state?.blocked, state?.has_active])
 
   const fetchAdventure = async () => {
     setLoading(true)

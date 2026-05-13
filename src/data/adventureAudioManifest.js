@@ -1,20 +1,20 @@
 export const adventureAudio = {
   ambient: {
-    castle: '/audio/adventure/ambient/castle_loop.mp3',
-    scanner: '/audio/adventure/ambient/scanner_loop.mp3',
-    reward: '/audio/adventure/ambient/reward_loop.mp3',
-    tension: '/audio/adventure/ambient/tension_loop.mp3'
+    castle: '/audio/duels/ambient/ambient_castle_night.mp3',
+    scanner: '/audio/duels/ambient/ambient_magic_wind.mp3',
+    reward: '/audio/duels/ambient/ambient_duel_hall.mp3',
+    tension: '/audio/duels/ambient/ambient_dungeon_low.mp3'
   },
 
   ui: {
-    mapOpen: '/audio/adventure/ui/map_open.mp3',
-    magicClick: '/audio/adventure/ui/magic_click.mp3',
-    cameraStart: '/audio/adventure/ui/camera_start.mp3',
-    portalScan: '/audio/adventure/ui/portal_scan.mp3',
-    correct: '/audio/adventure/ui/correct.mp3',
-    wrong: '/audio/adventure/ui/wrong.mp3',
-    rewardFanfare: '/audio/adventure/ui/reward_fanfare.mp3',
-    transition: '/audio/adventure/ui/transition_whoosh.mp3'
+    mapOpen: '/audio/duels/ui/ui_card_confirm.mp3',
+    magicClick: '/audio/duels/ui/ui_button_magic.mp3',
+    cameraStart: '/audio/duels/ui/ui_button_magic.mp3',
+    portalScan: '/audio/duels/ui/ui_card_confirm.mp3',
+    correct: '/audio/duels/ui/ui_reward.mp3',
+    wrong: '/audio/duels/ui/ui_timer_warning.mp3',
+    rewardFanfare: '/audio/duels/ui/ui_reward.mp3',
+    transition: '/audio/duels/ui/ui_button_magic.mp3'
   },
 
   home: {

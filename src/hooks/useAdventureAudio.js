@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useRef, useState, useCallback, useMemo } from 'react'
 
 const STORAGE_KEY = 'hsf_magic_audio_enabled'
 
@@ -12,7 +12,7 @@ export function useAdventureAudio() {
 
   const [playing, setPlaying] = useState(false)
 
-  const unlockAudio = async () => {
+  const unlockAudio = useCallback(async () => {
     localStorage.setItem(STORAGE_KEY, 'true')
     setEnabled(true)
 
@@ -21,16 +21,36 @@ export function useAdventureAudio() {
       silent.volume = 0
       await silent.play().catch(() => {})
     } catch {}
-  }
+  }, [])
 
-  const disableAudio = () => {
+  const disableAudio = useCallback(() => {
     localStorage.setItem(STORAGE_KEY, 'false')
     setEnabled(false)
     stopAll()
-  }
+  }, [])
 
-  const play = async (src, options = {}) => {
-    if (!enabled || !src) return
+  const stopVoice = useCallback(() => {
+    if (currentAudioRef.current) {
+      currentAudioRef.current.pause()
+      currentAudioRef.current.currentTime = 0
+    }
+    setPlaying(false)
+  }, [])
+
+  const stopAmbient = useCallback(() => {
+    if (ambientAudioRef.current) {
+      ambientAudioRef.current.pause()
+      ambientAudioRef.current.currentTime = 0
+    }
+  }, [])
+
+  const stopAll = useCallback(() => {
+    stopVoice()
+    stopAmbient()
+  }, [stopVoice, stopAmbient])
+
+  const play = useCallback(async (src, options = {}) => {
+    if (localStorage.getItem(STORAGE_KEY) !== 'true' || !src) return
 
     try {
       if (currentAudioRef.current && !options.overlap) {
@@ -53,10 +73,10 @@ export function useAdventureAudio() {
       console.warn('No se pudo reproducir audio:', src, err)
       setPlaying(false)
     }
-  }
+  }, [])
 
-  const playSequence = async (items = []) => {
-    if (!enabled || !items.length) return
+  const playSequence = useCallback(async (items = []) => {
+    if (localStorage.getItem(STORAGE_KEY) !== 'true' || !items.length) return
 
     for (const item of items) {
       const src = typeof item === 'string' ? item : item.src
@@ -92,13 +112,16 @@ export function useAdventureAudio() {
         }
       })
     }
-  }
+  }, [])
 
-  const playAmbient = async (src, options = {}) => {
-    if (!enabled || !src) return
+  const playAmbient = useCallback(async (src, options = {}) => {
+    if (localStorage.getItem(STORAGE_KEY) !== 'true' || !src) return
 
     try {
       if (ambientAudioRef.current) {
+        // Only restart if source changed or explicitly forced
+        if (ambientAudioRef.current.src.includes(src) && !options.force) return
+        
         ambientAudioRef.current.pause()
         ambientAudioRef.current.currentTime = 0
       }
@@ -112,33 +135,16 @@ export function useAdventureAudio() {
     } catch (err) {
       console.warn('No se pudo reproducir ambiente:', src, err)
     }
-  }
-
-  const stopVoice = () => {
-    if (currentAudioRef.current) {
-      currentAudioRef.current.pause()
-      currentAudioRef.current.currentTime = 0
-    }
-    setPlaying(false)
-  }
-
-  const stopAmbient = () => {
-    if (ambientAudioRef.current) {
-      ambientAudioRef.current.pause()
-      ambientAudioRef.current.currentTime = 0
-    }
-  }
-
-  const stopAll = () => {
-    stopVoice()
-    stopAmbient()
-  }
-
-  useEffect(() => {
-    return () => stopAll()
   }, [])
 
-  return {
+  useEffect(() => {
+    return () => {
+      if (currentAudioRef.current) currentAudioRef.current.pause()
+      if (ambientAudioRef.current) ambientAudioRef.current.pause()
+    }
+  }, [])
+
+  return useMemo(() => ({
     enabled,
     playing,
     unlockAudio,
@@ -149,5 +155,5 @@ export function useAdventureAudio() {
     stopVoice,
     stopAmbient,
     stopAll
-  }
+  }), [enabled, playing, unlockAudio, disableAudio, play, playSequence, playAmbient, stopVoice, stopAmbient, stopAll])
 }

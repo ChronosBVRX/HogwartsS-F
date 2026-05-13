@@ -112,7 +112,7 @@ export default function AdventureScanner() {
     }
 
     return () => audio.stopAmbient()
-  }, [audio])
+  }, [audio.enabled, audio.playAmbient, audio.play, audio.stopAmbient])
 
   const handleScan = async (decodedText) => {
     setShowScanner(false)

@@ -60,7 +60,7 @@ export default function AdventurePlay() {
     ])
 
     setHasPlayedStepAudio(true)
-  }, [audio.enabled, step, hasPlayedStepAudio])
+  }, [audio.enabled, audio.playSequence, step, hasPlayedStepAudio])
 
   const fetchStep = async () => {
     setLoading(true)
