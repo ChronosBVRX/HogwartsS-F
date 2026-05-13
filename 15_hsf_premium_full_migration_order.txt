@@ -1,0 +1,22 @@
+
+ORDEN DE EJECUCIÓN PARA MIGRACIÓN PREMIUM (AVENTURAS)
+
+1. 12_hsf_premium_adventure_logic.sql
+   (Sistema base, temporadas, variantes y seed de datos)
+
+2. 13_hsf_premium_adventure_rpc_update.sql
+   (Actualización del escáner para asignar variantes automáticamente)
+
+3. 14_hsf_premium_adventure_get_active_update.sql
+   (Actualización del estado de aventura para leer las variantes premium)
+
+IMPORTANTE:
+Después de ejecutar estos scripts en el SQL Editor de Supabase, la aplicación 
+estará funcionando con el nuevo sistema estacional de 45 días.
+
+Las zonas activas han sido restringidas a las 5 oficiales:
+- gryffindor
+- slytherin
+- gran-comedor
+- callejon-diagon
+- disney

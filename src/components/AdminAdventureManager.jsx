@@ -19,7 +19,7 @@ export default function AdminAdventureManager() {
     setLoading(true)
 
     const [zonesRes, adventuresRes, rewardsRes] = await Promise.all([
-      supabase.from('hsf_adventure_zones').select('*').eq('active', true).order('floor_number', { ascending: true }),
+      supabase.from('hsf_active_adventure_zones').select('*'),
       supabase.from('hsf_adventures').select('*, steps:hsf_adventure_steps(id)').order('created_at', { ascending: true }),
       supabase
         .from('hsf_adventure_rewards')

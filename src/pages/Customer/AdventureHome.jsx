@@ -1,23 +1,36 @@
 import { useEffect, useRef, useState } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { supabase } from '../../lib/supabase'
-import { Wand2, QrCode, Gift, Map, AlertCircle, Sparkles, XCircle } from 'lucide-react'
+import { Wand2, QrCode, Gift, Map, AlertCircle, Sparkles, XCircle, LayoutGrid } from 'lucide-react'
 import { useAdventureAudio } from '../../hooks/useAdventureAudio'
 import { adventureAudio } from '../../data/adventureAudioManifest'
 import AdventureAudioControl from '../../components/adventure/AdventureAudioControl'
+import SeasonBanner from '../../components/adventure/SeasonBanner'
+import SeasonAdventureGrid from '../../components/adventure/SeasonAdventureGrid'
+import { 
+  getCurrentAdventureSeason, 
+  getAvailableSeasonAdventures,
+  startSeasonAdventure 
+} from '../../lib/adventureSeasonService'
 
 export default function AdventureHome() {
   const [state, setState] = useState(null)
   const [rewards, setRewards] = useState([])
+  const [season, setSeason] = useState(null)
+  const [adventures, setAdventures] = useState([])
   const [loading, setLoading] = useState(true)
+  const navigate = useNavigate()
   const audio = useAdventureAudio()
 
   useEffect(() => {
     let channel;
 
     const setupRealtime = async () => {
-      await fetchAdventure()
-      fetchRewards()
+      await Promise.all([
+        fetchAdventure(),
+        fetchRewards(),
+        fetchSeasonData()
+      ])
 
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) return
@@ -79,6 +92,19 @@ export default function AdventureHome() {
       }
     }
   }, [audio.enabled, audio.playVoice, audio.play, loading, state])
+
+  const fetchSeasonData = async () => {
+    try {
+      const [seasonData, adventureData] = await Promise.all([
+        getCurrentAdventureSeason(supabase),
+        getAvailableSeasonAdventures(supabase)
+      ])
+      setSeason(seasonData)
+      setAdventures(adventureData)
+    } catch (err) {
+      console.error('fetchSeasonData failed:', err)
+    }
+  }
 
   const fetchAdventure = async () => {
     setLoading(true)
@@ -143,6 +169,26 @@ export default function AdventureHome() {
     }
   }
 
+  const handleStartAdventure = async (adventure) => {
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) {
+      navigate('/login')
+      return
+    }
+
+    setLoading(true)
+    try {
+      const run = await startSeasonAdventure(supabase, adventure.adventure_id, user.id)
+      await fetchAdventure()
+      navigate('/aventura/escanear')
+    } catch (error) {
+      console.error('Error starting adventure:', error)
+      alert('No se pudo iniciar la aventura. Quizás ya tienes una activa.')
+    } finally {
+      setLoading(false)
+    }
+  }
+
   return (
     <div className="flex-1 max-w-5xl mx-auto w-full p-4 md:p-6 pb-24 space-y-8 animate-in fade-in duration-700">
       <div className="flex justify-end">
@@ -155,21 +201,7 @@ export default function AdventureHome() {
         />
       </div>
 
-      <header className="glass-card p-8 md:p-10 rounded-[2.5rem] border border-white/10 relative overflow-hidden">
-        <Sparkles className="absolute -right-8 -bottom-8 w-40 h-40 text-magical-gold/5" />
-        <div className="relative z-10 space-y-4">
-          <div className="flex items-center gap-3 text-magical-gold">
-            <Map className="w-6 h-6" />
-            <p className="text-[10px] font-black uppercase tracking-[0.35em]">Experiencia interactiva por zonas</p>
-          </div>
-          <h1 className="text-4xl md:text-6xl font-black uppercase italic tracking-tighter text-white">
-            Aventura <span className="text-magical-gold">Mágica</span>
-          </h1>
-          <p className="text-white/55 max-w-2xl leading-relaxed">
-            Recorre las zonas del restaurante, escanea los sellos mágicos y resuelve acertijos difíciles para desbloquear una recompensa.
-          </p>
-        </div>
-      </header>
+      <SeasonBanner season={season} />
 
       {loading ? (
         <div className="p-16 text-center text-magical-gold uppercase font-black tracking-widest animate-pulse">
@@ -220,19 +252,31 @@ export default function AdventureHome() {
           )}
         </section>
       ) : (
-        <section className="glass-card p-8 rounded-[2.5rem] border border-white/10 space-y-6 text-center">
-          <Wand2 className="w-16 h-16 text-magical-gold mx-auto" />
-          <div className="space-y-2">
-            <h2 className="text-3xl font-black uppercase italic text-white">Comienza desde cualquier zona</h2>
-            <p className="text-white/50 max-w-xl mx-auto">
-              Escanea el póster QR de Gryffindor, Slytherin, Gran Comedor, Callejón Diagon o Zona Disney. El sistema elegirá una aventura rotativa según el portal donde inicies.
-            </p>
+        <div className="space-y-8">
+          <div className="flex items-center gap-2 px-2">
+            <LayoutGrid className="w-5 h-5 text-magical-gold" />
+            <h2 className="text-[10px] md:text-xs font-black uppercase tracking-[0.4em] text-white/40">Elegir Aventura de Temporada</h2>
           </div>
-          <Link to="/aventura/escanear" className="btn-gold w-full flex items-center justify-center gap-3 py-5 text-sm font-black uppercase">
-            <QrCode className="w-5 h-5" />
-            Escanear primer sello
-          </Link>
-        </section>
+          
+          <SeasonAdventureGrid 
+            adventures={adventures} 
+            onStartAdventure={handleStartAdventure} 
+          />
+
+          <section className="glass-card p-8 rounded-[2.5rem] border border-white/10 space-y-6 text-center">
+            <QrCode className="w-16 h-16 text-magical-gold mx-auto" />
+            <div className="space-y-2">
+              <h2 className="text-3xl font-black uppercase italic text-white">O escanea un sello directamente</h2>
+              <p className="text-white/50 max-w-xl mx-auto">
+                Si prefieres la sorpresa, escanea cualquier sello mágico y el mapa elegirá la aventura que inicie en esa zona.
+              </p>
+            </div>
+            <Link to="/aventura/escanear" className="btn-gold w-full flex items-center justify-center gap-3 py-5 text-sm font-black uppercase">
+              <QrCode className="w-5 h-5" />
+              Escanear cualquier sello
+            </Link>
+          </section>
+        </div>
       )}
 
       <section className="space-y-4">
