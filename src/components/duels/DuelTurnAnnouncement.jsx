@@ -65,7 +65,7 @@ export default function DuelTurnAnnouncement({ lastEvent, isP1, onContinue }) {
     }
   }, [lastEvent?.id, announcement?.tone])
 
-  useEffect(() => {
+  React.useEffect(() => {
     // SFX for Formula & Lesson
     const timer1 = setTimeout(() => audioManager.playSfx('damage_formula_tick'), 800)
     const timer2 = setTimeout(() => audioManager.playSfx('lesson_reveal'), 1500)

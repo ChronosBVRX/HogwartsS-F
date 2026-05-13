@@ -119,8 +119,10 @@ export default function DuelRoom() {
       }
       
       setDuel(formattedData)
+      
       // Sync initial cooldowns
-      const cds = isP1 ? formattedData.player_one_cooldowns : formattedData.player_two_cooldowns
+      const localIsP1 = profile?.user_id === formattedData.player_one
+      const cds = localIsP1 ? formattedData.player_one_cooldowns : formattedData.player_two_cooldowns
       setCooldowns(cds || {})
       
       if (formattedData.status === 'finished') {
@@ -182,7 +184,8 @@ export default function DuelRoom() {
         setDuel(prev => ({ ...prev, ...payload.new }))
         // Sync cooldowns if it's my turn
         if (payload.new.status === 'active') {
-          const cds = isP1 ? payload.new.player_one_cooldowns : payload.new.player_two_cooldowns
+          const localIsP1 = profile?.user_id === payload.new.player_one
+          const cds = localIsP1 ? payload.new.player_one_cooldowns : payload.new.player_two_cooldowns
           setCooldowns(cds || {})
         }
         if (payload.new.status === 'finished') {
@@ -331,6 +334,20 @@ export default function DuelRoom() {
       audioManager.playVoice('turn_start_neutral', { cooldownMs: 30000 })
     }
   }
+
+  // Result Audio Effect
+  useEffect(() => {
+    if (showResult && !resultAudioPlayed) {
+      setResultAudioPlayed(true)
+      if (iWon) {
+        audioManager.playSfx('victory_fanfare')
+        audioManager.playVoice('victory', { force: true })
+      } else if (iLost) {
+        audioManager.playSfx('defeat_dark')
+        audioManager.playVoice('defeat', { force: true })
+      }
+    }
+  }, [showResult, iWon, iLost, resultAudioPlayed])
 
   if (loading) return (
     <div className="min-h-screen bg-magical-navy flex items-center justify-center">
@@ -501,20 +518,6 @@ export default function DuelRoom() {
           </div>
         </section>
       )}
-
-  // Result Audio Effect
-  useEffect(() => {
-    if (showResult && !resultAudioPlayed) {
-      setResultAudioPlayed(true)
-      if (iWon) {
-        audioManager.playSfx('victory_fanfare')
-        audioManager.playVoice('victory', { force: true })
-      } else if (iLost) {
-        audioManager.playSfx('defeat_dark')
-        audioManager.playVoice('defeat', { force: true })
-      }
-    }
-  }, [showResult, iWon, iLost, resultAudioPlayed])
 
   // Spell Detail Modal
       {detailedSpell && (
