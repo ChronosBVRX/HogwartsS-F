@@ -91,6 +91,8 @@ export default function AdventureHome() {
           enabled={audio.enabled}
           onEnable={audio.unlockAudio}
           onDisable={audio.disableAudio}
+          onTest={audio.testAudio}
+          error={audio.lastError}
         />
       </div>
 

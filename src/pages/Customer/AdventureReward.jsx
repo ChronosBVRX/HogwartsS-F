@@ -79,6 +79,8 @@ export default function AdventureReward() {
           enabled={audio.enabled}
           onEnable={audio.unlockAudio}
           onDisable={audio.disableAudio}
+          onTest={audio.testAudio}
+          error={audio.lastError}
           compact
         />
       </div>
