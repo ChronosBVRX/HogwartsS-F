@@ -460,3 +460,21 @@ begin
   on conflict (month_key, house_slug) 
   do update set points = hsf_duel_house_points.points + 15;
 end $$;
+
+-- ==========================================
+-- COMPATIBILITY WRAPPER
+-- ==========================================
+create or replace function hsf_submit_duel_turn(
+  p_duel_id uuid,
+  p_turn_number int,
+  p_actions jsonb,
+  p_stance text default 'neutral'
+)
+returns jsonb
+language plpgsql
+security definer
+as $$
+begin
+  return hsf_submit_duel_strategy(p_duel_id, p_turn_number, p_actions, p_stance);
+end;
+$$;
