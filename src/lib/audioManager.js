@@ -35,7 +35,7 @@ const AUDIO_MAP = {
     verdict_reveal: '/audio/duels/ui/ui_button_magic.mp3',
     damage_formula_tick: '/audio/duels/ui/ui_card_select.mp3',
     lesson_reveal: '/audio/duels/ui/ui_reward.mp3',
-    interruption_hit: '/audio/duels/sfx/interruption_hit.mp3',
+    interruption_hit: '/audio/duels/sfx/damage_hit.mp3',
     disarm_spell: '/audio/duels/sfx/disarm_spell.mp3',
     counter_spell: '/audio/duels/sfx/counter_spell.mp3',
   },
@@ -402,7 +402,9 @@ class AudioManager {
       setTimeout(() => {
         if (this.currentVoice === audio) {
           audio.play().catch(err => {
-            console.warn('Voice play failed', err);
+            if (err?.name !== 'AbortError') {
+              console.warn('Voice play failed', err);
+            }
             resolve();
           });
         } else {

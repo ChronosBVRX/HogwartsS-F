@@ -1,6 +1,7 @@
 import { normalizeHouseSlug, HOUSE_META, getAvatar } from '../../lib/houses'
 import audioManager from '../../lib/audioManager'
 import { useEffect } from 'react'
+import { SPELLS } from '../../lib/duelSpells'
 
 export default function DuelArena({ duel, lastEvent, isResolving, player, opponent, isP1 }) {
   const normPlayer = normalizeHouseSlug(player?.house)
@@ -26,14 +27,17 @@ export default function DuelArena({ duel, lastEvent, isResolving, player, oppone
       const rivalPrefix = isP1 ? 'p2_' : 'p1_'
 
       // 1. Casting SFX
-      const mySpells = payload[myPrefix + 'spells'] || []
-      const rivalSpells = payload[rivalPrefix + 'spells'] || []
-      const allSpells = [...mySpells, ...rivalSpells]
+      const myActions = payload[myPrefix + 'actions'] || []
+      const rivalActions = payload[rivalPrefix + 'actions'] || []
+      const allActions = [...myActions, ...rivalActions]
       
-      const hasHeavy = allSpells.some(s => s.cost >= 2)
+      const hasHeavy = allActions.some(a => {
+        const spell = SPELLS[a.key]
+        return spell?.cost >= 2
+      })
       if (hasHeavy) {
         audioManager.playSfx('spell_cast_heavy')
-      } else if (allSpells.length > 0) {
+      } else if (allActions.length > 0) {
         audioManager.playSfx('spell_cast_light')
       }
 
@@ -59,7 +63,7 @@ export default function DuelArena({ duel, lastEvent, isResolving, player, oppone
         setTimeout(() => audioManager.playSfx('energy_charge'), 800)
       }
       
-      if (payload[myPrefix + 'hp_change'] > 0 || payload[rivalPrefix + 'hp_change'] > 0) {
+      if ((payload[myPrefix + 'heal'] || 0) > 0 || (payload[rivalPrefix + 'heal'] || 0) > 0) {
         setTimeout(() => audioManager.playSfx('heal_magic'), 1000)
       }
     }

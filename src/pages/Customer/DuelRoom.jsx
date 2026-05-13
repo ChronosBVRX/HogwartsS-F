@@ -167,11 +167,6 @@ export default function DuelRoom() {
     }
     window.addEventListener('pointerdown', unlockOnFirstTouch, { once: true })
 
-    try {
-      if (!document.fullscreenElement && document.documentElement.requestFullscreen) {
-        document.documentElement.requestFullscreen().catch(() => {})
-      }
-    } catch (e) {}
 
     const duelSub = supabase
       .channel(`duel:${duelId}`)
