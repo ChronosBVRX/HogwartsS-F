@@ -9,7 +9,8 @@
     "lint": "eslint .",
     "preview": "vite preview",
     "predeploy": "npm run build",
-    "deploy": "npm run build && git add . && git commit -m 'Deploy' && git push origin main"
+    "deploy": "npm run build && git add . && git commit -m 'Deploy' && git push origin main",
+    "generate:adventure-voices": "node scripts/generateAdventureVoices.mjs"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.105.3",

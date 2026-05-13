@@ -1,7 +1,7 @@
-import { useEffect, useState } from 'react'
-import { Link, useParams, useLocation } from 'react-router-dom'
-import { supabase } from '../../lib/supabase'
 import { Gift, Sparkles, ChevronLeft, QrCode as QrIcon, CheckCircle2 } from 'lucide-react'
+import { useAdventureAudio } from '../../hooks/useAdventureAudio'
+import { adventureAudio } from '../../data/adventureAudioManifest'
+import AdventureAudioControl from '../../components/adventure/AdventureAudioControl'
 import QRCode from 'react-qr-code'
 
 export default function AdventureReward() {
@@ -9,11 +9,30 @@ export default function AdventureReward() {
   const location = useLocation()
   const [reward, setReward] = useState(location.state || null)
   const [loading, setLoading] = useState(!location.state)
+  const audio = useAdventureAudio()
 
   useEffect(() => {
     fetchReward()
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [runId])
+
+  useEffect(() => {
+    if (!audio.enabled || loading) return
+
+    audio.playAmbient(adventureAudio.ambient.reward, { volume: 0.18 })
+
+    if (reward?.status === 'redeemed' || reward?.isRedeemed) {
+      audio.play(adventureAudio.reward.alreadyRedeemed, { volume: 0.9 })
+    } else if (reward) {
+      audio.playSequence([
+        { src: adventureAudio.ui.rewardFanfare, volume: 0.85 },
+        { src: adventureAudio.reward.completed, volume: 0.95, delay: 400 },
+        { src: adventureAudio.reward.showCode, volume: 0.9, delay: 300 }
+      ])
+    }
+
+    return () => audio.stopAmbient()
+  }, [audio.enabled, loading, reward?.id, reward?.status])
 
   const fetchReward = async () => {
     const { data } = await supabase
@@ -51,7 +70,17 @@ export default function AdventureReward() {
   const isRedeemed = reward?.status === 'redeemed' || reward?.isRedeemed
 
   return (
-    <div className="flex-1 max-w-2xl mx-auto w-full p-4 md:p-6 pb-24 flex items-center">
+    <div className="flex-1 max-w-2xl mx-auto w-full p-4 md:p-6 pb-24 space-y-6">
+      <div className="flex justify-end">
+        <AdventureAudioControl
+          enabled={audio.enabled}
+          onEnable={audio.unlockAudio}
+          onDisable={audio.disableAudio}
+          compact
+        />
+      </div>
+      
+      <div className="flex items-center">
       <div className={`glass-card rounded-[2.5rem] border ${isRedeemed ? 'border-white/10' : 'border-magical-gold/30'} overflow-hidden w-full text-center relative`}>
         <Sparkles className="absolute -right-8 -top-8 w-40 h-40 text-magical-gold/10" />
 

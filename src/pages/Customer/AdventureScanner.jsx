@@ -1,8 +1,7 @@
-import { useEffect, useRef, useState } from 'react'
-import { useNavigate, useSearchParams, Link } from 'react-router-dom'
-import { Html5Qrcode } from 'html5-qrcode'
-import { supabase } from '../../lib/supabase'
 import { Camera, QrCode, AlertCircle, ChevronLeft, RefreshCw } from 'lucide-react'
+import { useAdventureAudio } from '../../hooks/useAdventureAudio'
+import { adventureAudio } from '../../data/adventureAudioManifest'
+import AdventureAudioControl from '../../components/adventure/AdventureAudioControl'
 
 function parseAdventureQR(rawText) {
   try {
@@ -45,6 +44,7 @@ export default function AdventureScanner() {
   const [adventureState, setAdventureState] = useState(null)
   const scannerRef = useRef(null)
   const navigate = useNavigate()
+  const audio = useAdventureAudio()
 
   useEffect(() => {
     fetchAdventureState()
@@ -59,6 +59,15 @@ export default function AdventureScanner() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
+  useEffect(() => {
+    if (audio.enabled) {
+      audio.playAmbient(adventureAudio.ambient.scanner, { volume: 0.16 })
+      audio.play(adventureAudio.scanner.instruction, { volume: 0.9 })
+    }
+
+    return () => audio.stopAmbient()
+  }, [audio.enabled])
+
   const fetchAdventureState = async () => {
     const { data } = await supabase.rpc('hsf_get_active_adventure')
     if (data?.ok) setAdventureState(data)
@@ -70,18 +79,29 @@ export default function AdventureScanner() {
         if (scannerRef.current.isScanning) {
           await scannerRef.current.stop()
         }
+
+        try {
+          await scannerRef.current.clear()
+        } catch {}
+
+        scannerRef.current = null
       } catch (err) {
         console.warn('Scanner stop warning:', err)
       }
     }
+
     setIsCameraActive(false)
   }
 
   const startScanner = async () => {
+    if (scannerRef.current?.isScanning) return
+
     setError(null)
     setMessage(null)
 
     try {
+      await audio.play(adventureAudio.ui.cameraStart, { volume: 0.65 })
+
       const html5QrCode = new Html5Qrcode('adventure-reader')
       scannerRef.current = html5QrCode
 
@@ -90,6 +110,8 @@ export default function AdventureScanner() {
         { fps: 10, qrbox: { width: 250, height: 250 }, aspectRatio: 1 },
         async (decodedText) => {
           await stopScanner()
+          await audio.play(adventureAudio.ui.portalScan, { volume: 0.8 })
+
           const payload = parseAdventureQR(decodedText)
           await handleScanPayload(payload)
         }
@@ -105,6 +127,7 @@ export default function AdventureScanner() {
   const handleScanPayload = async ({ zone, token }) => {
     if (!zone || !token) {
       setError('Este QR no parece ser un sello de aventura válido.')
+      audio.play(adventureAudio.scanner.invalidQr, { volume: 0.9 })
       return
     }
 
@@ -126,19 +149,34 @@ export default function AdventureScanner() {
 
     if (!data?.ok) {
       setError(data?.message || 'No se pudo abrir este portal.')
+      audio.play(adventureAudio.scanner.invalidQr, { volume: 0.9 })
       return
     }
 
+    await audio.play(adventureAudio.scanner.validPortal, { volume: 0.9 })
+
     sessionStorage.setItem(`hsf_adventure_step_${data.run_id}`, JSON.stringify(data.step))
-    navigate(`/aventura/jugar/${data.run_id}`)
+
+    setTimeout(() => {
+      navigate(`/aventura/jugar/${data.run_id}`)
+    }, 900)
   }
 
   return (
     <div className="flex-1 p-4 md:p-6 flex flex-col max-w-2xl mx-auto w-full space-y-6 pb-20">
-      <Link to="/aventura" className="flex items-center gap-2 text-white/40 hover:text-white transition-colors">
-        <ChevronLeft className="w-5 h-5" />
-        <span className="text-[10px] font-black uppercase tracking-widest">Volver a aventura</span>
-      </Link>
+      <div className="flex justify-between items-center">
+        <Link to="/aventura" className="flex items-center gap-2 text-white/40 hover:text-white transition-colors">
+          <ChevronLeft className="w-5 h-5" />
+          <span className="text-[10px] font-black uppercase tracking-widest">Volver a aventura</span>
+        </Link>
+
+        <AdventureAudioControl
+          enabled={audio.enabled}
+          onEnable={audio.unlockAudio}
+          onDisable={audio.disableAudio}
+          compact
+        />
+      </div>
 
       <div className="glass-card overflow-hidden border border-white/10">
         <div className="p-8 text-center bg-magical-gold/5 border-b border-white/5 space-y-2">

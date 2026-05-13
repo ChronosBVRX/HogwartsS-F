@@ -1,12 +1,13 @@
-import { useEffect, useState } from 'react'
-import { Link } from 'react-router-dom'
-import { supabase } from '../../lib/supabase'
 import { Wand2, QrCode, Gift, Map, AlertCircle, Sparkles, XCircle } from 'lucide-react'
+import { useAdventureAudio } from '../../hooks/useAdventureAudio'
+import { adventureAudio } from '../../data/adventureAudioManifest'
+import AdventureAudioControl from '../../components/adventure/AdventureAudioControl'
 
 export default function AdventureHome() {
   const [state, setState] = useState(null)
   const [rewards, setRewards] = useState([])
   const [loading, setLoading] = useState(true)
+  const audio = useAdventureAudio()
 
   useEffect(() => {
     let channel;
@@ -39,6 +40,30 @@ export default function AdventureHome() {
     }
   }, [])
 
+  useEffect(() => {
+    if (audio.enabled) {
+      audio.playAmbient(adventureAudio.ambient.castle, { volume: 0.18 })
+    }
+
+    return () => audio.stopAmbient()
+  }, [audio.enabled])
+
+  useEffect(() => {
+    if (!audio.enabled || loading || !state) return
+
+    if (state?.blocked) {
+      audio.play(adventureAudio.home.blockedDaily, { volume: 0.9 })
+      return
+    }
+
+    if (state?.has_active) {
+      audio.play(adventureAudio.home.activeAdventure, { volume: 0.9 })
+      return
+    }
+
+    audio.play(adventureAudio.home.intro, { volume: 0.9 })
+  }, [audio.enabled, loading, state?.blocked, state?.has_active])
+
   const fetchAdventure = async () => {
     setLoading(true)
     const { data, error } = await supabase.rpc('hsf_get_active_adventure')
@@ -58,6 +83,14 @@ export default function AdventureHome() {
 
   return (
     <div className="flex-1 max-w-5xl mx-auto w-full p-4 md:p-6 pb-24 space-y-8 animate-in fade-in duration-700">
+      <div className="flex justify-end">
+        <AdventureAudioControl
+          enabled={audio.enabled}
+          onEnable={audio.unlockAudio}
+          onDisable={audio.disableAudio}
+        />
+      </div>
+
       <header className="glass-card p-8 md:p-10 rounded-[2.5rem] border border-white/10 relative overflow-hidden">
         <Sparkles className="absolute -right-8 -bottom-8 w-40 h-40 text-magical-gold/5" />
         <div className="relative z-10 space-y-4">

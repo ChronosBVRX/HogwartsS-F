@@ -276,6 +276,7 @@ export default function Profile() {
                 <button 
                   onClick={async () => {
                     audioManager.unlockAudio().catch(() => {})
+                    localStorage.setItem('hsf_magic_audio_enabled', 'true')
                     try {
                       if (document.documentElement.requestFullscreen) {
                         document.documentElement.requestFullscreen().catch(() => {})

@@ -1,7 +1,7 @@
-import { useEffect, useState } from 'react'
-import { Link, useNavigate, useParams } from 'react-router-dom'
-import { supabase } from '../../lib/supabase'
 import { Wand2, ChevronLeft, AlertCircle, CheckCircle2, XCircle, QrCode } from 'lucide-react'
+import { useAdventureAudio } from '../../hooks/useAdventureAudio'
+import { adventureAudio, getStepAudio } from '../../data/adventureAudioManifest'
+import AdventureAudioControl from '../../components/adventure/AdventureAudioControl'
 
 export default function AdventurePlay() {
   const { runId } = useParams()
@@ -11,6 +11,9 @@ export default function AdventurePlay() {
   const [loading, setLoading] = useState(true)
   const [answering, setAnswering] = useState(false)
   const [result, setResult] = useState(null)
+  const audio = useAdventureAudio()
+  const [autoAdvancing, setAutoAdvancing] = useState(false)
+  const [hasPlayedStepAudio, setHasPlayedStepAudio] = useState(false)
 
   useEffect(() => {
     const cached = sessionStorage.getItem(`hsf_adventure_step_${runId}`)
@@ -38,6 +41,24 @@ export default function AdventurePlay() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [runId])
 
+  useEffect(() => {
+    setHasPlayedStepAudio(false)
+  }, [runId, step?.id])
+
+  useEffect(() => {
+    if (!audio.enabled || !step || hasPlayedStepAudio) return
+
+    const stepAudio = getStepAudio(step)
+
+    audio.playSequence([
+      { src: adventureAudio.ui.mapOpen, volume: 0.55 },
+      { src: stepAudio?.intro, volume: 0.95, delay: 300 },
+      { src: stepAudio?.question, volume: 0.95, delay: 300 }
+    ])
+
+    setHasPlayedStepAudio(true)
+  }, [audio.enabled, step, hasPlayedStepAudio])
+
   const fetchStep = async () => {
     setLoading(true)
     const { data, error } = await supabase.rpc('hsf_get_active_adventure')
@@ -53,6 +74,7 @@ export default function AdventurePlay() {
   const handleAnswer = async (value) => {
     setAnswering(true)
     setResult(null)
+    await audio.play(adventureAudio.ui.magicClick, { volume: 0.55 })
 
     const { data, error } = await supabase.rpc('hsf_answer_adventure_step', {
       p_run_id: runId,
@@ -75,15 +97,27 @@ export default function AdventurePlay() {
         return
       }
       setResult({ ok: false, message: data?.message || 'Respuesta incorrecta.' })
+      
+      const stepAudio = getStepAudio(step)
+      await audio.playSequence([
+        { src: adventureAudio.ui.wrong, volume: 0.75 },
+        { src: stepAudio?.fail, volume: 0.95, delay: 250 }
+      ])
+
       fetchStep() // Refresh to update failed_attempts counter
       return
     }
 
     if (data.completed) {
+      await audio.playSequence([
+        { src: adventureAudio.ui.correct, volume: 0.75 },
+        { src: adventureAudio.ui.rewardFanfare, volume: 0.85, delay: 300 }
+      ])
       navigate(`/aventura/recompensa/${runId}`, { state: data })
       return
     }
 
+    const stepAudio = getStepAudio(step)
     setResult({
       ok: true,
       message: data.message,
@@ -91,6 +125,17 @@ export default function AdventurePlay() {
     })
 
     sessionStorage.removeItem(`hsf_adventure_step_${runId}`)
+    setAutoAdvancing(true)
+
+    await audio.playSequence([
+      { src: adventureAudio.ui.correct, volume: 0.75 },
+      { src: stepAudio?.success, volume: 0.95, delay: 250 },
+      { src: adventureAudio.scanner.lookingForSeal, volume: 0.9, delay: 250 }
+    ])
+
+    setTimeout(() => {
+      navigate('/aventura/escanear')
+    }, 3500)
   }
 
   if (loading && !step) {
@@ -131,10 +176,19 @@ export default function AdventurePlay() {
 
   return (
     <div className="flex-1 max-w-3xl mx-auto w-full p-4 md:p-6 pb-24 space-y-6 animate-in fade-in duration-700">
-      <Link to="/aventura" className="flex items-center gap-2 text-white/40 hover:text-white transition-colors">
-        <ChevronLeft className="w-5 h-5" />
-        <span className="text-[10px] font-black uppercase tracking-widest">Volver</span>
-      </Link>
+      <div className="flex justify-between items-center">
+        <Link to="/aventura" className="flex items-center gap-2 text-white/40 hover:text-white transition-colors">
+          <ChevronLeft className="w-5 h-5" />
+          <span className="text-[10px] font-black uppercase tracking-widest">Volver</span>
+        </Link>
+
+        <AdventureAudioControl
+          enabled={audio.enabled}
+          onEnable={audio.unlockAudio}
+          onDisable={audio.disableAudio}
+          compact
+        />
+      </div>
 
       <div className="glass-card rounded-[2.5rem] border border-white/10 overflow-hidden">
         <div className="p-8 bg-magical-gold/5 border-b border-white/5 space-y-3">
@@ -203,10 +257,16 @@ export default function AdventurePlay() {
                 {result.clue && (
                   <>
                     <p className="text-white/60 italic">{result.clue}</p>
-                    <Link to="/aventura/escanear" className="btn-gold inline-flex items-center gap-2 px-5 py-3 text-xs font-black uppercase">
-                      <QrCode className="w-4 h-4" />
-                      Escanear siguiente sello
-                    </Link>
+                    {autoAdvancing ? (
+                      <p className="text-[10px] font-black uppercase tracking-widest text-magical-gold animate-pulse">
+                        El mapa se está moviendo hacia el siguiente sello...
+                      </p>
+                    ) : (
+                      <Link to="/aventura/escanear" className="btn-gold inline-flex items-center gap-2 px-5 py-3 text-xs font-black uppercase">
+                        <QrCode className="w-4 h-4" />
+                        Escanear siguiente sello
+                      </Link>
+                    )}
                   </>
                 )}
               </div>
