@@ -18,7 +18,6 @@ export default function DuelRoom() {
   
   const [duel, setDuel] = useState(null)
   const [loading, setLoading] = useState(true)
-  const [selectedSpell, setSelectedSpell] = useState(null)
   const [selectedActions, setSelectedActions] = useState([])
   const [selectedStance, setSelectedStance] = useState('neutral')
   const [detailedSpell, setDetailedSpell] = useState(null)

@@ -215,10 +215,18 @@ begin
   -- P1 Stance
   if v_p1_turn.stance = 'offensive' then v_p1_stance_dmg := 4; v_p2_dmg := v_p2_dmg + 3;
   elsif v_p1_turn.stance = 'defensive' then v_p1_stance_blk := 6; v_p1_dmg := v_p1_dmg - 3;
+  elsif v_p1_turn.stance = 'desperate' then
+    if v_duel.player_one_hp < 25 then v_p1_stance_dmg := 6; v_p2_bonus := v_p2_bonus + 4;
+    else v_p1_stance_dmg := -3;
+    end if;
   end if;
   -- P2 Stance
   if v_p2_stance = 'offensive' then v_p2_stance_dmg := 4; v_p1_dmg := v_p1_dmg + 3;
   elsif v_p2_stance = 'defensive' then v_p2_stance_blk := 6; v_p2_dmg := v_p2_dmg - 3;
+  elsif v_p2_stance = 'desperate' then
+    if v_duel.player_two_hp < 25 then v_p2_stance_dmg := 6; v_p1_bonus := v_p1_bonus + 4;
+    else v_p2_stance_dmg := -3;
+    end if;
   end if;
 
   -- Bonus Gryffindor
@@ -270,6 +278,8 @@ begin
   if v_p2_fams && v_p1_beats then 
     v_p1_bonus := 14; 
     v_p2_final_blk := floor(v_p2_final_blk * 0.5); 
+    -- Bonus Cunning P1
+    if v_p1_turn.stance = 'cunning' then v_p1_bonus := v_p1_bonus + 4; v_p1_gain := v_p1_gain + 1; end if;
     -- Interrupción de carga y disarm
     if (v_p1_fams && '{disarm}'::text[]) and (v_p2_fams && '{heavy}'::text[]) then v_p2_dmg := floor(v_p2_dmg * 0.5); v_p2_interrupted := true; end if;
     if (v_p1_fams && '{attack, heavy}'::text[]) and (v_p2_fams && '{charge}'::text[]) then v_p2_gain := 0; v_p2_interrupted := true; end if;
@@ -280,12 +290,14 @@ begin
   if v_p1_fams && v_p2_beats then 
     v_p2_bonus := 14; 
     v_p1_final_blk := floor(v_p1_final_blk * 0.5);
+    -- Bonus Cunning P2
+    if v_p2_stance = 'cunning' then v_p2_bonus := v_p2_bonus + 4; v_p2_gain := v_p2_gain + 1; end if;
     if (v_p2_fams && '{disarm}'::text[]) and (v_p1_fams && '{heavy}'::text[]) then v_p1_dmg := floor(v_p1_dmg * 0.5); v_p1_interrupted := true; end if;
     if (v_p2_fams && '{attack, heavy}'::text[]) and (v_p1_fams && '{charge}'::text[]) then v_p1_gain := 0; v_p1_interrupted := true; end if;
     if (v_p2_fams && '{control}'::text[]) and (v_p1_fams && '{defense}'::text[]) then v_p1_final_blk := 0; end if;
   end if;
 
-  -- Penalizaciones
+  -- Penalizaciones (Choque Espejo Parcial)
   if v_p2_fams && v_p1_loses then v_p1_penalty := 8; end if;
   if v_p1_fams && v_p2_loses then v_p2_penalty := 8; end if;
   if v_p1_fams && v_p2_fams then v_p1_penalty := v_p1_penalty + 6; v_p2_penalty := v_p2_penalty + 6; end if;
