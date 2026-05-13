@@ -5,11 +5,11 @@ import { supabase } from '../lib/supabase'
 import { Skull, Eye, Heart, Zap, Shield, Wand2, Moon, Sparkles } from 'lucide-react'
 
 // Real house assets
-import gryffindorLogo from './assets/houses/gryffindor.png'
-import slytherinLogo from './assets/houses/slytherin.png'
-import ravenclawLogo from './assets/houses/ravenclaw.png'
-import hufflepuffLogo from './assets/houses/hufflepuff.png'
-import logo from './assets/logo.png'
+import gryffindorLogo from '../assets/houses/gryffindor.png'
+import slytherinLogo from '../assets/houses/slytherin.png'
+import ravenclawLogo from '../assets/houses/ravenclaw.png'
+import hufflepuffLogo from '../assets/houses/hufflepuff.png'
+import logo from '../assets/logo.png'
 
 const ASSETS = {
   sorting_hat: logo,
