@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback } from 'react'
+import { useEffect, useRef, useState, useCallback } from 'react'
 import { useNavigate, useSearchParams, Link } from 'react-router-dom'
 import { supabase } from '../../lib/supabase'
 import { QrCode, AlertCircle, ChevronLeft } from 'lucide-react'
