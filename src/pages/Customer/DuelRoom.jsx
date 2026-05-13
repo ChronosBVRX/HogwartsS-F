@@ -295,7 +295,7 @@ export default function DuelRoom() {
       // Create simplified actions array for the database
       const actionsPayload = selectedActions.map(s => ({ type: 'spell', key: s.key }))
 
-      const { error } = await supabase.rpc('hsf_submit_duel_turn', {
+      const { error } = await supabase.rpc('hsf_submit_duel_strategy', {
         p_duel_id: duelId,
         p_turn_number: duel.turn_number,
         p_actions: actionsPayload,

@@ -7,7 +7,7 @@
 -- 1. SUBMIT TURN FUNCTION
 -- ==========================================
 
-create or replace function hsf_submit_duel_turn(
+create or replace function hsf_submit_duel_strategy(
   p_duel_id uuid,
   p_turn_number int,
   p_actions jsonb,

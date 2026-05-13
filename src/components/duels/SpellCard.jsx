@@ -1,5 +1,6 @@
 import { Zap, Shield, Heart, Sparkles, Clock, Sword, Wand, RefreshCcw } from 'lucide-react'
 import audioManager from '../../lib/audioManager'
+import { getSpellImage } from '../../lib/duelAssets'
 
 export default function SpellCard({ spell, disabled, selected, onClick, cooldown, compact = false }) {
   const familyConfig = {
@@ -60,7 +61,7 @@ export default function SpellCard({ spell, disabled, selected, onClick, cooldown
         {/* Illustration - ALWAYS VISIBLE */}
         <div className="absolute inset-0 z-0">
           <img 
-            src={`/assets/spells/${spell.key}.jpg`} 
+            src={getSpellImage(spell.key)} 
             alt={spell.name} 
             className="w-full h-full object-cover opacity-80 group-hover:opacity-100 transition-all duration-500"
             onError={(e) => { e.target.src = config.art }}
