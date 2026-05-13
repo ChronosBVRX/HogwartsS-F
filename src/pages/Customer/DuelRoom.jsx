@@ -33,7 +33,8 @@ export default function DuelRoom() {
     { key: 'offensive', name: 'Ofensiva', icon: '⚔️', desc: '+4 Daño / +3 Daño recibido' },
     { key: 'defensive', name: 'Defensiva', icon: '🛡️', desc: '+6 Bloqueo / -3 Daño' },
     { key: 'concentrated', name: 'Concentrada', icon: '🧘', desc: '+1 Energía si recibes < 12 daño' },
-    { key: 'cunning', name: 'Astuta', icon: '🧠', desc: 'Bonus táctico si vences la familia' }
+    { key: 'cunning', name: 'Astuta', icon: '🧠', desc: 'Bonus táctico si vences la familia' },
+    { key: 'desperate', name: 'Desesperada', icon: '🔥', desc: '+6 Daño si tienes menos de 25 HP / si no, -3 Daño' }
   ]
 
   // Calculate used AP and Energy
@@ -317,8 +318,9 @@ export default function DuelRoom() {
   const nextTurn = () => {
     setResolutionStage('idle')
     setLastEvent(null)
-    setIsSubmitting(false) // CRITICAL: Reset submission state
-    setSelectedSpell(null)
+    setIsSubmitting(false) 
+    setSelectedActions([])
+    setSelectedStance('neutral')
     setTimeLeft(20)
     audioManager.playSfx('ui_button_magic')
 
