@@ -1,4 +1,4 @@
-import { createContext, useContext, useEffect, useState, useCallback } from 'react'
+import { createContext, useContext, useEffect, useState, useCallback, useRef } from 'react'
 import { supabase } from '../lib/supabase'
 
 const AuthContext = createContext({})
@@ -8,6 +8,7 @@ export const AuthProvider = ({ children }) => {
   const [profile, setProfile] = useState(null)
   const [loading, setLoading] = useState(true)
   const [authError, setAuthError] = useState(null)
+  const initialized = useRef(false)
 
   const fetchProfile = useCallback(async (userId) => {
     if (!userId) {
@@ -16,12 +17,19 @@ export const AuthProvider = ({ children }) => {
     }
 
     try {
-      const { data, error } = await supabase
+      // Use a timeout for profile fetching
+      const timeout = new Promise((_, reject) => 
+        setTimeout(() => reject(new Error('Profile fetch timeout')), 5000)
+      )
+      
+      const request = supabase
         .from('hsf_profiles')
         .select('*, house:hsf_houses(*)')
         .eq('user_id', userId)
         .limit(1)
         .maybeSingle()
+
+      const { data, error } = await Promise.race([request, timeout])
 
       if (error) {
         console.error('Error fetching profile:', error)
@@ -32,7 +40,7 @@ export const AuthProvider = ({ children }) => {
       setProfile(data || null)
       return data || null
     } catch (err) {
-      console.error('fetchProfile crashed:', err)
+      console.error('fetchProfile failed:', err)
       setProfile(null)
       return null
     }
@@ -41,74 +49,42 @@ export const AuthProvider = ({ children }) => {
   useEffect(() => {
     let mounted = true
 
-    const initAuth = async () => {
-      try {
-        setLoading(true)
-        setAuthError(null)
+    // Single listener for all auth states (including initial load)
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+      console.log('Auth state change:', event, session?.user?.id)
+      
+      const currentUser = session?.user ?? null
+      
+      if (!mounted) return
 
-        const { data, error } = await supabase.auth.getSession()
-
-        if (error) {
-          console.error('getSession error:', error)
-          if (!mounted) return
-          setUser(null)
-          setProfile(null)
-          setAuthError(error.message)
-          return
-        }
-
-        const sessionUser = data?.session?.user ?? null
-
-        if (!mounted) return
-
-        setUser(sessionUser)
-
-        if (sessionUser) {
-          await fetchProfile(sessionUser.id)
-        } else {
-          setProfile(null)
-        }
-      } catch (err) {
-        console.error('Auth init crashed:', err)
-        if (!mounted) return
-        setUser(null)
+      setUser(currentUser)
+      
+      if (currentUser) {
+        await fetchProfile(currentUser.id)
+      } else {
         setProfile(null)
-        setAuthError(err?.message || 'Error iniciando sesión')
-      } finally {
-        if (mounted) setLoading(false)
       }
-    }
 
-    initAuth()
-
-    const {
-      data: { subscription }
-    } = supabase.auth.onAuthStateChange(async (_event, session) => {
-      try {
-        const currentUser = session?.user ?? null
-
-        if (!mounted) return
-
-        setUser(currentUser)
-
-        if (currentUser) {
-          await fetchProfile(currentUser.id)
-        } else {
-          setProfile(null)
-        }
-      } catch (err) {
-        console.error('Auth state change crashed:', err)
-        if (!mounted) return
-        setUser(null)
-        setProfile(null)
-      } finally {
-        if (mounted) setLoading(false)
+      // Mark as initialized after the first auth state is handled
+      if (!initialized.current) {
+        initialized.current = true
+        setLoading(false)
       }
     })
 
+    // Fallback if onAuthStateChange doesn't fire for some reason
+    const timer = setTimeout(() => {
+      if (mounted && !initialized.current) {
+        console.warn('Auth initialization fallback triggered')
+        setLoading(false)
+        initialized.current = true
+      }
+    }, 6000)
+
     return () => {
       mounted = false
-      subscription?.unsubscribe?.()
+      subscription?.unsubscribe()
+      clearTimeout(timer)
     }
   }, [fetchProfile])
 
@@ -117,8 +93,11 @@ export const AuthProvider = ({ children }) => {
       await supabase.auth.signOut()
       setUser(null)
       setProfile(null)
+      // Force reload to clear any stale state
+      window.location.href = '/'
     } catch (err) {
-      console.error('signOut crashed:', err)
+      console.error('signOut failed:', err)
+      window.location.reload()
     }
   }
 
