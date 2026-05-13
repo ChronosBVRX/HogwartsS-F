@@ -519,7 +519,7 @@ export default function DuelRoom() {
         </section>
       )}
 
-  // Spell Detail Modal
+      {/* Spell Detail Modal */}
       {detailedSpell && (
         <SpellDetailModal 
           spell={detailedSpell} 

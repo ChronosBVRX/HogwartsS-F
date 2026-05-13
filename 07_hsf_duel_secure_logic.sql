@@ -3,7 +3,16 @@
 -- 1. SUBMIT TURN FUNCTION
 -- ==========================================
 
-create or replace function hsf_submit_duel_turn(p_duel_id uuid, p_spell_key text, p_turn_number int)
+-- ==========================================
+-- 1. SUBMIT TURN FUNCTION
+-- ==========================================
+
+create or replace function hsf_submit_duel_turn(
+  p_duel_id uuid,
+  p_turn_number int,
+  p_actions jsonb,
+  p_stance text default 'neutral'
+)
 returns jsonb
 language plpgsql
 security definer
@@ -13,22 +22,27 @@ declare
   v_duel record;
   v_existing_turn record;
   v_p2_turn record;
+  v_primary_spell_key text;
 begin
   v_user_id := auth.uid();
   
   select * into v_duel from hsf_duels where id = p_duel_id;
   if not found then raise exception 'Duelo no encontrado'; end if;
   if v_duel.status != 'active' then raise exception 'El duelo ya no está activo'; end if;
+  if v_duel.turn_number != p_turn_number then raise exception 'Número de turno incorrecto'; end if;
   
   -- Verificar si ya envió turno
   select * into v_existing_turn from hsf_duel_turns 
   where duel_id = p_duel_id and turn_number = p_turn_number and player_id = v_user_id;
   
-  if found then raise exception 'Ya has enviado tu hechizo para este turno'; end if;
+  if found then raise exception 'Ya has enviado tu estrategia para este turno'; end if;
+
+  -- Extraer el primer hechizo para compatibilidad
+  v_primary_spell_key := p_actions->0->>'key';
 
   -- Insertar turno
-  insert into hsf_duel_turns (duel_id, turn_number, player_id, spell_key)
-  values (p_duel_id, p_turn_number, v_user_id, p_spell_key);
+  insert into hsf_duel_turns (duel_id, turn_number, player_id, spell_key, actions, stance)
+  values (p_duel_id, p_turn_number, v_user_id, v_primary_spell_key, p_actions, p_stance);
 
   -- Si es modo AI, resolver inmediatamente
   if v_duel.mode = 'ai' then
@@ -50,7 +64,7 @@ end;
 $$;
 
 -- ==========================================
--- 2. LÓGICA DE CÁLCULO DE DAÑO (MEJORA: MECÁNICA DE INTERRUPCIÓN)
+-- 2. LÓGICA DE RESOLUCIÓN (MODELO AVANZADO)
 -- ==========================================
 
 create or replace function hsf_resolve_duel_turn(p_duel_id uuid, p_turn_number int)
@@ -60,144 +74,164 @@ security definer
 as $$
 declare
   v_duel record;
-  v_p1_turn record;
-  v_p2_spell_key text;
+  v_p1_turn record; v_p2_turn record;
+  v_p1_house text; v_p2_house text;
+  v_p2_actions jsonb; v_p2_stance text;
   
-  -- Spell Metadata (Sincronizado con duelSpells.js)
-  v_s1_dmg int := 0; v_s1_fam text; v_s1_beats text[]; v_s1_loses text[]; v_s1_blk int := 0; v_s1_heal int := 0; v_s1_cost int := 0; v_s1_gain int := 0;
-  v_s2_dmg int := 0; v_s2_fam text; v_s2_beats text[]; v_s2_loses text[]; v_s2_blk int := 0; v_s2_heal int := 0; v_s2_cost int := 0; v_s2_gain int := 0;
+  -- Stats acumuladas P1
+  v_p1_dmg int := 0; v_p1_blk int := 0; v_p1_heal int := 0; v_p1_cost int := 0; v_p1_gain int := 0;
+  -- Stats acumuladas P2
+  v_p2_dmg int := 0; v_p2_blk int := 0; v_p2_heal int := 0; v_p2_cost int := 0; v_p2_gain int := 0;
   
-  v_p1_final_dmg int := 0; v_p2_final_dmg int := 0;
-  v_p1_bonus int := 0; v_p2_bonus int := 0;
-  v_p1_penalty int := 0; v_p2_penalty int := 0;
+  -- Familias (para ventajas)
+  v_p1_fams text[] := '{}'; v_p2_fams text[] := '{}';
   
-  v_s1_final_blk int := 0; v_s2_final_blk int := 0;
-  v_s1_final_gain int := 0; v_s2_final_gain int := 0;
+  -- Modificadores
+  v_p1_stance_dmg int := 0; v_p1_stance_blk int := 0;
+  v_p2_stance_dmg int := 0; v_p2_stance_blk int := 0;
+  
+  v_p1_cd jsonb; v_p2_cd jsonb;
+  v_cd_key text; v_cd_val int;
+  
+  v_p1_total_dmg int := 0; v_p2_total_dmg int := 0;
+  v_p1_final_blk int := 0; v_p2_final_blk int := 0;
+  
+  v_action jsonb; v_spell_key text;
   v_p1_interrupted boolean := false; v_p2_interrupted boolean := false;
-  
-  v_adv_bonus int := 14;
-  v_dis_penalty int := 8;
-  v_same_penalty int := 6;
-  
-  v_winner_id uuid := null;
-  v_ai_rand float;
+  v_winner_id uuid := NULL;
 begin
   select * into v_duel from hsf_duels where id = p_duel_id;
   
-  -- 1. IA DINÁMICA
-  if v_duel.mode = 'ai' then
-    v_ai_rand := random();
-    if v_duel.player_two_hp < 35 and v_duel.player_two_energy >= 2 and v_ai_rand < 0.6 then v_p2_spell_key := 'episkey'; 
-    elsif v_duel.player_two_energy < 1 then v_p2_spell_key := 'accio'; 
-    elsif v_duel.player_one_energy < 2 and v_duel.player_two_energy >= 2 and v_ai_rand < 0.7 then v_p2_spell_key := 'stupefy'; 
-    elsif v_ai_rand < 0.3 and v_duel.player_two_energy >= 1 then v_p2_spell_key := 'protego'; 
-    elsif v_ai_rand < 0.6 and v_duel.player_two_energy >= 2 then v_p2_spell_key := 'incendio'; 
-    elsif v_ai_rand < 0.8 and v_duel.player_two_energy >= 2 then v_p2_spell_key := 'petrificus'; 
-    elsif v_duel.player_two_energy >= 1 then v_p2_spell_key := 'expelliarmus'; 
-    else v_p2_spell_key := 'accio';
-    end if;
-  else
-    select spell_key into v_p2_spell_key from hsf_duel_turns where duel_id = p_duel_id and turn_number = p_turn_number and player_id = v_duel.player_two;
-  end if;
+  -- 1. Reducir Cooldowns
+  v_p1_cd := '{}'::jsonb;
+  for v_cd_key, v_cd_val in select * from jsonb_each_text(v_duel.player_one_cooldowns) loop
+    if v_cd_val::int > 1 then v_p1_cd := v_p1_cd || jsonb_build_object(v_cd_key, v_cd_val::int - 1); end if;
+  end loop;
+  v_p2_cd := '{}'::jsonb;
+  for v_cd_key, v_cd_val in select * from jsonb_each_text(v_duel.player_two_cooldowns) loop
+    if v_cd_val::int > 1 then v_p2_cd := v_p2_cd || jsonb_build_object(v_cd_key, v_cd_val::int - 1); end if;
+  end loop;
 
-  -- 2. Obtener turno del P1
+  -- 2. Obtener Acciones
   select * into v_p1_turn from hsf_duel_turns where duel_id = p_duel_id and turn_number = p_turn_number and player_id = v_duel.player_one;
   
-  if v_p1_turn is null or v_p2_spell_key is null then raise exception 'Faltan movimientos'; end if;
-
-  -- 3. Mapeo de Hechizos
-  case v_p1_turn.spell_key
-    when 'expelliarmus' then v_s1_dmg := 14; v_s1_fam := 'disarm'; v_s1_beats := array['heavy']; v_s1_loses := array['defense']; v_s1_cost := 1;
-    when 'stupefy'      then v_s1_dmg := 26; v_s1_fam := 'heavy';  v_s1_beats := array['heal', 'charge']; v_s1_loses := array['disarm', 'defense']; v_s1_cost := 2;
-    when 'protego'      then v_s1_blk := 20; v_s1_fam := 'defense'; v_s1_beats := array['attack', 'heavy']; v_s1_loses := array['control']; v_s1_cost := 1;
-    when 'petrificus'   then v_s1_dmg := 10; v_s1_fam := 'control'; v_s1_beats := array['defense']; v_s1_loses := array['counter']; v_s1_cost := 2;
-    when 'incendio'     then v_s1_dmg := 16; v_s1_fam := 'attack'; v_s1_beats := array['charge']; v_s1_loses := array['defense']; v_s1_cost := 2;
-    when 'episkey'      then v_s1_heal := 18; v_s1_fam := 'heal'; v_s1_beats := array['defense']; v_s1_loses := array['heavy']; v_s1_cost := 2;
-    when 'accio'        then v_s1_gain := 2; v_s1_fam := 'charge'; v_s1_beats := array['counter']; v_s1_loses := array['attack', 'heavy']; v_s1_cost := 0;
-    when 'finite'       then v_s1_dmg := 8; v_s1_fam := 'counter'; v_s1_beats := array['control']; v_s1_loses := array['attack']; v_s1_cost := 1;
-    when 'confundus'    then v_s1_dmg := 6; v_s1_fam := 'control'; v_s1_beats := array['defense']; v_s1_loses := array['counter']; v_s1_cost := 2;
-    when 'rictusempra'  then v_s1_dmg := 12; v_s1_fam := 'attack'; v_s1_beats := array['charge']; v_s1_loses := array['defense']; v_s1_cost := 1;
-    else v_s1_dmg := 10; v_s1_fam := 'attack'; v_s1_cost := 1;
-  end case;
-
-  case v_p2_spell_key
-    when 'expelliarmus' then v_s2_dmg := 14; v_s2_fam := 'disarm'; v_s2_beats := array['heavy']; v_s2_loses := array['defense']; v_s2_cost := 1;
-    when 'stupefy'      then v_s2_dmg := 26; v_s2_fam := 'heavy';  v_s2_beats := array['heal', 'charge']; v_s2_loses := array['disarm', 'defense']; v_s2_cost := 2;
-    when 'protego'      then v_s2_blk := 20; v_s2_fam := 'defense'; v_s2_beats := array['attack', 'heavy']; v_s2_loses := array['control']; v_s2_cost := 1;
-    when 'petrificus'   then v_s2_dmg := 10; v_s2_fam := 'control'; v_s2_beats := array['defense']; v_s2_loses := array['counter']; v_s2_cost := 2;
-    when 'incendio'     then v_s2_dmg := 16; v_s2_fam := 'attack'; v_s2_beats := array['charge']; v_s2_loses := array['defense']; v_s2_cost := 2;
-    when 'episkey'      then v_s2_heal := 18; v_s2_fam := 'heal'; v_s2_beats := array['defense']; v_s2_loses := array['heavy']; v_s2_cost := 2;
-    when 'accio'        then v_s2_gain := 2; v_s2_fam := 'charge'; v_s2_beats := array['counter']; v_s2_loses := array['attack', 'heavy']; v_s2_cost := 0;
-    when 'finite'       then v_s2_dmg := 8; v_s2_fam := 'counter'; v_s2_beats := array['control']; v_s2_loses := array['attack']; v_s2_cost := 1;
-    when 'confundus'    then v_s2_dmg := 6; v_s2_fam := 'control'; v_s2_beats := array['defense']; v_s2_loses := array['counter']; v_s2_cost := 2;
-    when 'rictusempra'  then v_s2_dmg := 12; v_s2_fam := 'attack'; v_s2_beats := array['charge']; v_s2_loses := array['defense']; v_s2_cost := 1;
-    else v_s2_dmg := 10; v_s2_fam := 'attack'; v_s2_cost := 1;
-  end case;
-
-  -- 4. Cálculo de Ventajas y Mecánica de Interrupción
-  -- P1 Ataca a P2
-  if v_s2_fam = any(v_s1_beats) then 
-    if v_s1_dmg > 0 then v_p1_bonus := v_adv_bonus; end if;
-    v_s2_final_blk := floor(v_s2_blk * 0.5);
-    
-    -- Si P2 está cargando y P1 lo vence con attack/heavy, se interrumpe
-    if v_s2_fam = 'charge' and (v_s1_fam = 'attack' or v_s1_fam = 'heavy') then
-      v_p2_interrupted := true;
-      v_s2_final_gain := 0;
+  if v_duel.mode = 'ai' then 
+    if v_duel.player_two_energy >= 2 then
+      v_p2_actions := '[{"type": "spell", "key": "stupefy"}]'::jsonb;
     else
-      v_s2_final_gain := v_s2_gain;
+      v_p2_actions := '[{"type": "spell", "key": "expelliarmus"}]'::jsonb;
     end if;
+    v_p2_stance := 'neutral';
   else
-    v_s2_final_blk := v_s2_blk;
-    v_s2_final_gain := v_s2_gain;
+    select * into v_p2_turn from hsf_duel_turns where duel_id = p_duel_id and turn_number = p_turn_number and player_id = v_duel.player_two;
+    v_p2_actions := coalesce(v_p2_turn.actions, '[]'::jsonb);
+    v_p2_stance := coalesce(v_p2_turn.stance, 'neutral');
   end if;
+
+  -- 3. Posturas y Casas
+  select house_slug into v_p1_house from hsf_profiles where user_id = v_duel.player_one;
+  select house_slug into v_p2_house from hsf_profiles where user_id = v_duel.player_two;
+  v_p1_house := coalesce(v_p1_house, 'gryffindor');
+  v_p2_house := coalesce(v_p2_house, 'slytherin');
   
-  -- P2 Ataca a P1
-  if v_s1_fam = any(v_s2_beats) then 
-    if v_s2_dmg > 0 then v_p2_bonus := v_adv_bonus; end if;
-    v_s1_final_blk := floor(v_s1_blk * 0.5);
-    
-    if v_s1_fam = 'charge' and (v_s2_fam = 'attack' or v_s2_fam = 'heavy') then
-      v_p1_interrupted := true;
-      v_s1_final_gain := 0;
-    else
-      v_s1_final_gain := v_s1_gain;
-    end if;
-  else
-    v_s1_final_blk := v_s1_blk;
-    v_s1_final_gain := v_s1_gain;
+  -- P1 Stance
+  if v_p1_turn.stance = 'offensive' then v_p1_stance_dmg := 4; v_p2_dmg := v_p2_dmg + 3;
+  elsif v_p1_turn.stance = 'defensive' then v_p1_stance_blk := 6; v_p1_dmg := v_p1_dmg - 3;
   end if;
 
-  if v_s2_fam = any(v_s1_loses) then v_p1_penalty := v_dis_penalty; end if;
-  if v_s1_fam = any(v_s2_loses) then v_p2_penalty := v_dis_penalty; end if;
-  if v_s1_fam = v_s2_fam then v_p1_penalty := v_p1_penalty + v_same_penalty; v_p2_penalty := v_p2_penalty + v_same_penalty; end if;
+  -- P2 Stance
+  if v_p2_stance = 'offensive' then v_p2_stance_dmg := 4; v_p1_dmg := v_p1_dmg + 3;
+  elsif v_p2_stance = 'defensive' then v_p2_stance_blk := 6; v_p2_dmg := v_p2_dmg - 3;
+  end if;
 
-  v_p1_final_dmg := greatest(0, v_s1_dmg + v_p1_bonus - v_p1_penalty - v_s2_final_blk);
-  v_p2_final_dmg := greatest(0, v_s2_dmg + v_p2_bonus - v_p2_penalty - v_s1_final_blk);
+  -- Bonus Gryffindor
+  if v_p1_house = 'gryffindor' and v_duel.player_one_hp < 35 then v_p1_stance_dmg := v_p1_stance_dmg + 6; end if;
+  if v_p2_house = 'gryffindor' and v_duel.player_two_hp < 35 then v_p2_stance_dmg := v_p2_stance_dmg + 6; end if;
 
-  -- 5. Actualizar Estado
+  -- 4. Procesar Hechizos P1 (Valores Sincronizados)
+  for v_action in select * from jsonb_array_elements(v_p1_turn.actions) loop
+    v_spell_key := v_action->>'key';
+    if v_spell_key = 'expelliarmus' then v_p1_dmg := v_p1_dmg + 12; v_p1_cost := v_p1_cost + 1; v_p1_fams := v_p1_fams || 'disarm';
+    elsif v_spell_key = 'stupefy' then v_p1_dmg := v_p1_dmg + 30; v_p1_cost := v_p1_cost + 2; v_p1_cd := v_p1_cd || '{"stupefy": 2}'; v_p1_fams := v_p1_fams || 'heavy';
+    elsif v_spell_key = 'protego' then v_p1_blk := v_p1_blk + 22; v_p1_cost := v_p1_cost + 1; v_p1_fams := v_p1_fams || 'defense';
+    elsif v_spell_key = 'accio' then v_p1_gain := v_p1_gain + 2; if v_p1_turn.stance = 'concentrated' then v_p1_gain := v_p1_gain + 1; end if; v_p1_fams := v_p1_fams || 'charge';
+    elsif v_spell_key = 'episkey' then v_p1_heal := v_p1_heal + 20; v_p1_cost := v_p1_cost + 2; v_p1_cd := v_p1_cd || '{"episkey": 3}'; v_p1_fams := v_p1_fams || 'heal';
+    elsif v_spell_key = 'incendio' then v_p1_dmg := v_p1_dmg + 14; v_p1_cost := v_p1_cost + 2; v_p1_fams := v_p1_fams || 'attack';
+    elsif v_spell_key = 'petrificus' then v_p1_dmg := v_p1_dmg + 10; v_p1_cost := v_p1_cost + 2; v_p1_fams := v_p1_fams || 'control';
+    elsif v_spell_key = 'confundus' then v_p1_dmg := v_p1_dmg + 6; v_p1_cost := v_p1_cost + 2; v_p1_fams := v_p1_fams || 'control';
+    elsif v_spell_key = 'finite' then v_p1_dmg := v_p1_dmg + 8; v_p1_cost := v_p1_cost + 1; v_p1_fams := v_p1_fams || 'counter';
+    elsif v_spell_key = 'rictusempra' then v_p1_dmg := v_p1_dmg + 12; v_p1_cost := v_p1_cost + 1; v_p1_fams := v_p1_fams || 'attack';
+    end if;
+  end loop;
+
+  -- 5. Procesar Hechizos P2
+  for v_action in select * from jsonb_array_elements(v_p2_actions) loop
+    v_spell_key := v_action->>'key';
+    if v_spell_key = 'expelliarmus' then v_p2_dmg := v_p2_dmg + 12; v_p2_cost := v_p2_cost + 1; v_p2_fams := v_p2_fams || 'disarm';
+    elsif v_spell_key = 'stupefy' then v_p2_dmg := v_p2_dmg + 30; v_p2_cost := v_p2_cost + 2; v_p2_cd := v_p2_cd || '{"stupefy": 2}'; v_p2_fams := v_p2_fams || 'heavy';
+    elsif v_spell_key = 'protego' then v_p2_blk := v_p2_blk + 22; v_p2_cost := v_p2_cost + 1; v_p2_fams := v_p2_fams || 'defense';
+    elsif v_spell_key = 'accio' then v_p2_gain := v_p2_gain + 2; v_p2_fams := v_p2_fams || 'charge';
+    elsif v_spell_key = 'episkey' then v_p2_heal := v_p2_heal + 20; v_p2_cost := v_p2_cost + 2; v_p2_cd := v_p2_cd || '{"episkey": 3}'; v_p2_fams := v_p2_fams || 'heal';
+    elsif v_spell_key = 'incendio' then v_p2_dmg := v_p2_dmg + 14; v_p2_cost := v_p2_cost + 2; v_p2_fams := v_p2_fams || 'attack';
+    elsif v_spell_key = 'petrificus' then v_p2_dmg := v_p2_dmg + 10; v_p2_cost := v_p2_cost + 2; v_p2_fams := v_p2_fams || 'control';
+    elsif v_spell_key = 'confundus' then v_p2_dmg := v_p2_dmg + 6; v_p2_cost := v_p2_cost + 2; v_p2_fams := v_p2_fams || 'control';
+    elsif v_spell_key = 'finite' then v_p2_dmg := v_p2_dmg + 8; v_p2_cost := v_p2_cost + 1; v_p2_fams := v_p2_fams || 'counter';
+    elsif v_spell_key = 'rictusempra' then v_p2_dmg := v_p2_dmg + 12; v_p2_cost := v_p2_cost + 1; v_p2_fams := v_p2_fams || 'attack';
+    end if;
+  end loop;
+
+  -- 6. Bonus Hufflepuff (+25% defensa/cura)
+  if v_p1_house = 'hufflepuff' then v_p1_blk := floor(v_p1_blk * 1.25); v_p1_heal := floor(v_p1_heal * 1.25); end if;
+  if v_p2_house = 'hufflepuff' then v_p2_blk := floor(v_p2_blk * 1.25); v_p2_heal := floor(v_p2_heal * 1.25); end if;
+
+  v_p1_final_blk := v_p1_blk + v_p1_stance_blk;
+  v_p2_final_blk := v_p2_blk + v_p2_stance_blk;
+
+  -- 7. Interrupción (Expelliarmus vs Heavy) e Impactos
+  if (v_p1_fams @> '{disarm}') and (v_p2_fams @> '{heavy}') then v_p2_dmg := floor(v_p2_dmg * 0.5); v_p2_interrupted := true; end if;
+  if (v_p2_fams @> '{disarm}') and (v_p1_fams @> '{heavy}') then v_p1_dmg := floor(v_p1_dmg * 0.5); v_p1_interrupted := true; end if;
+
+  -- 8. Cálculos Finales
+  v_p1_total_dmg := greatest(0, v_p1_dmg + v_p1_stance_dmg - v_p2_final_blk);
+  v_p2_total_dmg := greatest(0, v_p2_dmg + v_p2_stance_dmg - v_p1_final_blk);
+
+  -- 9. Actualizar Estado
   update hsf_duels
   set 
-    player_one_hp = least(100, greatest(0, player_one_hp - v_p2_final_dmg + v_s1_heal)),
-    player_two_hp = least(100, greatest(0, player_two_hp - v_p1_final_dmg + v_s2_heal)),
-    player_one_energy = least(5, greatest(0, player_one_energy - v_s1_cost + v_s1_final_gain)),
-    player_two_energy = least(5, greatest(0, player_two_energy - v_s2_cost + v_s2_final_gain)),
+    player_one_hp = least(100, greatest(0, player_one_hp - v_p2_total_dmg + v_p1_heal)),
+    player_two_hp = least(100, greatest(0, player_two_hp - v_p1_total_dmg + v_p2_heal)),
+    player_one_energy = least(5, greatest(0, player_one_energy - v_p1_cost + v_p1_gain)),
+    player_two_energy = least(5, greatest(0, player_two_energy - v_p2_cost + v_p2_gain)),
+    player_one_cooldowns = v_p1_cd,
+    player_two_cooldowns = v_p2_cd,
     turn_number = turn_number + 1
-  where id = p_duel_id
-  returning * into v_duel;
+  where id = p_duel_id returning * into v_duel;
 
-  -- 6. Registrar Evento
+  -- 10. Payload Enriquecido
   insert into hsf_duel_events (duel_id, turn_number, event_type, payload)
   values (p_duel_id, p_turn_number, 'turn_resolved', jsonb_build_object(
-    'p1_spell', v_p1_turn.spell_key, 'p2_spell', v_p2_spell_key,
-    'p1_damage', v_p2_final_dmg, 'p2_damage', v_p1_final_dmg,
-    'p1_blocked', v_s1_final_blk, 'p2_blocked', v_s2_final_blk,
-    'p1_heal', v_s1_heal, 'p2_heal', v_s2_heal,
-    'p1_energy_cost', v_s1_cost, 'p2_energy_cost', v_s2_cost,
-    'p1_energy_gain', v_s1_final_gain, 'p2_energy_gain', v_s2_final_gain,
-    'p1_interrupted', v_p1_interrupted, 'p2_interrupted', v_p2_interrupted,
-    'p1_bonus', v_p1_bonus, 'p2_bonus', v_p2_bonus,
-    'p1_penalty', v_p1_penalty, 'p2_penalty', v_p2_penalty,
+    'p1_actions', v_p1_turn.actions, 
+    'p2_actions', v_p2_actions,
+    'p1_stance', v_p1_turn.stance,
+    'p2_stance', v_p2_stance,
+    'p1_spell', v_p1_turn.spell_key,
+    'p2_spell', v_p2_actions->0->>'key',
+    'p1_damage', v_p2_total_dmg, 
+    'p2_damage', v_p1_total_dmg,
+    'p1_damage_dealt', v_p1_total_dmg,
+    'p2_damage_dealt', v_p2_total_dmg,
+    'p1_blocked', v_p1_final_blk,
+    'p2_blocked', v_p2_final_blk,
+    'p1_heal', v_p1_heal, 
+    'p2_heal', v_p2_heal,
+    'p1_energy_change', v_p1_gain - v_p1_cost,
+    'p2_energy_change', v_p2_gain - v_p2_cost,
+    'p1_interrupted', v_p1_interrupted,
+    'p2_interrupted', v_p2_interrupted,
+    'p1_bonus', v_p1_stance_dmg,
+    'p2_bonus', v_p2_stance_dmg,
+    'p1_penalty', case when v_p1_turn.stance = 'offensive' then 3 else 0 end,
+    'p2_penalty', case when v_p2_stance = 'offensive' then 3 else 0 end,
     'message', '¡Turno resuelto!'
   ));
 
