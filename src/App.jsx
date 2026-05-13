@@ -32,7 +32,16 @@ import DuelManual from './pages/Customer/DuelManual'
 
 
 const ProtectedRoute = ({ children, role }) => {
-  const { user, profile } = useAuth()
+  const { user, profile, loading } = useAuth()
+
+  if (loading) {
+    return (
+      <div className="flex-1 flex items-center justify-center text-magical-gold uppercase font-black tracking-widest">
+        Cargando sesión...
+      </div>
+    )
+  }
+
   if (!user) return <Navigate to="/login" />
   if (role === 'admin' && profile?.role !== 'admin') return <Navigate to="/" />
   if (role === 'waiter' && !['waiter', 'admin'].includes(profile?.role)) return <Navigate to="/" />

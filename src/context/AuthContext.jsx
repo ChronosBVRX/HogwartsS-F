@@ -1,4 +1,4 @@
-import { createContext, useContext, useEffect, useState } from 'react'
+import { createContext, useContext, useEffect, useState, useCallback } from 'react'
 import { supabase } from '../lib/supabase'
 
 const AuthContext = createContext({})
@@ -7,30 +7,14 @@ export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null)
   const [profile, setProfile] = useState(null)
   const [loading, setLoading] = useState(true)
+  const [authError, setAuthError] = useState(null)
 
-  useEffect(() => {
-    // Check active session
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setUser(session?.user ?? null)
-      if (session?.user) fetchProfile(session.user.id)
-      else setLoading(false)
-    })
+  const fetchProfile = useCallback(async (userId) => {
+    if (!userId) {
+      setProfile(null)
+      return null
+    }
 
-    // Listen for changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      const currentUser = session?.user ?? null
-      setUser(currentUser)
-      if (currentUser) fetchProfile(currentUser.id)
-      else {
-        setProfile(null)
-        setLoading(false)
-      }
-    })
-
-    return () => subscription.unsubscribe()
-  }, [])
-
-  const fetchProfile = async (userId) => {
     try {
       const { data, error } = await supabase
         .from('hsf_profiles')
@@ -39,27 +23,119 @@ export const AuthProvider = ({ children }) => {
         .limit(1)
         .maybeSingle()
 
-      if (error) throw error
+      if (error) {
+        console.error('Error fetching profile:', error)
+        setProfile(null)
+        return null
+      }
+
       setProfile(data || null)
+      return data || null
     } catch (err) {
-      console.error('Error fetching profile:', err.message)
+      console.error('fetchProfile crashed:', err)
       setProfile(null)
-    } finally {
-      setLoading(false)
+      return null
+    }
+  }, [])
+
+  useEffect(() => {
+    let mounted = true
+
+    const initAuth = async () => {
+      try {
+        setLoading(true)
+        setAuthError(null)
+
+        const { data, error } = await supabase.auth.getSession()
+
+        if (error) {
+          console.error('getSession error:', error)
+          if (!mounted) return
+          setUser(null)
+          setProfile(null)
+          setAuthError(error.message)
+          return
+        }
+
+        const sessionUser = data?.session?.user ?? null
+
+        if (!mounted) return
+
+        setUser(sessionUser)
+
+        if (sessionUser) {
+          await fetchProfile(sessionUser.id)
+        } else {
+          setProfile(null)
+        }
+      } catch (err) {
+        console.error('Auth init crashed:', err)
+        if (!mounted) return
+        setUser(null)
+        setProfile(null)
+        setAuthError(err?.message || 'Error iniciando sesión')
+      } finally {
+        if (mounted) setLoading(false)
+      }
+    }
+
+    initAuth()
+
+    const {
+      data: { subscription }
+    } = supabase.auth.onAuthStateChange(async (_event, session) => {
+      try {
+        const currentUser = session?.user ?? null
+
+        if (!mounted) return
+
+        setUser(currentUser)
+
+        if (currentUser) {
+          await fetchProfile(currentUser.id)
+        } else {
+          setProfile(null)
+        }
+      } catch (err) {
+        console.error('Auth state change crashed:', err)
+        if (!mounted) return
+        setUser(null)
+        setProfile(null)
+      } finally {
+        if (mounted) setLoading(false)
+      }
+    })
+
+    return () => {
+      mounted = false
+      subscription?.unsubscribe?.()
+    }
+  }, [fetchProfile])
+
+  const signOut = async () => {
+    try {
+      await supabase.auth.signOut()
+      setUser(null)
+      setProfile(null)
+    } catch (err) {
+      console.error('signOut crashed:', err)
     }
   }
 
   const value = {
     user,
     profile,
+    loading,
+    authError,
     isAdmin: profile?.role === 'admin',
     isWaiter: profile?.role === 'waiter' || profile?.role === 'admin',
-    signOut: () => supabase.auth.signOut()
+    refreshProfile: () => user?.id ? fetchProfile(user.id) : null,
+    signOut
   }
 
   return (
     <AuthContext.Provider value={value}>
-      {!loading && children}
+      {children}
     </AuthContext.Provider>
   )
 }
