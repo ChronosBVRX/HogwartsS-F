@@ -4,13 +4,19 @@ import { useAuth } from '../context/AuthContext'
 import { supabase } from '../lib/supabase'
 import { Skull, Eye, Heart, Zap, Shield, Wand2, Moon, Sparkles } from 'lucide-react'
 
-// Asset paths
+// Real house assets
+import gryffindorLogo from './assets/houses/gryffindor.png'
+import slytherinLogo from './assets/houses/slytherin.png'
+import ravenclawLogo from './assets/houses/ravenclaw.png'
+import hufflepuffLogo from './assets/houses/hufflepuff.png'
+import logo from './assets/logo.png'
+
 const ASSETS = {
-  sorting_hat: 'file:///C:/Users/Axel Rosete/.gemini/antigravity/brain/73bc4198-493e-494c-8102-d130ae5afbd5/sorting_hat_animatronic_1778437950594.png',
-  red: 'file:///C:/Users/Axel Rosete/.gemini/antigravity/brain/73bc4198-493e-494c-8102-d130ae5afbd5/gryffindor_crest_premium_1778437964917.png',
-  green: 'file:///C:/Users/Axel Rosete/.gemini/antigravity/brain/73bc4198-493e-494c-8102-d130ae5afbd5/slytherin_crest_premium_1778437980174.png',
-  blue: 'file:///C:/Users/Axel Rosete/.gemini/antigravity/brain/73bc4198-493e-494c-8102-d130ae5afbd5/ravenclaw_crest_premium_1778437994911.png',
-  yellow: 'file:///C:/Users/Axel Rosete/.gemini/antigravity/brain/73bc4198-493e-494c-8102-d130ae5afbd5/hufflepuff_crest_premium_1778438011879.png'
+  sorting_hat: logo,
+  red: gryffindorLogo,
+  green: slytherinLogo,
+  blue: ravenclawLogo,
+  yellow: hufflepuffLogo
 }
 
 const questions = [
@@ -101,6 +107,14 @@ export default function Quiz() {
   const [sortingText, setSortingText] = useState("Difícil... muy difícil...")
   const [shuffledOptions, setShuffledOptions] = useState([])
   const navigate = useNavigate()
+
+  const handleStart = () => {
+    setCurrentIndex(0)
+    setScores({ red: 0, green: 0, yellow: 0, blue: 0 })
+    setResult(null)
+    setSortingText("Difícil... muy difícil...")
+    setStage('quiz')
+  }
 
   useEffect(() => {
     if (currentIndex >= 0 && currentIndex < questions.length) {
@@ -196,7 +210,7 @@ export default function Quiz() {
                 </h2>
                 <p className="text-white/60 italic font-medium">{house.motto}</p>
               </div>
-
+7
               <div className="max-w-md mx-auto bg-black/20 p-6 rounded-2xl border border-white/5">
                 <p className="text-white/70 text-sm leading-relaxed italic">
                   “{house.explanation}”
@@ -282,5 +296,3 @@ export default function Quiz() {
     </div>
   )
 }
-
-
