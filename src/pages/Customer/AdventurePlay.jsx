@@ -44,23 +44,31 @@ export default function AdventurePlay() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [runId])
 
+  const timeoutRef = useRef(null)
+
   useEffect(() => {
+    const stepContextId = step?.id
+      ? `adventure-play-${runId}-${step.id}`
+      : `adventure-play-${runId}-loading`
+
+    audio.setAudioContext(stepContextId)
     setHasPlayedStepAudio(false)
-  }, [runId, step?.id])
+  }, [runId, step?.id, audio.setAudioContext])
 
   useEffect(() => {
     if (!audio.enabled || !step || hasPlayedStepAudio) return
 
     const stepAudio = getStepAudio(step)
+    const stepContextId = `adventure-play-${runId}-${step.id}`
 
     audio.playSequence([
-      { src: adventureAudio.ui.mapOpen, volume: 0.55 },
-      { src: stepAudio?.intro, volume: 0.95, delay: 300 },
-      { src: stepAudio?.question, volume: 0.95, delay: 300 }
-    ])
+      { type: 'sfx', src: adventureAudio.ui.mapOpen, volume: 0.55 },
+      { type: 'voice', src: stepAudio?.intro, volume: 0.95, delay: 300 },
+      { type: 'voice', src: stepAudio?.question, volume: 0.95, delay: 300 }
+    ], { contextId: stepContextId })
 
     setHasPlayedStepAudio(true)
-  }, [audio.enabled, audio.playSequence, step, hasPlayedStepAudio])
+  }, [audio.enabled, audio.playSequence, step, hasPlayedStepAudio, runId])
 
   const fetchStep = async () => {
     setLoading(true)
@@ -77,7 +85,10 @@ export default function AdventurePlay() {
   const handleAnswer = async (value) => {
     setAnswering(true)
     setResult(null)
-    await audio.play(adventureAudio.ui.magicClick, { volume: 0.55 })
+
+    audio.stopSequence()
+    audio.stopVoice()
+    await audio.playSfx(adventureAudio.ui.magicClick, { volume: 0.55 })
 
     const { data, error } = await supabase.rpc('hsf_answer_adventure_step', {
       p_run_id: runId,
@@ -91,32 +102,36 @@ export default function AdventurePlay() {
       return
     }
 
+    const stepContextId = `adventure-play-${runId}-${step.id}`
+
     if (!data?.ok) {
       // Handle failure limits
       if (data?.out_of_attempts) {
         setResult({ ok: false, message: data.message, outOfAttempts: true })
-        // Refresh state after a delay to show the blocked screen
-        setTimeout(() => fetchStep(), 3000)
+        timeoutRef.current = setTimeout(() => fetchStep(), 3000)
         return
       }
       setResult({ ok: false, message: data?.message || 'Respuesta incorrecta.' })
       
       const stepAudio = getStepAudio(step)
-      await audio.playSequence([
-        { src: adventureAudio.ui.wrong, volume: 0.75 },
-        { src: stepAudio?.fail, volume: 0.95, delay: 250 }
-      ])
+      audio.playSequence([
+        { type: 'sfx', src: adventureAudio.ui.wrong, volume: 0.75 },
+        { type: 'voice', src: stepAudio?.fail, volume: 0.95, delay: 250 }
+      ], { contextId: stepContextId })
 
-      fetchStep() // Refresh to update failed_attempts counter
+      fetchStep()
       return
     }
 
     if (data.completed) {
-      await audio.playSequence([
-        { src: adventureAudio.ui.correct, volume: 0.75 },
-        { src: adventureAudio.ui.rewardFanfare, volume: 0.85, delay: 300 }
-      ])
-      navigate(`/aventura/recompensa/${runId}`, { state: data })
+      audio.playSequence([
+        { type: 'sfx', src: adventureAudio.ui.correct, volume: 0.75 },
+        { type: 'sfx', src: adventureAudio.ui.rewardFanfare, volume: 0.85, delay: 300 }
+      ], { contextId: stepContextId })
+      
+      timeoutRef.current = setTimeout(() => {
+        navigate(`/aventura/recompensa/${runId}`, { state: data })
+      }, 1000)
       return
     }
 
@@ -130,16 +145,24 @@ export default function AdventurePlay() {
     sessionStorage.removeItem(`hsf_adventure_step_${runId}`)
     setAutoAdvancing(true)
 
-    await audio.playSequence([
-      { src: adventureAudio.ui.correct, volume: 0.75 },
-      { src: stepAudio?.success, volume: 0.95, delay: 250 },
-      { src: adventureAudio.scanner.lookingForSeal, volume: 0.9, delay: 250 }
-    ])
+    audio.playSequence([
+      { type: 'sfx', src: adventureAudio.ui.correct, volume: 0.75 },
+      { type: 'voice', src: stepAudio?.success, volume: 0.95, delay: 250 },
+      { type: 'voice', src: adventureAudio.scanner.lookingForSeal, volume: 0.9, delay: 250 }
+    ], { contextId: stepContextId })
 
-    setTimeout(() => {
+    timeoutRef.current = setTimeout(() => {
+      audio.stopSequence()
+      audio.stopVoice()
       navigate('/aventura/escanear')
     }, 3500)
   }
+
+  useEffect(() => {
+    return () => {
+      if (timeoutRef.current) clearTimeout(timeoutRef.current)
+    }
+  }, [])
 
   if (loading && !step) {
     return (

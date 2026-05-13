@@ -22,20 +22,22 @@ export default function AdventureReward() {
   useEffect(() => {
     if (!audio.enabled || loading) return
 
+    const rewardContextId = `adventure-reward-${runId}`
+    audio.setAudioContext(rewardContextId)
     audio.playAmbient(adventureAudio.ambient.reward, { volume: 0.18 })
 
     if (reward?.status === 'redeemed' || reward?.isRedeemed) {
-      audio.play(adventureAudio.reward.alreadyRedeemed, { volume: 0.9 })
+      audio.playVoice(adventureAudio.reward.alreadyRedeemed, { volume: 0.9 })
     } else if (reward) {
       audio.playSequence([
-        { src: adventureAudio.ui.rewardFanfare, volume: 0.85 },
-        { src: adventureAudio.reward.completed, volume: 0.95, delay: 400 },
-        { src: adventureAudio.reward.showCode, volume: 0.9, delay: 300 }
-      ])
+        { type: 'sfx', src: adventureAudio.ui.rewardFanfare, volume: 0.85 },
+        { type: 'voice', src: adventureAudio.reward.completed, volume: 0.95, delay: 400 },
+        { type: 'voice', src: adventureAudio.reward.showCode, volume: 0.9, delay: 300 }
+      ], { contextId: rewardContextId })
     }
 
     return () => audio.stopAmbient()
-  }, [audio.enabled, loading, reward?.id, reward?.status])
+  }, [audio.enabled, loading, reward?.id, reward?.status, runId, audio.setAudioContext, audio.playAmbient, audio.playVoice, audio.playSequence])
 
   const fetchReward = async () => {
     const { data } = await supabase

@@ -110,7 +110,7 @@ export function getStepAudio(step) {
 
   if (!normalizedZone) {
     return {
-      intro: adventureAudio.home.intro,
+      intro: null,
       question: null,
       success: adventureAudio.ui.correct,
       fail: adventureAudio.ui.wrong
@@ -119,12 +119,10 @@ export function getStepAudio(step) {
 
   const key = `${normalizedZone}_${order}`
 
-  return adventureAudio.steps[key] ||
-    adventureAudio.steps[`${normalizedZone}_01`] ||
-    {
-      intro: adventureAudio.home.intro,
-      question: null,
-      success: adventureAudio.ui.correct,
-      fail: adventureAudio.ui.wrong
-    }
+  return adventureAudio.steps[key] || {
+    intro: null,
+    question: null,
+    success: adventureAudio.ui.correct,
+    fail: adventureAudio.ui.wrong
+  }
 }

@@ -43,29 +43,38 @@ export default function AdventureHome() {
     }
   }, [])
 
+  const lastHomeAudioKeyRef = useRef(null)
+
   useEffect(() => {
-    if (audio.enabled) {
-      audio.playAmbient(adventureAudio.ambient.castle, { volume: 0.18 })
-    }
+    if (!audio.enabled) return
+    
+    audio.setAudioContext('adventure-home')
+    audio.playAmbient(adventureAudio.ambient.castle, { volume: 0.18 })
 
     return () => audio.stopAmbient()
-  }, [audio.enabled, audio.playAmbient, audio.stopAmbient])
+  }, [audio.enabled, audio.setAudioContext, audio.playAmbient, audio.stopAmbient])
 
   useEffect(() => {
     if (!audio.enabled || loading || !state) return
 
-    if (state?.blocked) {
-      audio.play(adventureAudio.home.blockedDaily, { volume: 0.9 })
-      return
-    }
+    const homeAudioKey = state.blocked
+      ? 'blocked'
+      : state.has_active
+        ? 'active'
+        : 'intro'
 
-    if (state?.has_active) {
-      audio.play(adventureAudio.home.activeAdventure, { volume: 0.9 })
-      return
-    }
+    if (lastHomeAudioKeyRef.current !== homeAudioKey) {
+      lastHomeAudioKeyRef.current = homeAudioKey
+      
+      const src = state.blocked
+        ? adventureAudio.home.blockedDaily
+        : state.has_active
+          ? adventureAudio.home.activeAdventure
+          : adventureAudio.home.intro
 
-    audio.play(adventureAudio.home.intro, { volume: 0.9 })
-  }, [audio.enabled, audio.play, loading, state?.blocked, state?.has_active])
+      audio.playVoice(src, { volume: 0.9 })
+    }
+  }, [audio.enabled, audio.playVoice, loading, state])
 
   const fetchAdventure = async () => {
     setLoading(true)

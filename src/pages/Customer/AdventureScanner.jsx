@@ -79,15 +79,18 @@ export default function AdventureScanner() {
 
     if (!data?.ok) {
       setError(data?.message || 'No se pudo abrir este portal.')
-      audio.play(adventureAudio.scanner.invalidQr, { volume: 0.9 })
+      audio.playVoice(adventureAudio.scanner.invalidQr, { volume: 0.9 })
       return
     }
 
-    await audio.play(adventureAudio.scanner.validPortal, { volume: 0.9 })
+    await audio.playVoice(adventureAudio.scanner.validPortal, { volume: 0.9 })
 
     sessionStorage.setItem(`hsf_adventure_step_${data.run_id}`, JSON.stringify(data.step))
 
-    setTimeout(() => {
+    audio.stopSequence()
+    audio.stopVoice()
+    
+    timeoutRef.current = setTimeout(() => {
       navigate(`/aventura/jugar/${data.run_id}`)
     }, 900)
   }, [audio, navigate])
@@ -105,18 +108,29 @@ export default function AdventureScanner() {
     init()
   }, [fetchAdventureState, handleScanPayload, searchParams])
 
+  const playedInstructionRef = useRef(false)
+  const timeoutRef = useRef(null)
+
   useEffect(() => {
-    if (audio.enabled) {
-      audio.playAmbient(adventureAudio.ambient.scanner, { volume: 0.16 })
-      audio.play(adventureAudio.scanner.instruction, { volume: 0.9 })
+    if (!audio.enabled) return
+
+    audio.setAudioContext('adventure-scanner')
+    audio.playAmbient(adventureAudio.ambient.scanner, { volume: 0.16 })
+
+    if (!playedInstructionRef.current) {
+      playedInstructionRef.current = true
+      audio.playVoice(adventureAudio.scanner.instruction, { volume: 0.9 })
     }
 
-    return () => audio.stopAmbient()
-  }, [audio.enabled, audio.playAmbient, audio.play, audio.stopAmbient])
+    return () => {
+      audio.stopAmbient()
+      if (timeoutRef.current) clearTimeout(timeoutRef.current)
+    }
+  }, [audio.enabled, audio.setAudioContext, audio.playAmbient, audio.playVoice, audio.stopAmbient])
 
   const handleScan = async (decodedText) => {
     setShowScanner(false)
-    await audio.play(adventureAudio.ui.portalScan, { volume: 0.8 })
+    await audio.playSfx(adventureAudio.ui.portalScan, { volume: 0.8 })
     const payload = parseAdventureQR(decodedText)
     handleScanPayload(payload)
   }
