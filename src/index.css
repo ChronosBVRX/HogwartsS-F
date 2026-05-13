@@ -231,3 +231,12 @@
 .animate-duel-hit {
   animation: duelHit 0.55s ease-in-out;
 }
+
+@keyframes scan-line {
+  0% { transform: translateY(0); }
+  100% { transform: translateY(320px); }
+}
+
+.animate-scan-line {
+  animation: scan-line 2s linear infinite;
+}

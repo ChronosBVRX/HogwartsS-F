@@ -1,7 +1,11 @@
-import { Camera, QrCode, AlertCircle, ChevronLeft, RefreshCw } from 'lucide-react'
+import { useEffect, useState, useCallback } from 'react'
+import { useNavigate, useSearchParams, Link } from 'react-router-dom'
+import { supabase } from '../../lib/supabase'
+import { QrCode, AlertCircle, ChevronLeft } from 'lucide-react'
 import { useAdventureAudio } from '../../hooks/useAdventureAudio'
 import { adventureAudio } from '../../data/adventureAudioManifest'
 import AdventureAudioControl from '../../components/adventure/AdventureAudioControl'
+import QRScanner from '../../components/QRScanner'
 
 function parseAdventureQR(rawText) {
   try {
@@ -39,92 +43,18 @@ export default function AdventureScanner() {
   const [searchParams] = useSearchParams()
   const [error, setError] = useState(null)
   const [message, setMessage] = useState(null)
-  const [isCameraActive, setIsCameraActive] = useState(false)
+  const [showScanner, setShowScanner] = useState(false)
   const [loading, setLoading] = useState(false)
   const [adventureState, setAdventureState] = useState(null)
-  const scannerRef = useRef(null)
   const navigate = useNavigate()
   const audio = useAdventureAudio()
 
-  useEffect(() => {
-    fetchAdventureState()
-    
-    const zone = searchParams.get('zone')
-    const token = searchParams.get('token')
-    if (zone && token) {
-      handleScanPayload({ zone, token })
-    }
-
-    return () => stopScanner()
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
-
-  useEffect(() => {
-    if (audio.enabled) {
-      audio.playAmbient(adventureAudio.ambient.scanner, { volume: 0.16 })
-      audio.play(adventureAudio.scanner.instruction, { volume: 0.9 })
-    }
-
-    return () => audio.stopAmbient()
-  }, [audio.enabled])
-
-  const fetchAdventureState = async () => {
+  const fetchAdventureState = useCallback(async () => {
     const { data } = await supabase.rpc('hsf_get_active_adventure')
     if (data?.ok) setAdventureState(data)
-  }
+  }, [])
 
-  const stopScanner = async () => {
-    if (scannerRef.current) {
-      try {
-        if (scannerRef.current.isScanning) {
-          await scannerRef.current.stop()
-        }
-
-        try {
-          await scannerRef.current.clear()
-        } catch {}
-
-        scannerRef.current = null
-      } catch (err) {
-        console.warn('Scanner stop warning:', err)
-      }
-    }
-
-    setIsCameraActive(false)
-  }
-
-  const startScanner = async () => {
-    if (scannerRef.current?.isScanning) return
-
-    setError(null)
-    setMessage(null)
-
-    try {
-      await audio.play(adventureAudio.ui.cameraStart, { volume: 0.65 })
-
-      const html5QrCode = new Html5Qrcode('adventure-reader')
-      scannerRef.current = html5QrCode
-
-      await html5QrCode.start(
-        { facingMode: 'environment' },
-        { fps: 10, qrbox: { width: 250, height: 250 }, aspectRatio: 1 },
-        async (decodedText) => {
-          await stopScanner()
-          await audio.play(adventureAudio.ui.portalScan, { volume: 0.8 })
-
-          const payload = parseAdventureQR(decodedText)
-          await handleScanPayload(payload)
-        }
-      )
-
-      setIsCameraActive(true)
-    } catch (err) {
-      setError('No se pudo iniciar la cámara. Revisa permisos o intenta abrir la app desde Chrome/Safari.')
-      console.error(err)
-    }
-  }
-
-  const handleScanPayload = async ({ zone, token }) => {
+  const handleScanPayload = useCallback(async ({ zone, token }) => {
     if (!zone || !token) {
       setError('Este QR no parece ser un sello de aventura válido.')
       audio.play(adventureAudio.scanner.invalidQr, { volume: 0.9 })
@@ -160,10 +90,47 @@ export default function AdventureScanner() {
     setTimeout(() => {
       navigate(`/aventura/jugar/${data.run_id}`)
     }, 900)
+  }, [audio, navigate])
+
+  useEffect(() => {
+    // Use setTimeout to avoid synchronous setState warning in effect
+    const init = async () => {
+      await fetchAdventureState()
+      const zone = searchParams.get('zone')
+      const token = searchParams.get('token')
+      if (zone && token) {
+        handleScanPayload({ zone, token })
+      }
+    }
+    init()
+  }, [fetchAdventureState, handleScanPayload, searchParams])
+
+  useEffect(() => {
+    if (audio.enabled) {
+      audio.playAmbient(adventureAudio.ambient.scanner, { volume: 0.16 })
+      audio.play(adventureAudio.scanner.instruction, { volume: 0.9 })
+    }
+
+    return () => audio.stopAmbient()
+  }, [audio])
+
+  const handleScan = async (decodedText) => {
+    setShowScanner(false)
+    await audio.play(adventureAudio.ui.portalScan, { volume: 0.8 })
+    const payload = parseAdventureQR(decodedText)
+    handleScanPayload(payload)
   }
 
   return (
     <div className="flex-1 p-4 md:p-6 flex flex-col max-w-2xl mx-auto w-full space-y-6 pb-20">
+      {showScanner && (
+        <QRScanner
+          title="Buscando Portal"
+          onScan={handleScan}
+          onClose={() => setShowScanner(false)}
+        />
+      )}
+
       <div className="flex justify-between items-center">
         <Link to="/aventura" className="flex items-center gap-2 text-white/40 hover:text-white transition-colors">
           <ChevronLeft className="w-5 h-5" />
@@ -202,39 +169,36 @@ export default function AdventureScanner() {
             </div>
           )}
 
-          <div className="relative aspect-square w-full max-w-[400px] mx-auto">
-            <div
-              id="adventure-reader"
-              className={`w-full h-full rounded-3xl overflow-hidden bg-black/40 border-2 border-dashed transition-all duration-500 ${
-                isCameraActive ? 'border-magical-gold/50' : 'border-white/10'
-              }`}
-            />
+          <div className="flex flex-col items-center justify-center p-8 text-center space-y-8">
+            <div className="relative group">
+               <div className="absolute inset-0 bg-magical-gold/20 blur-3xl rounded-full scale-150 group-hover:bg-magical-gold/30 transition-all duration-700" />
+               <div className="relative p-10 bg-white/5 rounded-full border border-white/10 backdrop-blur-xl">
+                 <QrCode className="w-20 h-20 text-magical-gold animate-float" />
+               </div>
+            </div>
 
-            {!isCameraActive && !loading && (
-              <div className="absolute inset-0 flex flex-col items-center justify-center p-8 text-center space-y-6 z-10">
-                <div className="p-6 bg-magical-gold/10 rounded-full animate-pulse">
-                  <Camera className="w-12 h-12 text-magical-gold/60" />
-                </div>
-                <button
-                  onClick={startScanner}
-                  className="btn-gold px-10 py-4 text-xs font-black uppercase tracking-widest flex items-center gap-2"
-                >
-                  <RefreshCw className="w-4 h-4" />
-                  Iniciar cámara
-                </button>
-              </div>
-            )}
+            <button
+              onClick={() => {
+                audio.play(adventureAudio.ui.cameraStart, { volume: 0.65 })
+                setShowScanner(true)
+              }}
+              className="btn-gold px-12 py-5 text-sm font-black uppercase tracking-widest flex items-center gap-3"
+            >
+              <QrCode className="w-5 h-5" />
+              Activar Escáner
+            </button>
+
+            <p className="text-[10px] text-white/30 uppercase font-black tracking-[0.2em] max-w-xs mx-auto leading-relaxed">
+              Encuentra los pósters mágicos ubicados en las diferentes zonas del castillo
+            </p>
           </div>
 
-          {message && (
-            <div className="bg-white/5 border border-white/10 rounded-2xl p-5 text-white/50 text-xs font-bold uppercase tracking-widest text-center">
-              {message}
-            </div>
-          )}
-
-          {loading && (
-            <div className="text-center text-magical-gold uppercase font-black tracking-widest animate-pulse">
-              Abriendo portal...
+          {(message || loading) && (
+            <div className="bg-magical-gold/5 border border-magical-gold/10 rounded-2xl p-6 text-center space-y-4">
+              <div className="w-8 h-8 border-2 border-magical-gold border-t-transparent rounded-full animate-spin mx-auto" />
+              <p className="text-magical-gold text-[10px] font-black uppercase tracking-widest animate-pulse">
+                {message || 'Invocando el portal...'}
+              </p>
             </div>
           )}
 
@@ -243,8 +207,11 @@ export default function AdventureScanner() {
               <AlertCircle className="w-5 h-5 shrink-0 mt-0.5" />
               <div className="space-y-3">
                 <p className="text-xs font-bold uppercase">{error}</p>
-                <button onClick={startScanner} className="text-[10px] font-black uppercase tracking-widest underline">
-                  Intentar escanear otro QR
+                <button 
+                  onClick={() => setShowScanner(true)} 
+                  className="text-[10px] font-black uppercase tracking-widest underline"
+                >
+                  Intentar de nuevo
                 </button>
               </div>
             </div>

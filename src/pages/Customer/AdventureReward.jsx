@@ -1,3 +1,6 @@
+import { useEffect, useState } from 'react'
+import { Link, useParams, useLocation } from 'react-router-dom'
+import { supabase } from '../../lib/supabase'
 import { Gift, Sparkles, ChevronLeft, QrCode as QrIcon, CheckCircle2 } from 'lucide-react'
 import { useAdventureAudio } from '../../hooks/useAdventureAudio'
 import { adventureAudio } from '../../data/adventureAudioManifest'

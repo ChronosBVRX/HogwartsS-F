@@ -1,3 +1,6 @@
+import { useEffect, useState } from 'react'
+import { Link } from 'react-router-dom'
+import { supabase } from '../../lib/supabase'
 import { Wand2, QrCode, Gift, Map, AlertCircle, Sparkles, XCircle } from 'lucide-react'
 import { useAdventureAudio } from '../../hooks/useAdventureAudio'
 import { adventureAudio } from '../../data/adventureAudioManifest'

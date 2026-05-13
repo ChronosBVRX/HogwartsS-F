@@ -1,65 +1,20 @@
-import { useEffect, useState, useRef } from 'react'
+import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Html5Qrcode } from 'html5-qrcode'
 import { supabase } from '../../lib/supabase'
-import { ChevronLeft, Info, CheckCircle2, AlertCircle, Camera, RefreshCw } from 'lucide-react'
+import { ChevronLeft, Info, CheckCircle2, AlertCircle, QrCode } from 'lucide-react'
+import QRScanner from '../../components/QRScanner'
 
 export default function WaiterScanner() {
   const [scanResult, setScanResult] = useState(null)
   const [tableNumber, setTableNumber] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState(null)
-  const [isCameraActive, setIsCameraActive] = useState(false)
+  const [showScanner, setShowScanner] = useState(false)
   const navigate = useNavigate()
   
-  const scannerRef = useRef(null)
-
-  useEffect(() => {
-    return () => {
-      stopScanner()
-    }
-  }, [])
-
-  const stopScanner = async () => {
-    if (scannerRef.current) {
-      try {
-        if (scannerRef.current.isScanning) {
-          await scannerRef.current.stop()
-        }
-      } catch (err) {
-        console.warn("Scanner stop warning:", err)
-      }
-    }
-    setIsCameraActive(false)
-  }
-
-  const startScanner = async () => {
-    setError(null)
-    setScanResult(null)
-    
-    try {
-      const html5QrCode = new Html5Qrcode("reader")
-      scannerRef.current = html5QrCode
-      
-      const config = { 
-        fps: 10, 
-        qrbox: { width: 250, height: 250 },
-        aspectRatio: 1.0
-      }
-      
-      await html5QrCode.start(
-        { facingMode: "environment" }, 
-        config, 
-        (decodedText) => {
-          setScanResult(decodedText)
-          stopScanner()
-        }
-      )
-      setIsCameraActive(true)
-    } catch (err) {
-      setError("Error de cámara: Asegúrate de dar permisos.")
-      console.error(err)
-    }
+  const handleScan = (decodedText) => {
+    setScanResult(decodedText)
+    setShowScanner(false)
   }
 
   const handleAssignTable = async (e) => {
@@ -80,8 +35,7 @@ export default function WaiterScanner() {
       return
     }
 
-    // 2. Update session - Using CORRECT column names from user schema
-    // Table: hsf_visit_sessions, Columns: seated_by, seated_at
+    // 2. Update session
     const { error: updateError } = await supabase
       .from('hsf_visit_sessions')
       .update({
@@ -104,6 +58,14 @@ export default function WaiterScanner() {
 
   return (
     <div className="flex-1 p-4 md:p-6 flex flex-col max-w-2xl mx-auto w-full space-y-6 pb-20">
+      {showScanner && (
+        <QRScanner
+          title="Validando Pase"
+          onScan={handleScan}
+          onClose={() => setShowScanner(false)}
+        />
+      )}
+
       <button onClick={() => navigate('/mesero')} className="flex items-center gap-2 text-white/40 hover:text-white transition-colors">
         <ChevronLeft className="w-5 h-5" />
         <span className="text-[10px] font-black uppercase tracking-widest">Regresar al Panel</span>
@@ -116,51 +78,40 @@ export default function WaiterScanner() {
         </div>
 
         <div className="p-6 md:p-8 space-y-8">
-          <div className="relative aspect-square w-full max-w-[400px] mx-auto">
-            <div 
-              id="reader" 
-              className={`w-full h-full rounded-3xl overflow-hidden bg-black/40 border-2 border-dashed transition-all duration-500 ${
-                isCameraActive ? 'border-magical-gold/50 shadow-[0_0_50px_rgba(212,175,55,0.1)]' : 'border-white/10'
-              }`}
-            ></div>
-
-            {!isCameraActive && !scanResult && (
-              <div className="absolute inset-0 flex flex-col items-center justify-center p-8 text-center space-y-6 z-10">
-                <div className="p-6 bg-magical-gold/10 rounded-full animate-pulse">
-                  <Camera className="w-12 h-12 text-magical-gold/60" />
+          <div className="relative flex flex-col items-center justify-center p-8 text-center space-y-8 min-h-[300px]">
+            {!scanResult ? (
+              <>
+                <div className="relative group">
+                  <div className="absolute inset-0 bg-magical-gold/20 blur-3xl rounded-full scale-150 group-hover:bg-magical-gold/30 transition-all duration-700" />
+                  <div className="relative p-10 bg-white/5 rounded-full border border-white/10 backdrop-blur-xl">
+                    <QrCode className="w-20 h-20 text-magical-gold animate-float" />
+                  </div>
                 </div>
-                <button 
-                  onClick={startScanner}
-                  className="btn-gold px-10 py-4 text-xs font-black uppercase tracking-widest flex items-center gap-2"
-                >
-                  <RefreshCw className="w-4 h-4" />
-                  Iniciar Cámara
-                </button>
-              </div>
-            )}
 
-            {scanResult && (
-              <div className="absolute inset-0 bg-magical-navy/95 backdrop-blur-md flex flex-col items-center justify-center p-8 text-center space-y-4 z-20 animate-in fade-in zoom-in duration-500 rounded-3xl">
-                <div className="p-4 bg-green-500/20 rounded-full">
+                <button 
+                  onClick={() => setShowScanner(true)}
+                  className="btn-gold px-12 py-5 text-sm font-black uppercase tracking-widest flex items-center gap-3"
+                >
+                  <QrCode className="w-5 h-5" />
+                  Escanear Pase
+                </button>
+              </>
+            ) : (
+              <div className="w-full space-y-6 animate-in fade-in zoom-in duration-500">
+                <div className="p-4 bg-green-500/20 rounded-full w-fit mx-auto">
                   <CheckCircle2 className="w-12 h-12 text-green-400" />
                 </div>
-                <h2 className="text-xl font-black uppercase italic text-white">¡Escaneado!</h2>
+                <div className="space-y-1">
+                  <h2 className="text-xl font-black uppercase italic text-white">¡Escaneado con éxito!</h2>
+                  <p className="text-[10px] text-white/40 uppercase font-black tracking-widest">Token: {scanResult.substring(0, 8)}...</p>
+                </div>
                 <button 
-                  onClick={() => { setScanResult(null); startScanner(); }}
+                  onClick={() => { setScanResult(null); setShowScanner(true); }}
                   className="text-[10px] font-black text-magical-gold uppercase tracking-widest hover:underline"
                 >
-                  Escanear otro
+                  Escanear otro pase
                 </button>
               </div>
-            )}
-
-            {isCameraActive && (
-              <button 
-                onClick={stopScanner}
-                className="absolute bottom-4 right-4 bg-black/60 backdrop-blur-md text-white/60 hover:text-white px-4 py-2 rounded-xl text-[9px] font-black uppercase tracking-widest border border-white/10 z-30"
-              >
-                Detener
-              </button>
             )}
           </div>
 
