@@ -119,6 +119,10 @@ export default function DuelRoom() {
       }
       
       setDuel(formattedData)
+      // Sync initial cooldowns
+      const cds = isP1 ? formattedData.player_one_cooldowns : formattedData.player_two_cooldowns
+      setCooldowns(cds || {})
+      
       if (formattedData.status === 'finished') {
         setShowResult(true)
       }
@@ -176,6 +180,11 @@ export default function DuelRoom() {
       }, (payload) => {
         console.log('DUEL UPDATE:', payload.new)
         setDuel(prev => ({ ...prev, ...payload.new }))
+        // Sync cooldowns if it's my turn
+        if (payload.new.status === 'active') {
+          const cds = isP1 ? payload.new.player_one_cooldowns : payload.new.player_two_cooldowns
+          setCooldowns(cds || {})
+        }
         if (payload.new.status === 'finished') {
           setShowResult(true)
         }
