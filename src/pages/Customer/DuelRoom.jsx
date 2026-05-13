@@ -27,14 +27,15 @@ export default function DuelRoom() {
   const [showResult, setShowResult] = useState(false)
   const [timeLeft, setTimeLeft] = useState(20)
   const [cooldowns, setCooldowns] = useState({})
+  const [isMenuOpen, setIsMenuOpen] = useState(false)
   
   const STANCES = [
     { key: 'neutral', name: 'Neutral', icon: '🪄', desc: 'Sin bonos ni penalizaciones' },
     { key: 'offensive', name: 'Ofensiva', icon: '⚔️', desc: '+4 Daño / +3 Daño recibido' },
     { key: 'defensive', name: 'Defensiva', icon: '🛡️', desc: '+6 Bloqueo / -3 Daño' },
-    { key: 'concentrated', name: 'Concentrada', icon: '🧘', desc: '+1 Energía si recibes < 12 daño' },
+    { key: 'concentrated', name: 'Concentrada', icon: '🧘', desc: '+1 Energía extra al usar Accio' },
     { key: 'cunning', name: 'Astuta', icon: '🧠', desc: 'Bonus táctico si vences la familia' },
-    { key: 'desperate', name: 'Desesperada', icon: '🔥', desc: '+6 Daño si tienes menos de 25 HP / si no, -3 Daño' }
+    { key: 'desperate', name: 'Desesperada', icon: '🔥', desc: '+6 Daño si tienes < 25 HP / si no, -3 Daño' }
   ]
 
   // Calculate used AP and Energy
@@ -424,15 +425,42 @@ export default function DuelRoom() {
         )}
       </div>
 
-      {/* Strategic Selection Area */}
-      {!duelFinished && resolutionStage === 'idle' && (
-        <section className="bg-night-blue/90 backdrop-blur-xl border-t border-magical-gold/20 p-4 pb-8 shadow-[0_-20px_50px_rgba(0,0,0,0.5)]">
-          <div className="max-w-4xl mx-auto space-y-6">
+      {/* Floating Strategy Toggle - Mobile Optimization */}
+      {!duelFinished && resolutionStage === 'idle' && !isMenuOpen && (
+        <div className="fixed bottom-8 left-1/2 -translate-x-1/2 z-50 animate-bounce">
+          <button 
+            onClick={() => setIsMenuOpen(true)}
+            className="bg-magical-gold text-magical-navy px-8 py-4 rounded-full font-black uppercase italic tracking-widest shadow-[0_0_30px_rgba(212,175,55,0.5)] border-2 border-white/20 flex items-center gap-3 active:scale-95 transition-all"
+          >
+            <Swords className="w-5 h-5" />
+            Preparar Estrategia
+          </button>
+        </div>
+      )}
+
+      {/* Strategic Selection Area - Now Toggleable and Immersive */}
+      {!duelFinished && resolutionStage === 'idle' && isMenuOpen && (
+        <section className="fixed inset-0 z-50 bg-magical-navy/95 backdrop-blur-2xl p-4 overflow-y-auto animate-in slide-in-from-bottom duration-500">
+          <div className="max-w-4xl mx-auto space-y-8 pt-12 pb-24">
             
+            {/* Header with Close */}
+            <div className="flex justify-between items-center border-b border-white/10 pb-4">
+              <div>
+                <h2 className="text-2xl font-black italic text-white uppercase">Libro de Hechizos</h2>
+                <p className="text-[10px] text-white/40 uppercase font-black tracking-widest">Prepara tu próximo movimiento</p>
+              </div>
+              <button 
+                onClick={() => setIsMenuOpen(false)}
+                className="bg-white/10 p-4 rounded-full hover:bg-white/20 transition-all"
+              >
+                <Flag className="w-6 h-6 text-magical-gold" />
+              </button>
+            </div>
+
             {/* Stance Selector */}
-            <div className="flex flex-col gap-2">
+            <div className="flex flex-col gap-4">
               <p className="text-[10px] font-black text-magical-gold uppercase tracking-[0.3em] text-center">Elige tu estilo de combate</p>
-              <div className="flex justify-around gap-2">
+              <div className="grid grid-cols-3 gap-3">
                 {STANCES.map(s => (
                   <button
                     key={s.key}
@@ -440,81 +468,81 @@ export default function DuelRoom() {
                       setSelectedStance(s.key)
                       audioManager.playSfx('stance_select')
                     }}
-                    className={`flex-1 p-2 rounded-xl border-2 transition-all duration-300 flex flex-col items-center gap-1 ${
+                    className={`p-3 rounded-2xl border-2 transition-all duration-300 flex flex-col items-center gap-2 ${
                       selectedStance === s.key 
-                        ? 'border-magical-gold bg-magical-gold/10 scale-105' 
+                        ? 'border-magical-gold bg-magical-gold/10 scale-105 shadow-[0_0_20px_rgba(212,175,55,0.2)]' 
                         : 'border-white/5 bg-white/5 opacity-40 hover:opacity-100'
                     }`}
                   >
-                    <span className="text-xl">{s.icon}</span>
-                    <span className="text-[8px] font-black uppercase text-white tracking-tighter">{s.name}</span>
+                    <span className="text-3xl">{s.icon}</span>
+                    <span className="text-[10px] font-black uppercase text-white tracking-tighter">{s.name}</span>
+                    <span className="text-[8px] text-white/40 leading-tight text-center line-clamp-2">
+                      {s.desc}
+                    </span>
                   </button>
                 ))}
               </div>
             </div>
 
-            {/* Action Bar & Confirm */}
-            <div className="flex justify-between items-center bg-black/40 p-3 rounded-2xl border border-white/5">
-              <div className="flex flex-col gap-1">
-                <div className="flex items-center gap-2">
-                  <div className={`w-2 h-2 rounded-full ${usedAP >= 1 ? 'bg-magical-gold shadow-[0_0_8px_var(--color-magical-gold)]' : 'bg-white/10'}`} />
-                  <div className={`w-2 h-2 rounded-full ${usedAP >= 2 ? 'bg-magical-gold shadow-[0_0_8px_var(--color-magical-gold)]' : 'bg-white/10'}`} />
-                  <span className="text-[10px] font-black uppercase text-white/40 ml-2">Movimientos</span>
+            {/* Action Bar & Confirm - Fixed at Bottom of Menu */}
+            <div className="sticky bottom-0 left-0 right-0 pt-4 pb-2 bg-magical-navy">
+              <div className="flex justify-between items-center bg-black/60 p-4 rounded-3xl border border-magical-gold/20 shadow-2xl">
+                <div className="flex flex-col gap-1">
+                  <div className="flex items-center gap-2">
+                    <div className={`w-3 h-3 rounded-full ${usedAP >= 1 ? 'bg-magical-gold shadow-[0_0_12px_var(--color-magical-gold)]' : 'bg-white/10'}`} />
+                    <div className={`w-3 h-3 rounded-full ${usedAP >= 2 ? 'bg-magical-gold shadow-[0_0_12px_var(--color-magical-gold)]' : 'bg-white/10'}`} />
+                    <span className="text-[10px] font-black uppercase text-white/40 ml-2">Movimientos</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                     <ZapIcon className="text-magical-gold w-4 h-4" />
+                     <p className="text-2xl font-black italic">{myEnergy - totalEnergyCost} / 5</p>
+                     <span className="text-[9px] text-white/30 uppercase font-black tracking-widest ml-1">Energía</span>
+                  </div>
                 </div>
-                <div className="flex items-center gap-2">
-                   <ZapIcon className="text-magical-gold w-3 h-3" />
-                   <p className="text-lg font-black italic">{myEnergy - totalEnergyCost} / 5</p>
-                   <span className="text-[9px] text-white/30 uppercase font-black tracking-widest ml-1">Energía</span>
-                </div>
-              </div>
 
-              <button
-                disabled={selectedActions.length === 0 || isSubmitting}
-                onClick={handleConfirmStrategy}
-                className={`px-6 py-4 rounded-xl font-black uppercase italic tracking-widest text-xs transition-all duration-300 flex items-center gap-2 ${
-                  selectedActions.length > 0 
-                    ? 'bg-magical-gold text-magical-navy shadow-[0_0_30px_rgba(212,175,55,0.3)] scale-105 active:scale-95' 
-                    : 'bg-white/5 text-white/20'
-                }`}
-              >
-                {isSubmitting ? 'Esperando...' : 'Lanzar Estrategia'}
-                <Swords className="w-4 h-4" />
-              </button>
+                <button
+                  disabled={selectedActions.length === 0 || isSubmitting}
+                  onClick={async () => {
+                    await handleConfirmStrategy();
+                    setIsMenuOpen(false);
+                  }}
+                  className={`px-8 py-5 rounded-2xl font-black uppercase italic tracking-widest text-sm transition-all duration-300 flex items-center gap-2 ${
+                    selectedActions.length > 0 
+                      ? 'bg-magical-gold text-magical-navy shadow-[0_0_30px_rgba(212,175,55,0.4)] scale-105 active:scale-95' 
+                      : 'bg-white/5 text-white/20'
+                  }`}
+                >
+                  {isSubmitting ? 'Lanzando...' : '¡Lanzar Hechizos!'}
+                  <Swords className="w-5 h-5" />
+                </button>
+              </div>
             </div>
 
-            {/* Microcopy Tip */}
-            <p className="text-[9px] text-white/30 font-medium italic text-center">
-              Toca un hechizo para jugar rápido. Si es ligero, puedes combinarlo con otro.
-            </p>
-
             {/* Spell Grid */}
-            <div className="grid grid-cols-5 md:grid-cols-10 gap-2">
-              {Object.entries(SPELLS).map(([key, spell]) => {
-                const isSelected = selectedActions.some(a => a.key === key)
-                const spellAP = spell.cost >= 2 ? 2 : 1
-                const canAdd = usedAP + spellAP <= 2 && myEnergy >= (totalEnergyCost + spell.cost)
-                
-                return (
-                  <SpellCard
-                    key={key}
-                    spell={spell}
-                    selected={isSelected}
-                    onClick={() => {
-                      if (isSelected) {
-                        setSelectedActions(prev => prev.filter(a => a.key !== key))
-                      } else if (canAdd) {
-                        setSelectedActions(prev => [...prev, spell])
-                        audioManager.playSfx('ui_card_select')
-                      } else {
+            <div className="space-y-4">
+              <p className="text-[10px] text-white/30 font-medium italic text-center">
+                Toca una carta para inspeccionarla y agregarla a tu combo.
+              </p>
+              <div className="grid grid-cols-4 md:grid-cols-6 lg:grid-cols-8 gap-3">
+                {Object.entries(SPELLS).map(([key, spell]) => {
+                  const isSelected = selectedActions.some(a => a.key === key)
+                  
+                  return (
+                    <SpellCard
+                      key={key}
+                      spell={spell}
+                      selected={isSelected}
+                      onClick={() => {
                         setDetailedSpell(spell)
-                      }
-                    }}
-                    disabled={(usedAP >= 2 && !isSelected) || isSubmitting}
-                    cooldown={cooldowns[key] || 0}
-                    compact
-                  />
-                )
-              })}
+                        audioManager.playSfx('ui_card_select')
+                      }}
+                      disabled={isSubmitting}
+                      cooldown={cooldowns[key] || 0}
+                      compact
+                    />
+                  )
+                })}
+              </div>
             </div>
           </div>
         </section>
