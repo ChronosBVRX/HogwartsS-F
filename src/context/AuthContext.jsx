@@ -36,12 +36,14 @@ export const AuthProvider = ({ children }) => {
         .from('hsf_profiles')
         .select('*, house:hsf_houses(*)')
         .eq('user_id', userId)
-        .single()
+        .limit(1)
+        .maybeSingle()
 
       if (error) throw error
-      setProfile(data)
+      setProfile(data || null)
     } catch (err) {
       console.error('Error fetching profile:', err.message)
+      setProfile(null)
     } finally {
       setLoading(false)
     }
