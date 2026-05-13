@@ -145,7 +145,7 @@ declare
   v_p1_stance_dmg int := 0; v_p1_stance_blk int := 0;
   v_p2_stance_dmg int := 0; v_p2_stance_blk int := 0;
   
-  v_p1_cd jsonb; v_p2_cd jsonb;
+  v_p1_cd jsonb := '{}'::jsonb; v_p2_cd jsonb := '{}'::jsonb;
   v_cd_key text; v_cd_val int;
   
   v_p1_total_dmg int := 0; v_p2_total_dmg int := 0;
@@ -236,32 +236,32 @@ begin
   -- 4. Procesar Hechizos P1
   for v_action in select * from jsonb_array_elements(v_p1_turn.actions) loop
     v_spell_key := v_action->>'key';
-    if v_spell_key = 'expelliarmus' then v_p1_dmg := v_p1_dmg + 12; v_p1_cost := v_p1_cost + 1; v_p1_fams := v_p1_fams || 'disarm'; v_p1_beats := v_p1_beats || '{heavy, attack}'; v_p1_loses := v_p1_loses || '{defense}';
-    elsif v_spell_key = 'stupefy' then v_p1_dmg := v_p1_dmg + 30; v_p1_cost := v_p1_cost + 2; v_p1_cd := v_p1_cd || '{"stupefy": 2}'; v_p1_fams := v_p1_fams || 'heavy'; v_p1_beats := v_p1_beats || '{heal, charge}'; v_p1_loses := v_p1_loses || '{disarm, defense}';
-    elsif v_spell_key = 'protego' then v_p1_blk := v_p1_blk + 22; v_p1_cost := v_p1_cost + 1; v_p1_fams := v_p1_fams || 'defense'; v_p1_beats := v_p1_beats || '{attack, heavy}'; v_p1_loses := v_p1_loses || '{control}';
-    elsif v_spell_key = 'accio' then v_p1_gain := v_p1_gain + 2; if v_p1_turn.stance = 'concentrated' then v_p1_gain := v_p1_gain + 1; end if; v_p1_fams := v_p1_fams || 'charge'; v_p1_beats := v_p1_beats || '{counter}'; v_p1_loses := v_p1_loses || '{attack, heavy}';
-    elsif v_spell_key = 'episkey' then v_p1_heal := v_p1_heal + 20; v_p1_cost := v_p1_cost + 2; v_p1_cd := v_p1_cd || '{"episkey": 3}'; v_p1_fams := v_p1_fams || 'heal'; v_p1_beats := v_p1_beats || '{defense}'; v_p1_loses := v_p1_loses || '{heavy}';
-    elsif v_spell_key = 'incendio' then v_p1_dmg := v_p1_dmg + 14; v_p1_cost := v_p1_cost + 2; v_p1_fams := v_p1_fams || 'attack'; v_p1_beats := v_p1_beats || '{charge}'; v_p1_loses := v_p1_loses || '{defense}';
-    elsif v_spell_key = 'petrificus' then v_p1_dmg := v_p1_dmg + 10; v_p1_cost := v_p1_cost + 2; v_p1_fams := v_p1_fams || 'control'; v_p1_beats := v_p1_beats || '{defense}'; v_p1_loses := v_p1_loses || '{counter}';
-    elsif v_spell_key = 'confundus' then v_p1_dmg := v_p1_dmg + 6; v_p1_cost := v_p1_cost + 2; v_p1_fams := v_p1_fams || 'control'; v_p1_beats := v_p1_beats || '{defense}'; v_p1_loses := v_p1_loses || '{counter}';
-    elsif v_spell_key = 'finite' then v_p1_dmg := v_p1_dmg + 8; v_p1_cost := v_p1_cost + 1; v_p1_fams := v_p1_fams || 'counter'; v_p1_beats := v_p1_beats || '{control}'; v_p1_loses := v_p1_loses || '{attack}';
-    elsif v_spell_key = 'rictusempra' then v_p1_dmg := v_p1_dmg + 12; v_p1_cost := v_p1_cost + 1; v_p1_fams := v_p1_fams || 'attack'; v_p1_beats := v_p1_beats || '{charge}'; v_p1_loses := v_p1_loses || '{defense}';
+    if v_spell_key = 'expelliarmus' then v_p1_dmg := v_p1_dmg + 12; v_p1_cost := v_p1_cost + 1; v_p1_fams := array_append(v_p1_fams, 'disarm'); v_p1_beats := v_p1_beats || '{heavy, attack}'::text[]; v_p1_loses := v_p1_loses || '{defense}'::text[];
+    elsif v_spell_key = 'stupefy' then v_p1_dmg := v_p1_dmg + 30; v_p1_cost := v_p1_cost + 2; v_p1_cd := v_p1_cd || '{"stupefy": 2}'::jsonb; v_p1_fams := array_append(v_p1_fams, 'heavy'); v_p1_beats := v_p1_beats || '{heal, charge}'::text[]; v_p1_loses := v_p1_loses || '{disarm, defense}'::text[];
+    elsif v_spell_key = 'protego' then v_p1_blk := v_p1_blk + 22; v_p1_cost := v_p1_cost + 1; v_p1_fams := array_append(v_p1_fams, 'defense'); v_p1_beats := v_p1_beats || '{attack, heavy}'::text[]; v_p1_loses := v_p1_loses || '{control}'::text[];
+    elsif v_spell_key = 'accio' then v_p1_gain := v_p1_gain + 2; if v_p1_turn.stance = 'concentrated' then v_p1_gain := v_p1_gain + 1; end if; v_p1_fams := array_append(v_p1_fams, 'charge'); v_p1_beats := v_p1_beats || '{counter}'::text[]; v_p1_loses := v_p1_loses || '{attack, heavy}'::text[];
+    elsif v_spell_key = 'episkey' then v_p1_heal := v_p1_heal + 20; v_p1_cost := v_p1_cost + 2; v_p1_cd := v_p1_cd || '{"episkey": 3}'::jsonb; v_p1_fams := array_append(v_p1_fams, 'heal'); v_p1_beats := v_p1_beats || '{defense}'::text[]; v_p1_loses := v_p1_loses || '{heavy}'::text[];
+    elsif v_spell_key = 'incendio' then v_p1_dmg := v_p1_dmg + 14; v_p1_cost := v_p1_cost + 2; v_p1_fams := array_append(v_p1_fams, 'attack'); v_p1_beats := v_p1_beats || '{charge}'::text[]; v_p1_loses := v_p1_loses || '{defense}'::text[];
+    elsif v_spell_key = 'petrificus' then v_p1_dmg := v_p1_dmg + 10; v_p1_cost := v_p1_cost + 2; v_p1_fams := array_append(v_p1_fams, 'control'); v_p1_beats := v_p1_beats || '{defense}'::text[]; v_p1_loses := v_p1_loses || '{counter}'::text[];
+    elsif v_spell_key = 'confundus' then v_p1_dmg := v_p1_dmg + 6; v_p1_cost := v_p1_cost + 2; v_p1_fams := array_append(v_p1_fams, 'control'); v_p1_beats := v_p1_beats || '{defense}'::text[]; v_p1_loses := v_p1_loses || '{counter}'::text[];
+    elsif v_spell_key = 'finite' then v_p1_dmg := v_p1_dmg + 8; v_p1_cost := v_p1_cost + 1; v_p1_fams := array_append(v_p1_fams, 'counter'); v_p1_beats := v_p1_beats || '{control}'::text[]; v_p1_loses := v_p1_loses || '{attack}'::text[];
+    elsif v_spell_key = 'rictusempra' then v_p1_dmg := v_p1_dmg + 12; v_p1_cost := v_p1_cost + 1; v_p1_fams := array_append(v_p1_fams, 'attack'); v_p1_beats := v_p1_beats || '{charge}'::text[]; v_p1_loses := v_p1_loses || '{defense}'::text[];
     end if;
   end loop;
 
   -- 5. Procesar Hechizos P2
   for v_action in select * from jsonb_array_elements(v_p2_actions) loop
     v_spell_key := v_action->>'key';
-    if v_spell_key = 'expelliarmus' then v_p2_dmg := v_p2_dmg + 12; v_p2_cost := v_p2_cost + 1; v_p2_fams := v_p2_fams || 'disarm'; v_p2_beats := v_p2_beats || '{heavy, attack}'; v_p2_loses := v_p2_loses || '{defense}';
-    elsif v_spell_key = 'stupefy' then v_p2_dmg := v_p2_dmg + 30; v_p2_cost := v_p2_cost + 2; v_p2_cd := v_p2_cd || '{"stupefy": 2}'; v_p2_fams := v_p2_fams || 'heavy'; v_p2_beats := v_p2_beats || '{heal, charge}'; v_p2_loses := v_p2_loses || '{disarm, defense}';
-    elsif v_spell_key = 'protego' then v_p2_blk := v_p2_blk + 22; v_p2_cost := v_p2_cost + 1; v_p2_fams := v_p2_fams || 'defense'; v_p2_beats := v_p2_beats || '{attack, heavy}'; v_p2_loses := v_p2_loses || '{control}';
-    elsif v_spell_key = 'accio' then v_p2_gain := v_p2_gain + 2; if v_p2_stance = 'concentrated' then v_p2_gain := v_p2_gain + 1; end if; v_p2_fams := v_p2_fams || 'charge'; v_p2_beats := v_p2_beats || '{counter}'; v_p2_loses := v_p2_loses || '{attack, heavy}';
-    elsif v_spell_key = 'episkey' then v_p2_heal := v_p2_heal + 20; v_p2_cost := v_p2_cost + 2; v_p2_cd := v_p2_cd || '{"episkey": 3}'; v_p2_fams := v_p2_fams || 'heal'; v_p2_beats := v_p2_beats || '{defense}'; v_p2_loses := v_p2_loses || '{heavy}';
-    elsif v_spell_key = 'incendio' then v_p2_dmg := v_p2_dmg + 14; v_p2_cost := v_p2_cost + 2; v_p2_fams := v_p2_fams || 'attack'; v_p2_beats := v_p2_beats || '{charge}'; v_p2_loses := v_p2_loses || '{defense}';
-    elsif v_spell_key = 'petrificus' then v_p2_dmg := v_p2_dmg + 10; v_p2_cost := v_p2_cost + 2; v_p2_fams := v_p2_fams || 'control'; v_p2_beats := v_p2_beats || '{defense}'; v_p2_loses := v_p2_loses || '{counter}';
-    elsif v_spell_key = 'confundus' then v_p2_dmg := v_p2_dmg + 6; v_p2_cost := v_p2_cost + 2; v_p2_fams := v_p2_fams || 'control'; v_p2_beats := v_p2_beats || '{defense}'; v_p2_loses := v_p2_loses || '{counter}';
-    elsif v_spell_key = 'finite' then v_p2_dmg := v_p2_dmg + 8; v_p2_cost := v_p2_cost + 1; v_p2_fams := v_p2_fams || 'counter'; v_p2_beats := v_p2_beats || '{control}'; v_p2_loses := v_p2_loses || '{attack}';
-    elsif v_spell_key = 'rictusempra' then v_p2_dmg := v_p2_dmg + 12; v_p2_cost := v_p2_cost + 1; v_p2_fams := v_p2_fams || 'attack'; v_p2_beats := v_p2_beats || '{charge}'; v_p2_loses := v_p2_loses || '{defense}';
+    if v_spell_key = 'expelliarmus' then v_p2_dmg := v_p2_dmg + 12; v_p2_cost := v_p2_cost + 1; v_p2_fams := array_append(v_p2_fams, 'disarm'); v_p2_beats := v_p2_beats || '{heavy, attack}'::text[]; v_p2_loses := v_p2_loses || '{defense}'::text[];
+    elsif v_spell_key = 'stupefy' then v_p2_dmg := v_p2_dmg + 30; v_p2_cost := v_p2_cost + 2; v_p2_cd := v_p2_cd || '{"stupefy": 2}'::jsonb; v_p2_fams := array_append(v_p2_fams, 'heavy'); v_p2_beats := v_p2_beats || '{heal, charge}'::text[]; v_p2_loses := v_p2_loses || '{disarm, defense}'::text[];
+    elsif v_spell_key = 'protego' then v_p2_blk := v_p2_blk + 22; v_p2_cost := v_p2_cost + 1; v_p2_fams := array_append(v_p2_fams, 'defense'); v_p2_beats := v_p2_beats || '{attack, heavy}'::text[]; v_p2_loses := v_p2_loses || '{control}'::text[];
+    elsif v_spell_key = 'accio' then v_p2_gain := v_p2_gain + 2; if v_p2_stance = 'concentrated' then v_p2_gain := v_p2_gain + 1; end if; v_p2_fams := array_append(v_p2_fams, 'charge'); v_p2_beats := v_p2_beats || '{counter}'::text[]; v_p2_loses := v_p2_loses || '{attack, heavy}'::text[];
+    elsif v_spell_key = 'episkey' then v_p2_heal := v_p2_heal + 20; v_p2_cost := v_p2_cost + 2; v_p2_cd := v_p2_cd || '{"episkey": 3}'::jsonb; v_p2_fams := array_append(v_p2_fams, 'heal'); v_p2_beats := v_p2_beats || '{defense}'::text[]; v_p2_loses := v_p2_loses || '{heavy}'::text[];
+    elsif v_spell_key = 'incendio' then v_p2_dmg := v_p2_dmg + 14; v_p2_cost := v_p2_cost + 2; v_p2_fams := array_append(v_p2_fams, 'attack'); v_p2_beats := v_p2_beats || '{charge}'::text[]; v_p2_loses := v_p2_loses || '{defense}'::text[];
+    elsif v_spell_key = 'petrificus' then v_p2_dmg := v_p2_dmg + 10; v_p2_cost := v_p2_cost + 2; v_p2_fams := array_append(v_p2_fams, 'control'); v_p2_beats := v_p2_beats || '{defense}'::text[]; v_p2_loses := v_p2_loses || '{counter}'::text[];
+    elsif v_spell_key = 'confundus' then v_p2_dmg := v_p2_dmg + 6; v_p2_cost := v_p2_cost + 2; v_p2_fams := array_append(v_p2_fams, 'control'); v_p2_beats := v_p2_beats || '{defense}'::text[]; v_p2_loses := v_p2_loses || '{counter}'::text[];
+    elsif v_spell_key = 'finite' then v_p2_dmg := v_p2_dmg + 8; v_p2_cost := v_p2_cost + 1; v_p2_fams := array_append(v_p2_fams, 'counter'); v_p2_beats := v_p2_beats || '{control}'::text[]; v_p2_loses := v_p2_loses || '{attack}'::text[];
+    elsif v_spell_key = 'rictusempra' then v_p2_dmg := v_p2_dmg + 12; v_p2_cost := v_p2_cost + 1; v_p2_fams := array_append(v_p2_fams, 'attack'); v_p2_beats := v_p2_beats || '{charge}'::text[]; v_p2_loses := v_p2_loses || '{defense}'::text[];
     end if;
   end loop;
 
