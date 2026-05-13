@@ -16,7 +16,7 @@ export default function AdventureHome() {
     let channel;
 
     const setupRealtime = async () => {
-      fetchAdventure()
+      await fetchAdventure()
       fetchRewards()
 
       const { data: { user } } = await supabase.auth.getUser()
@@ -48,7 +48,7 @@ export default function AdventureHome() {
   useEffect(() => {
     if (!audio.enabled) return
     
-    audio.setAudioContext('adventure-home')
+    if (audio.setAudioContext) audio.setAudioContext('adventure-home')
     audio.playAmbient(adventureAudio.ambient.castle, { volume: 0.18 })
 
     return () => audio.stopAmbient()
@@ -72,25 +72,75 @@ export default function AdventureHome() {
           ? adventureAudio.home.activeAdventure
           : adventureAudio.home.intro
 
-      audio.playVoice(src, { volume: 0.9 })
+      if (audio.playVoice) {
+        audio.playVoice(src, { volume: 0.9 })
+      } else {
+        audio.play(src, { volume: 0.9 })
+      }
     }
-  }, [audio.enabled, audio.playVoice, loading, state])
+  }, [audio.enabled, audio.playVoice, audio.play, loading, state])
 
   const fetchAdventure = async () => {
     setLoading(true)
-    const { data, error } = await supabase.rpc('hsf_get_active_adventure')
-    if (!error) setState(data)
-    setLoading(false)
+    try {
+      const timeout = new Promise((_, reject) => {
+        setTimeout(() => reject(new Error('Timeout consultando hsf_get_active_adventure')), 8000)
+      })
+
+      const request = supabase.rpc('hsf_get_active_adventure')
+      const { data, error } = await Promise.race([request, timeout])
+
+      if (error) {
+        console.error('Error hsf_get_active_adventure:', error)
+        setState({
+          ok: false,
+          blocked: false,
+          has_active: false,
+          needs_scan: true,
+          message: 'No se pudo consultar la aventura mágica.'
+        })
+        return
+      }
+
+      setState(data || {
+        ok: false,
+        blocked: false,
+        has_active: false,
+        needs_scan: true,
+        message: 'No hay aventura activa disponible.'
+      })
+    } catch (err) {
+      console.error('fetchAdventure failed:', err)
+      setState({
+        ok: false,
+        blocked: false,
+        has_active: false,
+        needs_scan: true,
+        message: 'El mapa tardó demasiado en responder. Intenta escanear un sello mágico.'
+      })
+    } finally {
+      setLoading(false)
+    }
   }
 
   const fetchRewards = async () => {
-    const { data } = await supabase
-      .from('hsf_adventure_rewards')
-      .select('*')
-      .order('created_at', { ascending: false })
-      .limit(10)
+    try {
+      const { data, error } = await supabase
+        .from('hsf_adventure_rewards')
+        .select('*')
+        .order('created_at', { ascending: false })
+        .limit(10)
 
-    setRewards(data || [])
+      if (error) {
+        console.error('Error cargando recompensas:', error)
+        setRewards([])
+        return
+      }
+      setRewards(data || [])
+    } catch (err) {
+      console.error('fetchRewards failed:', err)
+      setRewards([])
+    }
   }
 
   return (
