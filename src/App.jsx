@@ -41,12 +41,12 @@ const DuelManual = lazy(() => import('./pages/Customer/DuelManual'))
 import LocationGuard from './components/LocationGuard'
 
 const ProtectedRoute = ({ children, role }) => {
-  const { user, profile, loading } = useAuth()
+  const { user, profile, loading, profileLoading } = useAuth()
 
-  if (loading) {
+  if (loading || profileLoading) {
     return (
       <div className="flex-1 flex items-center justify-center text-magical-gold uppercase font-black tracking-widest">
-        Cargando sesión...
+        {loading ? 'Cargando sesión...' : 'Verificando credenciales...'}
       </div>
     )
   }

@@ -139,6 +139,17 @@ export const AuthProvider = ({ children }) => {
       if (mounted) {
         setUser(currentUser)
 
+        if (isRecoveryUrl && event === 'INITIAL_SESSION') {
+          goToResetPassword()
+        }
+
+        // Failsafe por si initializeAuth falló (Desbloquear UI básica)
+        if (!initialized.current) {
+          clearTimeout(fallbackTimer)
+          initialized.current = true
+          setLoading(false)
+        }
+
         if (currentUser) {
           if (currentUserId.current === currentUser.id && profile) {
              setProfileLoading(false)
@@ -166,17 +177,6 @@ export const AuthProvider = ({ children }) => {
             setProfile(null)
             setProfileLoading(false)
           }
-        }
-
-        if (isRecoveryUrl && event === 'INITIAL_SESSION') {
-          goToResetPassword()
-        }
-
-        // Failsafe por si initializeAuth falló
-        if (!initialized.current) {
-          clearTimeout(fallbackTimer)
-          initialized.current = true
-          setLoading(false)
         }
       }
     })
