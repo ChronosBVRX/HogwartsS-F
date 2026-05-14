@@ -28,6 +28,9 @@ begin
   v_user_id := auth.uid();
   
   -- Validaciones de Payload
+  if p_stance not in ('neutral', 'offensive', 'defensive', 'concentrated', 'cunning', 'desperate') then
+    raise exception 'Postura inválida: %', p_stance;
+  end if;
   if jsonb_typeof(p_actions) != 'array' then raise exception 'Las acciones deben ser un arreglo JSON'; end if;
   if jsonb_array_length(p_actions) = 0 then raise exception 'Debes elegir al menos una acción'; end if;
 
@@ -156,40 +159,136 @@ begin
     v_idx := v_idx + 1;
     if v_idx = 2 and v_p1_blocks_action2 then v_p1_interrupted := true; continue; end if;
     v_spell_key := v_action->>'key';
-    if v_spell_key = 'expelliarmus' then v_p1_dmg := v_p1_dmg + 12; v_p1_cost := v_p1_cost + 1; v_p1_fams := array_append(v_p1_fams, 'disarm'); v_p1_beats := v_p1_beats || '{heavy, attack}'::text[]; v_p1_cd := v_p1_cd || '{"expelliarmus": 1}'::jsonb;
-    elsif v_spell_key = 'stupefy' then v_p1_dmg := v_p1_dmg + 30; v_p1_cost := v_p1_cost + 2; v_p1_fams := array_append(v_p1_fams, 'heavy'); v_p1_beats := v_p1_beats || '{heal, charge}'::text[]; v_p1_cd := v_p1_cd || '{"stupefy": 2}'::jsonb;
-    elsif v_spell_key = 'protego' then v_p1_blk := v_p1_blk + 22; v_p1_cost := v_p1_cost + 1; v_p1_fams := array_append(v_p1_fams, 'defense'); v_p1_beats := v_p1_beats || '{attack, heavy}'::text[]; v_p1_cd := v_p1_cd || '{"protego": 1}'::jsonb;
-    elsif v_spell_key = 'petrificus' then v_p1_dmg := v_p1_dmg + 15; v_p1_cost := v_p1_cost + 2; v_p1_fams := array_append(v_p1_fams, 'control'); v_p1_beats := v_p1_beats || '{defense}'::text[]; v_p1_cd := v_p1_cd || '{"petrificus": 2}'::jsonb; v_p2_cost := v_p2_cost + 1;
-    elsif v_spell_key = 'incendio' then v_p1_dmg := v_p1_dmg + 14; v_p1_cost := v_p1_cost + 2; v_p1_fams := array_append(v_p1_fams, 'attack'); v_p2_burn := 2; v_p1_cd := v_p1_cd || '{"incendio": 2}'::jsonb;
-    elsif v_spell_key = 'episkey' then v_p1_heal := v_p1_heal + 20; v_p1_cost := v_p1_cost + 2; v_p1_fams := array_append(v_p1_fams, 'heal'); v_p1_cd := v_p1_cd || '{"episkey": 3}'::jsonb;
-    elsif v_spell_key = 'accio' then v_p1_gain := v_p1_gain + 2; if v_p1_turn.stance = 'concentrated' then v_p1_gain := v_p1_gain + 1; end if; v_p1_fams := array_append(v_p1_fams, 'charge'); v_p1_cd := v_p1_cd || '{"accio": 2}'::jsonb;
-    elsif v_spell_key = 'finite' then v_p1_gain := v_p1_gain + 1; v_p1_burn := 0; v_p1_weakness := 0; v_p1_cd := v_p1_cd || '{"finite": 1}'::jsonb;
-    elsif v_spell_key = 'confundus' then v_p1_dmg := v_p1_dmg + 6; v_p1_cost := v_p1_cost + 2; v_p1_fams := array_append(v_p1_fams, 'control'); v_p1_cd := v_p1_cd || '{"confundus": 3}'::jsonb;
-    elsif v_spell_key = 'rictusempra' then v_p1_dmg := v_p1_dmg + 12; v_p1_cost := v_p1_cost + 1; v_p1_fams := array_append(v_p1_fams, 'attack'); v_p2_weakness := 1; v_p1_cd := v_p1_cd || '{"rictusempra": 1}'::jsonb;
+    
+    if v_spell_key = 'expelliarmus' then 
+      v_p1_dmg := v_p1_dmg + 12; v_p1_cost := v_p1_cost + 1; 
+      v_p1_fams := array_append(v_p1_fams, 'disarm'); v_p1_beats := v_p1_beats || '{heavy, attack}'::text[]; 
+      v_p1_cd := v_p1_cd || '{"expelliarmus": 1}'::jsonb;
+
+    elsif v_spell_key = 'stupefy' then 
+      v_p1_dmg := v_p1_dmg + 30; v_p1_cost := v_p1_cost + 2; 
+      v_p1_fams := array_append(v_p1_fams, 'heavy'); v_p1_beats := v_p1_beats || '{heal, charge}'::text[]; 
+      v_p1_cd := v_p1_cd || '{"stupefy": 2}'::jsonb;
+
+    elsif v_spell_key = 'protego' then 
+      v_p1_blk := v_p1_blk + 22; v_p1_cost := v_p1_cost + 1; 
+      v_p1_fams := array_append(v_p1_fams, 'defense'); v_p1_beats := v_p1_beats || '{attack, heavy}'::text[]; 
+      v_p1_cd := v_p1_cd || '{"protego": 1}'::jsonb;
+
+    elsif v_spell_key = 'petrificus' then 
+      v_p1_dmg := v_p1_dmg + 10; v_p1_cost := v_p1_cost + 2; 
+      v_p1_fams := array_append(v_p1_fams, 'control'); v_p1_beats := v_p1_beats || '{defense}'::text[]; 
+      v_p1_cd := v_p1_cd || '{"petrificus": 2}'::jsonb; 
+      v_p2_cost := v_p2_cost + 1; -- Reduce energía rival
+
+    elsif v_spell_key = 'incendio' then 
+      v_p1_dmg := v_p1_dmg + 14; v_p1_cost := v_p1_cost + 2; 
+      v_p1_fams := array_append(v_p1_fams, 'attack'); v_p1_beats := v_p1_beats || '{charge}'::text[];
+      v_p2_burn := 2; v_p1_cd := v_p1_cd || '{"incendio": 2}'::jsonb;
+
+    elsif v_spell_key = 'episkey' then 
+      v_p1_heal := v_p1_heal + 20; v_p1_cost := v_p1_cost + 2; 
+      v_p1_fams := array_append(v_p1_fams, 'heal'); v_p1_beats := v_p1_beats || '{defense}'::text[];
+      v_p1_cd := v_p1_cd || '{"episkey": 3}'::jsonb;
+
+    elsif v_spell_key = 'accio' then 
+      v_p1_gain := v_p1_gain + 2; 
+      if v_p1_turn.stance = 'concentrated' then v_p1_gain := v_p1_gain + 1; end if; 
+      v_p1_fams := array_append(v_p1_fams, 'charge'); v_p1_beats := v_p1_beats || '{counter}'::text[];
+      v_p1_cd := v_p1_cd || '{"accio": 2}'::jsonb;
+
+    elsif v_spell_key = 'finite' then 
+      v_p1_dmg := v_p1_dmg + 8; v_p1_gain := v_p1_gain + 1; v_p1_cost := v_p1_cost + 1;
+      v_p1_burn := 0; v_p1_weakness := 0; 
+      v_p1_fams := array_append(v_p1_fams, 'counter'); v_p1_beats := v_p1_beats || '{control}'::text[];
+      v_p1_cd := v_p1_cd || '{"finite": 1}'::jsonb;
+
+    elsif v_spell_key = 'confundus' then 
+      v_p1_dmg := v_p1_dmg + 6; v_p1_cost := v_p1_cost + 2; 
+      v_p1_fams := array_append(v_p1_fams, 'control'); v_p1_beats := v_p1_beats || '{defense}'::text[];
+      v_p1_cd := v_p1_cd || '{"confundus": 3}'::jsonb;
+
+    elsif v_spell_key = 'rictusempra' then 
+      v_p1_dmg := v_p1_dmg + 12; v_p1_cost := v_p1_cost + 1; 
+      v_p1_fams := array_append(v_p1_fams, 'attack'); v_p1_beats := v_p1_beats || '{charge}'::text[];
+      v_p2_weakness := 1; v_p1_cd := v_p1_cd || '{"rictusempra": 1}'::jsonb;
     end if;
   end loop;
+
   -- Procesar P2
   v_idx := 0;
   for v_action in select * from jsonb_array_elements(v_p2_actions) loop
     v_idx := v_idx + 1;
     if v_idx = 2 and v_p2_blocks_action2 then v_p2_interrupted := true; continue; end if;
     v_spell_key := v_action->>'key';
-    if v_spell_key = 'expelliarmus' then v_p2_dmg := v_p2_dmg + 12; v_p2_cost := v_p2_cost + 1; v_p2_fams := array_append(v_p2_fams, 'disarm'); v_p2_beats := v_p2_beats || '{heavy, attack}'::text[]; v_p2_cd := v_p2_cd || '{"expelliarmus": 1}'::jsonb;
-    elsif v_spell_key = 'stupefy' then v_p2_dmg := v_p2_dmg + 30; v_p2_cost := v_p2_cost + 2; v_p2_fams := array_append(v_p2_fams, 'heavy'); v_p2_beats := v_p2_beats || '{heal, charge}'::text[]; v_p2_cd := v_p2_cd || '{"stupefy": 2}'::jsonb;
-    elsif v_spell_key = 'protego' then v_p2_blk := v_p2_blk + 22; v_p2_cost := v_p2_cost + 1; v_p2_fams := array_append(v_p2_fams, 'defense'); v_p2_beats := v_p2_beats || '{attack, heavy}'::text[]; v_p2_cd := v_p2_cd || '{"protego": 1}'::jsonb;
-    elsif v_spell_key = 'petrificus' then v_p2_dmg := v_p2_dmg + 15; v_p2_cost := v_p2_cost + 2; v_p2_fams := array_append(v_p2_fams, 'control'); v_p2_beats := v_p2_beats || '{defense}'::text[]; v_p2_cd := v_p2_cd || '{"petrificus": 2}'::jsonb; v_p1_cost := v_p1_cost + 1;
-    elsif v_spell_key = 'incendio' then v_p2_dmg := v_p2_dmg + 14; v_p2_cost := v_p2_cost + 2; v_p2_fams := array_append(v_p2_fams, 'attack'); v_p1_burn := 2; v_p2_cd := v_p2_cd || '{"incendio": 2}'::jsonb;
-    elsif v_spell_key = 'episkey' then v_p2_heal := v_p2_heal + 20; v_p2_cost := v_p2_cost + 2; v_p2_fams := array_append(v_p2_fams, 'heal'); v_p2_cd := v_p2_cd || '{"episkey": 3}'::jsonb;
-    elsif v_spell_key = 'accio' then v_p2_gain := v_p2_gain + 2; if v_p2_stance = 'concentrated' then v_p2_gain := v_p2_gain + 1; end if; v_p2_fams := array_append(v_p2_fams, 'charge'); v_p2_cd := v_p2_cd || '{"accio": 2}'::jsonb;
-    elsif v_spell_key = 'finite' then v_p2_gain := v_p2_gain + 1; v_p2_burn := 0; v_p2_weakness := 0; v_p2_cd := v_p2_cd || '{"finite": 1}'::jsonb;
-    elsif v_spell_key = 'confundus' then v_p2_dmg := v_p2_dmg + 6; v_p2_cost := v_p2_cost + 2; v_p2_fams := array_append(v_p2_fams, 'control'); v_p2_cd := v_p2_cd || '{"confundus": 3}'::jsonb;
-    elsif v_spell_key = 'rictusempra' then v_p2_dmg := v_p2_dmg + 12; v_p2_cost := v_p2_cost + 1; v_p2_fams := array_append(v_p2_fams, 'attack'); v_p1_weakness := 1; v_p2_cd := v_p2_cd || '{"rictusempra": 1}'::jsonb;
+
+    if v_spell_key = 'expelliarmus' then 
+      v_p2_dmg := v_p2_dmg + 12; v_p2_cost := v_p2_cost + 1; 
+      v_p2_fams := array_append(v_p2_fams, 'disarm'); v_p2_beats := v_p2_beats || '{heavy, attack}'::text[]; 
+      v_p2_cd := v_p2_cd || '{"expelliarmus": 1}'::jsonb;
+
+    elsif v_spell_key = 'stupefy' then 
+      v_p2_dmg := v_p2_dmg + 30; v_p2_cost := v_p2_cost + 2; 
+      v_p2_fams := array_append(v_p2_fams, 'heavy'); v_p2_beats := v_p2_beats || '{heal, charge}'::text[]; 
+      v_p2_cd := v_p2_cd || '{"stupefy": 2}'::jsonb;
+
+    elsif v_spell_key = 'protego' then 
+      v_p2_blk := v_p2_blk + 22; v_p2_cost := v_p2_cost + 1; 
+      v_p2_fams := array_append(v_p2_fams, 'defense'); v_p2_beats := v_p2_beats || '{attack, heavy}'::text[]; 
+      v_p2_cd := v_p2_cd || '{"protego": 1}'::jsonb;
+
+    elsif v_spell_key = 'petrificus' then 
+      v_p2_dmg := v_p2_dmg + 10; v_p2_cost := v_p2_cost + 2; 
+      v_p2_fams := array_append(v_p2_fams, 'control'); v_p2_beats := v_p2_beats || '{defense}'::text[]; 
+      v_p2_cd := v_p2_cd || '{"petrificus": 2}'::jsonb; 
+      v_p1_cost := v_p1_cost + 1; -- Reduce energía rival
+
+    elsif v_spell_key = 'incendio' then 
+      v_p2_dmg := v_p2_dmg + 14; v_p2_cost := v_p2_cost + 2; 
+      v_p2_fams := array_append(v_p2_fams, 'attack'); v_p2_beats := v_p2_beats || '{charge}'::text[];
+      v_p1_burn := 2; v_p2_cd := v_p2_cd || '{"incendio": 2}'::jsonb;
+
+    elsif v_spell_key = 'episkey' then 
+      v_p2_heal := v_p2_heal + 20; v_p2_cost := v_p2_cost + 2; 
+      v_p2_fams := array_append(v_p2_fams, 'heal'); v_p2_beats := v_p2_beats || '{defense}'::text[];
+      v_p2_cd := v_p2_cd || '{"episkey": 3}'::jsonb;
+
+    elsif v_spell_key = 'accio' then 
+      v_p2_gain := v_p2_gain + 2; 
+      if v_p2_stance = 'concentrated' then v_p2_gain := v_p2_gain + 1; end if; 
+      v_p2_fams := array_append(v_p2_fams, 'charge'); v_p2_beats := v_p2_beats || '{counter}'::text[];
+      v_p2_cd := v_p2_cd || '{"accio": 2}'::jsonb;
+
+    elsif v_spell_key = 'finite' then 
+      v_p2_dmg := v_p2_dmg + 8; v_p2_gain := v_p2_gain + 1; v_p2_cost := v_p2_cost + 1;
+      v_p2_burn := 0; v_p2_weakness := 0; 
+      v_p2_fams := array_append(v_p2_fams, 'counter'); v_p2_beats := v_p2_beats || '{control}'::text[];
+      v_p2_cd := v_p2_cd || '{"finite": 1}'::jsonb;
+
+    elsif v_spell_key = 'confundus' then 
+      v_p2_dmg := v_p2_dmg + 6; v_p2_cost := v_p2_cost + 2; 
+      v_p2_fams := array_append(v_p2_fams, 'control'); v_p2_beats := v_p2_beats || '{defense}'::text[];
+      v_p2_cd := v_p2_cd || '{"confundus": 3}'::jsonb;
+
+    elsif v_spell_key = 'rictusempra' then 
+      v_p2_dmg := v_p2_dmg + 12; v_p2_cost := v_p2_cost + 1; 
+      v_p2_fams := array_append(v_p2_fams, 'attack'); v_p2_beats := v_p2_beats || '{charge}'::text[];
+      v_p1_weakness := 1; v_p2_cd := v_p2_cd || '{"rictusempra": 1}'::jsonb;
     end if;
   end loop;
 
   -- 5. Ventaja Estratégica y Posturas
   if v_p2_fams && v_p1_beats then v_p1_strategy_bonus := 10; end if;
   if v_p1_fams && v_p2_beats then v_p2_strategy_bonus := 10; end if;
+
+  -- Efectos Especiales de Hechizos
+  -- Expelliarmus (disarm) reduce daño de Stupefy (heavy) a la mitad
+  if 'disarm' = any(v_p1_fams) and 'heavy' = any(v_p2_fams) then v_p2_dmg := v_p2_dmg / 2; end if;
+  if 'disarm' = any(v_p2_fams) and 'heavy' = any(v_p1_fams) then v_p1_dmg := v_p1_dmg / 2; end if;
+  
+  -- Protego (defense) recupera energía si bloquea un ataque pesado (heavy)
+  if 'defense' = any(v_p1_fams) and 'heavy' = any(v_p2_fams) and v_p1_blk > 0 then v_p1_gain := v_p1_gain + 1; end if;
+  if 'defense' = any(v_p2_fams) and 'heavy' = any(v_p1_fams) and v_p2_blk > 0 then v_p2_gain := v_p2_gain + 1; end if;
 
   case v_p1_turn.stance
     when 'offensive' then v_p1_s_bonus := 5; v_p1_s_vuln := 4;
@@ -245,7 +344,8 @@ begin
     'p1_pre_block_dmg', v_p1_pre_blk_dmg, 'p2_pre_block_dmg', v_p2_pre_blk_dmg,
     'p1_burn', v_p1_burn, 'p2_burn', v_p2_burn,
     'p1_weakness', v_p1_weakness, 'p2_weakness', v_p2_weakness,
-    'p1_interrupted', v_p1_interrupted, 'p2_interrupted', v_p2_interrupted
+    'p1_interrupted', v_p1_interrupted, 'p2_interrupted', v_p2_interrupted,
+    'message', 'Turno resuelto con éxito'
   ));
 
   if v_duel.player_one_hp <= 0 or v_duel.player_two_hp <= 0 or v_duel.turn_number > 12 then
@@ -255,3 +355,19 @@ begin
   return jsonb_build_object('status', 'resolved');
 end;
 $$;
+
+/*
+VERIFICATION MATRIX (MASTER DUEL ENGINE)
+Hechizo      | P1 OK | P2 OK | Damage | Block | Heal | EnergyGain | Family   | Beats           | Cooldown | Special Effect
+-------------|-------|-------|--------|-------|------|------------|----------|-----------------|----------|-----------------------------------
+expelliarmus | YES   | YES   | 12     | 0     | 0    | 0          | disarm   | heavy, attack   | 1        | Interrumpe 2da acción (visual)
+stupefy      | YES   | YES   | 30     | 0     | 0    | 0          | heavy    | heal, charge    | 2        | Daño alto
+protego      | YES   | YES   | 0      | 22    | 0    | 0          | defense  | attack, heavy   | 1        | Bloqueo base
+petrificus   | YES   | YES   | 10     | 0     | 0    | 0          | control  | defense         | 2        | Bloquea 2da acción, -1 Energía Rival
+finite       | YES   | YES   | 8      | 0     | 0    | 1          | counter  | control         | 1        | Limpia Burn/Weakness
+episkey      | YES   | YES   | 0      | 0     | 20   | 0          | heal     | defense         | 3        | Curación
+incendio     | YES   | YES   | 14     | 0     | 0    | 0          | attack   | charge          | 2        | Burn (5 dmg / 2 turnos)
+confundus    | YES   | YES   | 6      | 0     | 0    | 0          | control  | defense         | 3        | (Pista oculta visual)
+accio        | YES   | YES   | 0      | 0     | 0    | 2          | charge   | counter         | 2        | +1 en Postura Concentrated
+rictusempra  | YES   | YES   | 12     | 0     | 0    | 0          | attack   | charge          | 1        | Weakness (reduce daño rival)
+*/
