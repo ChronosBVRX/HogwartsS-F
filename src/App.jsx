@@ -20,6 +20,7 @@ const WaiterScanner = lazy(() => import('./pages/Waiter/Scanner'))
 const AdminDashboard = lazy(() => import('./pages/Admin/Dashboard'))
 const Settings = lazy(() => import('./pages/Customer/Settings'))
 const ForgotPassword = lazy(() => import('./pages/ForgotPassword'))
+const ResetPassword = lazy(() => import('./pages/ResetPassword'))
 const AdventureHome = lazy(() => import('./pages/Customer/AdventureHome'))
 const AdventureScanner = lazy(() => import('./pages/Customer/AdventureScanner'))
 const AdventurePlay = lazy(() => import('./pages/Customer/AdventurePlay'))
@@ -72,6 +73,7 @@ function App() {
               <Route path="/menu" element={<Menu />} />
               <Route path="/login" element={<Login />} />
               <Route path="/olvide-password" element={<ForgotPassword />} />
+              <Route path="/restablecer-password" element={<ResetPassword />} />
               <Route path="/registro" element={<Register />} />
               <Route path="/quiz" element={<Quiz />} />
 
