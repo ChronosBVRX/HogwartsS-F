@@ -34,10 +34,21 @@ const HOUSE_CONFIG = {
 
 export default function Profile() {
   const { profile, profileLoading, signOut } = useAuth()
-  const [activeSession, setActiveSession] = useState(null)
-  const [ticketHistory, setTicketHistory] = useState([])
+  const [activeSession, setActiveSession] = useState(() => {
+    try {
+      const cached = localStorage.getItem(`hsf_active_session_${profile?.user_id}`)
+      return cached ? JSON.parse(cached) : null
+    } catch (e) { return null }
+  })
+  const [ticketHistory, setTicketHistory] = useState(() => {
+    try {
+      const cached = localStorage.getItem(`hsf_ticket_history_${profile?.user_id}`)
+      return cached ? JSON.parse(cached) : []
+    } catch (e) { return [] }
+  })
   const [monthlyPoints, setMonthlyPoints] = useState(0)
   const [loading, setLoading] = useState(true)
+  const [historyLoading, setHistoryLoading] = useState(true)
   const navigate = useNavigate()
 
   const fetchActiveSession = useCallback(async () => {
@@ -87,15 +98,26 @@ export default function Profile() {
         )
       ])
 
-      if (sessionResult.error) console.error('Error fetching active session:', sessionResult.error)
-      setActiveSession(sessionResult.data || null)
-
-      if (historyResult.error) console.error('Error fetching ticket history:', historyResult.error)
-      setTicketHistory(historyResult.data || [])
-
-      if (monthlyResult.error) console.error('Error fetching monthly points:', monthlyResult.error)
-      const total = monthlyResult.data?.reduce((acc, curr) => acc + (curr.points_awarded || 0), 0) || 0
-      setMonthlyPoints(total)
+      if (!sessionResult.error) {
+        setActiveSession(sessionResult.data || null)
+        if (profile?.user_id) localStorage.setItem(`hsf_active_session_${profile.user_id}`, JSON.stringify(sessionResult.data || null))
+      } else {
+        console.error('Error fetching active session:', sessionResult.error)
+      }
+ 
+      if (!historyResult.error) {
+        setTicketHistory(historyResult.data || [])
+        if (profile?.user_id) localStorage.setItem(`hsf_ticket_history_${profile.user_id}`, JSON.stringify(historyResult.data || []))
+      } else {
+        console.error('Error fetching ticket history:', historyResult.error)
+      }
+ 
+      if (!monthlyResult.error) {
+        const total = monthlyResult.data?.reduce((acc, curr) => acc + (curr.points_awarded || 0), 0) || 0
+        setMonthlyPoints(total)
+      } else {
+        console.error('Error fetching monthly points:', monthlyResult.error)
+      }
 
     } catch (err) {
       console.error('fetchActiveSession failed:', err)
@@ -143,15 +165,8 @@ export default function Profile() {
     if (!error) fetchActiveSession()
   }
 
-  if ((loading && !activeSession) || profileLoading) {
-    return (
-      <div className="flex-1 flex items-center justify-center">
-        <div className="animate-pulse text-magical-gold font-black uppercase tracking-widest text-xs">
-          Cargando pergaminos...
-        </div>
-      </div>
-    )
-  }
+  // Eliminamos el bloqueo total. La página se renderiza con lo que tenga (cache)
+  // y muestra estados de carga locales donde sea necesario.
 
   if (!profile && !profileLoading) {
     return (
