@@ -1,8 +1,6 @@
 import { useAuth } from '../../context/AuthContext'
 import { supabase } from '../../lib/supabase'
 import { withTimeout } from '../../lib/supabaseSafe'
-import { withTimeout } from '../../lib/supabaseSafe'
-import audioManager from '../../lib/audioManager'
 import audioManager from '../../lib/audioManager'
 import { Award, QrCode, LogOut, Star, Shield, Zap, Wand2, Hash, Settings as SettingsIcon, Map, Footprints, Ticket, CheckCircle2, XCircle, Clock } from 'lucide-react'
 
