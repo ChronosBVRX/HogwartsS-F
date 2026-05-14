@@ -12,7 +12,7 @@ export const SPELLS = {
     beats: ['heavy', 'attack'],
     losesTo: ['defense'],
     animation: 'red_disarm',
-    description: 'Desarma e interrumpe. Si golpea un ataque pesado, reduce su daño un 50%.'
+    description: 'Expelliarmus reduce a la mitad el daño de ataques pesados rivales.'
   },
   stupefy: {
     key: 'stupefy',

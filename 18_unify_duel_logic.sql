@@ -360,7 +360,7 @@ $$;
 VERIFICATION MATRIX (MASTER DUEL ENGINE)
 Hechizo      | P1 OK | P2 OK | Damage | Block | Heal | EnergyGain | Family   | Beats           | Cooldown | Special Effect
 -------------|-------|-------|--------|-------|------|------------|----------|-----------------|----------|-----------------------------------
-expelliarmus | YES   | YES   | 12     | 0     | 0    | 0          | disarm   | heavy, attack   | 1        | Interrumpe 2da acción (visual)
+expelliarmus | YES   | YES   | 12     | 0     | 0    | 0          | disarm   | heavy, attack   | 1        | Reduce daño heavy rival 50%
 stupefy      | YES   | YES   | 30     | 0     | 0    | 0          | heavy    | heal, charge    | 2        | Daño alto
 protego      | YES   | YES   | 0      | 22    | 0    | 0          | defense  | attack, heavy   | 1        | Bloqueo base
 petrificus   | YES   | YES   | 10     | 0     | 0    | 0          | control  | defense         | 2        | Bloquea 2da acción, -1 Energía Rival
