@@ -18,7 +18,7 @@ export default function Register() {
     setLoading(true)
     setError(null)
     
-    const { error } = await supabase.auth.signUp({
+    const { data, error } = await supabase.auth.signUp({
       email: formData.email,
       password: formData.password,
       options: {
@@ -34,7 +34,7 @@ export default function Register() {
       setError(error.message)
       setLoading(false)
     } else {
-      const { data: { user } } = await supabase.auth.getUser()
+      const user = data?.user
       if (user) {
         // Ensure profile exists (failsafe for triggers)
         await supabase
