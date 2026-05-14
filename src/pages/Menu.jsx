@@ -126,7 +126,7 @@ export default function Menu() {
   }
 
   const fetchMenuData = async () => {
-    const cacheKey = 'hsf_menu_cache_v4'
+    const cacheKey = 'hsf_menu_cache_v5'
     const cached = getCachedQuery(cacheKey, 1000 * 60 * 15) // 15 minutos
 
     if (cached?.data) {

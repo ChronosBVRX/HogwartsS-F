@@ -60,6 +60,38 @@ export const AuthProvider = ({ children }) => {
       }, 0)
     }
 
+    const ensureHsfProfile = async (user) => {
+      if (!user?.id) return null
+
+      const { data: existing } = await supabase
+        .from('hsf_profiles')
+        .select('user_id, display_name, phone, role, house_slug, loyalty_points, gender, pasos_mapa_mes, created_at, updated_at')
+        .eq('user_id', user.id)
+        .maybeSingle()
+
+      if (existing) return existing
+
+      const displayName = user.user_metadata?.display_name || user.email?.split('@')[0] || 'Mago sin nombre'
+      const phone = user.user_metadata?.phone || null
+
+      const { data, error } = await supabase
+        .from('hsf_profiles')
+        .upsert({
+          user_id: user.id,
+          display_name: displayName,
+          phone,
+          updated_at: new Date().toISOString()
+        }, { onConflict: 'user_id' })
+        .select('user_id, display_name, phone, role, house_slug, loyalty_points, gender, pasos_mapa_mes, created_at, updated_at')
+        .maybeSingle()
+
+      if (error) {
+        console.error('[ENSURE PROFILE ERROR]', error)
+        return null
+      }
+      return data
+    }
+
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
       console.log('Auth event:', event)
 
@@ -73,9 +105,8 @@ export const AuthProvider = ({ children }) => {
         setUser(currentUser)
 
         if (currentUser) {
-          fetchProfile(currentUser.id).catch((err) => {
-            console.error('fetchProfile after auth change failed:', err)
-          })
+          const p = await ensureHsfProfile(currentUser)
+          if (mounted) setProfile(p)
         } else {
           setProfile(null)
         }

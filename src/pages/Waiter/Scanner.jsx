@@ -27,6 +27,8 @@ export default function WaiterScanner() {
       .from('hsf_visit_sessions')
       .select('*')
       .eq('qr_token', scanResult?.trim())
+      .eq('status', 'qr_generated')
+      .gt('qr_expires_at', new Date().toISOString())
       .single()
 
     if (fetchError || !session) {

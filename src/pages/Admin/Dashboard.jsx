@@ -31,8 +31,9 @@ export default function AdminDashboard() {
           .from('hsf_ticket_claims')
           .select(`
             id, folio, amount, points_awarded, status, customer_id, created_at,
-            session:hsf_visit_sessions (
-              customer:hsf_profiles (display_name, phone)
+            session:hsf_visit_sessions!hsf_ticket_claims_session_id_fkey (
+              id,
+              customer:hsf_profiles!hsf_visit_sessions_customer_id_fkey (user_id, display_name, phone)
             )
           `)
           .order('created_at', { ascending: false })

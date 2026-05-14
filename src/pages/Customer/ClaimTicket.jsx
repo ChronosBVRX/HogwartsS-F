@@ -40,6 +40,12 @@ export default function ClaimTicket() {
     e.preventDefault()
     setLoading(true)
     setError(null)
+
+    if (!activeSession?.id) {
+      setError('No se encontró una visita pendiente para registrar el ticket.')
+      setLoading(false)
+      return
+    }
     
     const parsedAmount = parseFloat(amount)
     if (!Number.isFinite(parsedAmount) || parsedAmount <= 0) {
