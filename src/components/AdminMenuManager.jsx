@@ -28,6 +28,56 @@ export default function AdminMenuManager() {
 
   const [uploading, setUploading] = useState(false)
 
+  /**
+   * Comprime una imagen a WebP y reduce su tamaño máximo
+   */
+  const compressImage = async (file, maxSize = 1200, quality = 0.82) => {
+    return new Promise((resolve, reject) => {
+      const img = new Image()
+      const url = URL.createObjectURL(file)
+
+      img.onload = () => {
+        URL.revokeObjectURL(url)
+        let { width, height } = img
+
+        if (width > height && width > maxSize) {
+          height = Math.round((height * maxSize) / width)
+          width = maxSize
+        } else if (height > maxSize) {
+          width = Math.round((width * maxSize) / height)
+          height = maxSize
+        }
+
+        const canvas = document.createElement('canvas')
+        canvas.width = width
+        canvas.height = height
+
+        const ctx = canvas.getContext('2d')
+        ctx.drawImage(img, 0, 0, width, height)
+
+        canvas.toBlob(
+          blob => {
+            if (!blob) {
+              reject(new Error('No se pudo comprimir la imagen'))
+              return
+            }
+            resolve(
+              new File(
+                [blob],
+                file.name.replace(/\.[^.]+$/, '.webp'),
+                { type: 'image/webp' }
+              )
+            )
+          },
+          'image/webp',
+          quality
+        )
+      }
+      img.onerror = reject
+      img.src = url
+    })
+  }
+
   const handleSaveItem = async (e) => {
     e.preventDefault()
     setUploading(true)
@@ -38,19 +88,23 @@ export default function AdminMenuManager() {
 
     if (imageFile && imageFile.size > 0) {
       try {
-        const fileExt = imageFile.name.split('.').pop()
-        const fileName = `item-${Date.now()}.${fileExt}` // Nombre único basado en tiempo
+        // Optimización: Comprimir a WebP antes de subir
+        const optimizedFile = await compressImage(imageFile)
+        const fileName = `item-${Date.now()}.webp`
 
         const { error: uploadError } = await supabase.storage
           .from('menu-images')
-          .upload(fileName, imageFile)
+          .upload(fileName, optimizedFile, {
+            contentType: 'image/webp',
+            upsert: false
+          })
 
         if (uploadError) throw uploadError
 
         const { data: urlData } = supabase.storage.from('menu-images').getPublicUrl(fileName)
         imageUrl = urlData.publicUrl
       } catch (err) {
-        alert("¡Error Mágico! No se pudo subir la imagen. Verifica que el bucket 'menu-images' sea PÚBLICO en Supabase. Detalles: " + err.message)
+        alert("¡Error Mágico! No se pudo subir la imagen. Verifica que el bucket 'menu-images' sea PÚBLICO. Detalles: " + err.message)
         setUploading(false)
         return
       }

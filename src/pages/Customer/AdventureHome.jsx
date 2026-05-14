@@ -151,9 +151,16 @@ export default function AdventureHome() {
 
   const fetchRewards = async () => {
     try {
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user) {
+        setRewards([])
+        return
+      }
+
       const { data, error } = await supabase
         .from('hsf_adventure_rewards')
-        .select('*')
+        .select('id, reward_title, reward_description, min_consumption, status, created_at')
+        .eq('customer_id', user.id)
         .order('created_at', { ascending: false })
         .limit(10)
 

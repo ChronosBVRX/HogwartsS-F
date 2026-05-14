@@ -31,70 +31,56 @@ export default function DuelRanking() {
     const monthKey = now.toISOString().substring(0, 7) // YYYY-MM
     
     try {
-      // 1. Fetch House Points (Diagnostic mode: fetch all then filter)
-      const { data: allHousePoints, error: hError } = await supabase
-        .from('hsf_duel_house_points')
-        .select('*')
-      
-      if (hError) {
-        console.error('Error ranking casas:', hError)
+      // 1. Fetch all data in parallel using optimized views and RPC
+      const [houseRes, playersRes, leadersRes] = await Promise.all([
+        supabase
+          .from('hsf_duel_house_points')
+          .select('*')
+          .eq('month_key', monthKey),
+        
+        supabase
+          .from('hsf_duel_ranking_players_view')
+          .select('*')
+          .order('mmr', { ascending: false })
+          .limit(10),
+        
+        supabase
+          .from('hsf_duel_house_leaders_view')
+          .select('*')
+      ])
+
+      // 2. Handle House Points
+      if (houseRes.error) {
+        console.error('Error ranking casas:', houseRes.error)
         setHouseError('No se pudo cargar la Copa de las Casas.')
       } else {
-        const currentMonthData = allHousePoints?.filter(p => p.month_key === monthKey) || []
-        setHousePoints(currentMonthData)
+        setHousePoints(houseRes.data || [])
       }
 
-      // 2. Fetch Player Ranking - Use multi-step fetch to avoid console 400 errors from missing relationships
-      const { data: rawPlayers, error: rawError } = await supabase
-        .from('hsf_duel_profiles')
-        .select('*')
-        .order('mmr', { ascending: false })
-        .limit(10)
-      
-      if (rawError) {
-        console.error('Error fetching duel profiles:', rawError)
+      // 3. Handle Player Ranking
+      if (playersRes.error) {
+        console.error('Error ranking jugadores:', playersRes.error)
         setPlayerError('No se pudo cargar el ranking de jugadores.')
-      } else if (rawPlayers) {
-        const playersWithData = await Promise.all(rawPlayers.map(async (p) => {
-          const { data: u } = await supabase
-            .from('hsf_profiles')
-            .select('display_name, house_slug')
-            .eq('user_id', p.user_id)
-            .maybeSingle()
-          return { ...p, user: u }
-        }))
-        setTopPlayers(playersWithData)
-      }
-
-      // 3. Fetch Top 2 Players per House
-      const slugs = ['red', 'green', 'blue', 'yellow']
-      const leaders = {}
-
-      for (const slug of slugs) {
-        // Fetch users in this house
-        const { data: houseUsers } = await supabase
-          .from('hsf_profiles')
-          .select('user_id, display_name')
-          .eq('house_slug', slug)
-        
-        if (houseUsers && houseUsers.length > 0) {
-          const uids = houseUsers.map(u => u.user_id)
-          const { data: houseDuelProfs } = await supabase
-            .from('hsf_duel_profiles')
-            .select('*')
-            .in('user_id', uids)
-            .order('mmr', { ascending: false })
-            .limit(2)
-          
-          if (houseDuelProfs) {
-            leaders[slug] = houseDuelProfs.map(hp => ({
-              ...hp,
-              display_name: houseUsers.find(hu => hu.user_id === hp.user_id)?.display_name || 'Mago'
-            }))
+      } else {
+        // Adapt view format to component expectation
+        setTopPlayers((playersRes.data || []).map(p => ({
+          ...p,
+          user: {
+            display_name: p.display_name,
+            house_slug: p.house_slug
           }
-        }
+        })))
       }
-      setHouseLeaders(leaders)
+
+      // 4. Handle House Leaders
+      if (!leadersRes.error && leadersRes.data) {
+        const grouped = {}
+        leadersRes.data.forEach(leader => {
+          if (!grouped[leader.house_slug]) grouped[leader.house_slug] = []
+          grouped[leader.house_slug].push(leader)
+        })
+        setHouseLeaders(grouped)
+      }
     } catch (err) {
       console.error('General ranking error:', err)
     } finally {

@@ -22,41 +22,64 @@ export default function AdminDashboard() {
   const fetchData = async () => {
     setLoading(true)
     
-    if (activeTab === 'tickets') {
-      const [profilesRes, ticketsRes] = await Promise.all([
-        supabase.from('hsf_profiles').select('loyalty_points'),
-        supabase
+    try {
+      // 1. Fetch Global Stats via RPC (Parallel with tab data)
+      const statsPromise = supabase.rpc('hsf_admin_dashboard_stats')
+      
+      if (activeTab === 'tickets') {
+        let ticketQuery = supabase
           .from('hsf_ticket_claims')
           .select(`
-            *,
+            id, folio, amount, points_awarded, status, customer_id, created_at,
             session:hsf_visit_sessions (
               customer:hsf_profiles (display_name, phone)
             )
           `)
           .order('created_at', { ascending: false })
-      ])
+          .limit(100)
 
-      if (!profilesRes.error) {
-        const points = profilesRes.data.reduce((acc, p) => acc + p.loyalty_points, 0)
-        setStats({
-          users: profilesRes.data.length,
-          points,
-          pendingTickets: ticketsRes.data?.filter(t => t.status === 'pending').length || 0
-        })
+        if (filter !== 'all') {
+          ticketQuery = ticketQuery.eq('status', filter)
+        }
+
+        const [statsRes, ticketsRes] = await Promise.all([statsPromise, ticketQuery])
+
+        if (!statsRes.error && statsRes.data?.[0]) {
+          const s = statsRes.data[0]
+          setStats({
+            users: parseInt(s.users_count),
+            points: parseInt(s.total_loyalty_points),
+            pendingTickets: parseInt(s.pending_tickets_count)
+          })
+        }
+
+        if (!ticketsRes.error) setTickets(ticketsRes.data || [])
+      } else if (activeTab === 'users') {
+        const [statsRes, usersRes] = await Promise.all([
+          statsPromise,
+          supabase
+            .from('hsf_profiles')
+            .select('*')
+            .order('created_at', { ascending: false })
+            .limit(200)
+        ])
+
+        if (!statsRes.error && statsRes.data?.[0]) {
+          const s = statsRes.data[0]
+          setStats({
+            users: parseInt(s.users_count),
+            points: parseInt(s.total_loyalty_points),
+            pendingTickets: parseInt(s.pending_tickets_count)
+          })
+        }
+
+        if (!usersRes.error) setAllUsers(usersRes.data || [])
       }
-
-      if (!ticketsRes.error) setTickets(ticketsRes.data || [])
-    } else {
-      // Fetch all users for management
-      const { data, error } = await supabase
-        .from('hsf_profiles')
-        .select('*')
-        .order('created_at', { ascending: false })
-      
-      if (!error) setAllUsers(data || [])
+    } catch (err) {
+      console.error('[ADMIN FETCH ERROR]', err)
+    } finally {
+      setLoading(false)
     }
-    
-    setLoading(false)
   }
 
   const handleTicket = async (ticketId, status, amount, userId, reason = null) => {

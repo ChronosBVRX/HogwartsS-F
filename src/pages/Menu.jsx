@@ -99,6 +99,8 @@ const SECTION_ICONS = {
   "Dulces de Honeydukes": <Star className="w-5 h-5" />,
   "Nuevos Hechizos": <Wand2 className="w-5 h-5" />
 }
+import { getCachedQuery, setCachedQuery } from '../lib/queryCache'
+
 export default function Menu() {
   const [searchParams, setSearchParams] = useSearchParams()
   const activeCategory = searchParams.get('category')
@@ -124,36 +126,71 @@ export default function Menu() {
   }
 
   const fetchMenuData = async () => {
-    setLoading(true)
-    const [catRes, itemRes] = await Promise.all([
-      supabase.from('hsf_menu_categories').select('*').eq('active', true).order('sort_order', { ascending: true }),
-      supabase.from('hsf_menu_items').select('*, category:hsf_menu_categories(name)').eq('active', true).order('sort_order', { ascending: true })
-    ])
+    const cacheKey = 'hsf_menu_cache_v1'
+    const cached = getCachedQuery(cacheKey, 1000 * 60 * 15) // 15 minutos
 
-    if (!catRes.error && catRes.data) {
-      const dynamicCats = catRes.data.map(c => ({
-        id: c.id,
-        name: c.name,
-        icon: ICON_MAP[c.description?.split('|')[0]] || <Wand2 className="w-4 h-4" />,
-        img: c.image_url || STOCK_IMAGES[c.name] || STOCK_IMAGES["default"]
-      }))
-      setCategories(dynamicCats)
+    if (cached?.data) {
+      setCategories(cached.data.categories || [])
+      setMenuItems(cached.data.menuItems || [])
+      setLoading(false)
+
+      // Si no ha expirado, no hacemos nada más
+      if (!cached.expired) return
     }
 
-    if (!itemRes.error && itemRes.data) {
-      // Map DB schema to component schema
-      const mappedItems = itemRes.data.map(i => ({
-        id: i.id,
-        nombre: i.name,
-        categoria: i.category?.name || 'Otros',
-        descripcion: i.description,
-        precio: parseFloat(i.price),
-        tags: i.is_featured ? ['premium'] : [],
-        image_url: i.image_url || MENU_ASSETS[i.name] || null
-      }))
-      setMenuItems(mappedItems)
+    // Si no hay caché o expiró, cargamos de Supabase
+    if (!cached?.data) setLoading(true)
+
+    try {
+      const [catRes, itemRes] = await Promise.all([
+        supabase
+          .from('hsf_menu_categories')
+          .select('id, name, description, image_url, sort_order')
+          .eq('active', true)
+          .order('sort_order', { ascending: true }),
+        supabase
+          .from('hsf_menu_items')
+          .select('id, name, description, price, image_url, is_featured, sort_order, category:hsf_menu_categories(name)')
+          .eq('active', true)
+          .order('sort_order', { ascending: true })
+      ])
+
+      let dynamicCats = []
+      let mappedItems = []
+
+      if (!catRes.error && catRes.data) {
+        dynamicCats = catRes.data.map(c => ({
+          id: c.id,
+          name: c.name,
+          icon: ICON_MAP[c.description?.split('|')[0]] || <Wand2 className="w-4 h-4" />,
+          img: c.image_url || STOCK_IMAGES[c.name] || STOCK_IMAGES["default"]
+        }))
+        setCategories(dynamicCats)
+      }
+
+      if (!itemRes.error && itemRes.data) {
+        mappedItems = itemRes.data.map(i => ({
+          id: i.id,
+          nombre: i.name,
+          categoria: i.category?.name || 'Otros',
+          descripcion: i.description,
+          precio: parseFloat(i.price),
+          tags: i.is_featured ? ['premium'] : [],
+          image_url: i.image_url || MENU_ASSETS[i.name] || null
+        }))
+        setMenuItems(mappedItems)
+      }
+
+      // Guardar en caché para la próxima vez
+      setCachedQuery(cacheKey, {
+        categories: dynamicCats,
+        menuItems: mappedItems
+      })
+    } catch (err) {
+      console.error('[MENU FETCH ERROR]', err)
+    } finally {
+      setLoading(false)
     }
-    setLoading(false)
   }
 
   const filteredMenu = useMemo(() => {
