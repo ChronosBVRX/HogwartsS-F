@@ -105,6 +105,9 @@ function App() {
 
               {/* Admin Routes */}
               <Route path="/admin" element={<ProtectedRoute role="admin"><AdminDashboard /></ProtectedRoute>} />
+
+              {/* Fallback */}
+              <Route path="*" element={<Home />} />
             </Routes>
           </Suspense>
         </div>

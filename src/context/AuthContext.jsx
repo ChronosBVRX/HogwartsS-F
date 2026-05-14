@@ -42,20 +42,58 @@ export const AuthProvider = ({ children }) => {
   useEffect(() => {
     let mounted = true
 
+    const initialHref = window.location.href
+    const isRecoveryUrl =
+      initialHref.includes('type=recovery') ||
+      initialHref.includes('access_token=') ||
+      initialHref.includes('refresh_token=') ||
+      initialHref.includes('code=')
+
+    const goToResetPassword = () => {
+      setTimeout(() => {
+        window.location.hash = '#/restablecer-password'
+      }, 0)
+    }
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+      console.log('Auth event:', event)
+
+      if (event === 'PASSWORD_RECOVERY') {
+        goToResetPassword()
+      }
+
+      const currentUser = session?.user ?? null
+
+      if (mounted) {
+        setUser(currentUser)
+
+        if (currentUser) {
+          await fetchProfile(currentUser.id)
+        } else {
+          setProfile(null)
+        }
+      }
+    })
+
     const initAuth = async () => {
       try {
         setLoading(true)
-        
-        // 1. Get initial session immediately
+
         const { data: { session }, error } = await supabase.auth.getSession()
-        
+
         if (error) throw error
 
         const currentUser = session?.user ?? null
+
         if (mounted) {
           setUser(currentUser)
+
           if (currentUser) {
             await fetchProfile(currentUser.id)
+          }
+
+          if (isRecoveryUrl && currentUser) {
+            goToResetPassword()
           }
         }
       } catch (err) {
@@ -70,26 +108,6 @@ export const AuthProvider = ({ children }) => {
     }
 
     initAuth()
-
-    // 2. Listen for subsequent changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
-      console.log('Auth event:', event)
-      
-      if (event === 'PASSWORD_RECOVERY') {
-        window.location.hash = '#/restablecer-password'
-      }
-
-      const currentUser = session?.user ?? null
-      
-      if (mounted) {
-        setUser(currentUser)
-        if (currentUser) {
-          await fetchProfile(currentUser.id)
-        } else {
-          setProfile(null)
-        }
-      }
-    })
 
     return () => {
       mounted = false

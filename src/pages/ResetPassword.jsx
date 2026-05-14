@@ -29,13 +29,25 @@ export default function ResetPassword() {
     setLoading(true)
     setMessage(null)
 
+    // Validate that we have a valid recovery session
+    const { data: { session } } = await supabase.auth.getSession()
+    if (!session) {
+      setMessage({
+        type: 'error',
+        text: 'Tu enlace de recuperación no se procesó correctamente. Solicita uno nuevo.'
+      })
+      setLoading(false)
+      return
+    }
+
     const { error } = await supabase.auth.updateUser({ password: newPassword })
 
     if (error) {
       setMessage({ type: 'error', text: 'Error al actualizar la contraseña: ' + error.message })
     } else {
       setMessage({ type: 'success', text: '¡Tu contraseña ha sido actualizada con éxito!' })
-      setTimeout(() => {
+      setTimeout(async () => {
+        await supabase.auth.signOut()
         navigate('/login')
       }, 3000)
     }
