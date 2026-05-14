@@ -92,6 +92,15 @@ export const AuthProvider = ({ children }) => {
       return data
     }
 
+    // Fallback de seguridad por si Supabase no dispara onAuthStateChange
+    const fallbackTimer = setTimeout(() => {
+      if (mounted && !initialized.current) {
+        console.warn('Auth event fallback triggered (Supabase tardó demasiado)')
+        initialized.current = true
+        setLoading(false)
+      }
+    }, 8000)
+
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
       console.log('Auth event:', event)
 
@@ -105,57 +114,35 @@ export const AuthProvider = ({ children }) => {
         setUser(currentUser)
 
         if (currentUser) {
-          const p = await ensureHsfProfile(currentUser)
-          if (mounted) setProfile(p)
+          try {
+            const p = await withTimeout(ensureHsfProfile(currentUser), 8000, 'Verificando perfil')
+            if (mounted) setProfile(p)
+          } catch (error) {
+            console.error('Error al asegurar perfil:', error)
+            if (mounted) setProfile(null)
+          }
         } else {
           setProfile(null)
+        }
+
+        if (isRecoveryUrl && event === 'INITIAL_SESSION') {
+          goToResetPassword()
+        }
+
+        if (!initialized.current) {
+          clearTimeout(fallbackTimer)
+          initialized.current = true
+          setLoading(false)
         }
       }
     })
 
-    const initAuth = async () => {
-      try {
-        setLoading(true)
-
-        const { data: { session }, error } = await withTimeout(
-          supabase.auth.getSession(),
-          8000,
-          'Cargando sesión'
-        )
-
-        if (error) throw error
-
-        const currentUser = session?.user ?? null
-
-        if (mounted) {
-          setUser(currentUser)
-
-          if (currentUser) {
-            await fetchProfile(currentUser.id)
-          }
-
-          if (isRecoveryUrl) {
-            goToResetPassword()
-          }
-        }
-      } catch (err) {
-        console.error('Auth initialization error:', err)
-        if (mounted) setAuthError(err.message)
-      } finally {
-        if (mounted) {
-          setLoading(false)
-          initialized.current = true
-        }
-      }
-    }
-
-    initAuth()
-
     return () => {
       mounted = false
+      clearTimeout(fallbackTimer)
       subscription?.unsubscribe()
     }
-  }, [fetchProfile])
+  }, [])
 
   const signOut = async () => {
     try {
