@@ -6,9 +6,14 @@ const AuthContext = createContext({})
 
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null)
-  const [profile, setProfile] = useState(null)
+  const [profile, setProfile] = useState(() => {
+    try {
+      const cached = localStorage.getItem('hsf_user_profile')
+      return cached ? JSON.parse(cached) : null
+    } catch (e) { return null }
+  })
   const [loading, setLoading] = useState(true) // Initial auth loading
-  const [profileLoading, setProfileLoading] = useState(true) // Background profile loading
+  const [profileLoading, setProfileLoading] = useState(false) // Start as false to avoid blocking if we have cache
   const [authError, setAuthError] = useState(null)
   const initialized = useRef(false)
   const fetchingProfile = useRef(false)
@@ -37,7 +42,13 @@ export const AuthProvider = ({ children }) => {
         return null
       }
 
-      setProfile(data || null)
+      if (data) {
+        setProfile(data)
+        localStorage.setItem('hsf_user_profile', JSON.stringify(data))
+      } else {
+        setProfile(null)
+        localStorage.removeItem('hsf_user_profile')
+      }
       return data || null
     } catch (err) {
       console.error('fetchProfile failed:', err)
@@ -139,10 +150,13 @@ export const AuthProvider = ({ children }) => {
              
              try {
                const p = await withTimeout(ensureHsfProfile(currentUser), 15000, 'Verificando perfil')
-               if (mounted) setProfile(p)
+               if (mounted && p) {
+                 setProfile(p)
+                 localStorage.setItem('hsf_user_profile', JSON.stringify(p))
+               }
              } catch (error) {
                console.error('Error al asegurar perfil:', error)
-               if (mounted) setProfile(null)
+               // No borramos el perfil del state si falló la red, para no cerrar la sesión del usuario
              } finally {
                if (mounted) {
                  fetchingProfile.current = false
@@ -172,6 +186,7 @@ export const AuthProvider = ({ children }) => {
       await supabase.auth.signOut()
       setUser(null)
       setProfile(null)
+      localStorage.removeItem('hsf_user_profile')
       window.location.href = '/'
     } catch (err) {
       console.error('signOut failed:', err)

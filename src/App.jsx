@@ -43,7 +43,8 @@ import LocationGuard from './components/LocationGuard'
 const ProtectedRoute = ({ children, role }) => {
   const { user, profile, loading, profileLoading } = useAuth()
 
-  if (loading || profileLoading) {
+  // Solo bloqueamos si no hay sesión inicial O si estamos verificando y NO tenemos perfil en caché
+  if (loading || (profileLoading && !profile)) {
     return (
       <div className="flex-1 flex items-center justify-center text-magical-gold uppercase font-black tracking-widest">
         {loading ? 'Cargando sesión...' : 'Verificando credenciales...'}
