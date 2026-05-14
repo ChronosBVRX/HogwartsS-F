@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '../../context/AuthContext'
 import { supabase } from '../../lib/supabase'
-import { withTimeout } from '../../lib/supabaseSafe'
+import { withTimeout, safeWithTimeout } from '../../lib/supabaseSafe'
 import audioManager from '../../lib/audioManager'
 import { Award, QrCode, LogOut, Star, Shield, Zap, Wand2, Hash, Settings as SettingsIcon, Map, Footprints, Ticket, CheckCircle2, XCircle, Clock } from 'lucide-react'
 
@@ -62,9 +62,9 @@ export default function Profile() {
       startOfMonth.setDate(1)
       startOfMonth.setHours(0, 0, 0, 0)
 
-      // Fetch all data in parallel to save time
-      const [sessionResult, historyResult, monthlyResult] = await Promise.all([
-        withTimeout(
+      // Fetch all data in parallel to save time, using safeWithTimeout to avoid failing the whole block
+      const [sessionRes, historyRes, monthlyRes] = await Promise.all([
+        safeWithTimeout(
           supabase
             .from('hsf_visit_sessions')
             .select('*')
@@ -73,50 +73,50 @@ export default function Profile() {
             .order('created_at', { ascending: false })
             .limit(1)
             .maybeSingle(),
-          8000,
-          'Cargando sesión de visita'
+          15000,
+          'Cargando sesión'
         ),
-        withTimeout(
+        safeWithTimeout(
           supabase
             .from('hsf_ticket_claims')
             .select('*')
             .eq('customer_id', profile.user_id)
             .order('created_at', { ascending: false })
             .limit(10),
-          8000,
-          'Cargando historial de tickets'
+          15000,
+          'Cargando historial'
         ),
-        withTimeout(
+        safeWithTimeout(
           supabase
             .from('hsf_ticket_claims')
             .select('points_awarded')
             .eq('customer_id', profile.user_id)
             .eq('status', 'approved')
             .gte('created_at', startOfMonth.toISOString()),
-          8000,
-          'Cargando puntos mensuales'
+          15000,
+          'Cargando puntos'
         )
       ])
 
-      if (!sessionResult.error) {
-        setActiveSession(sessionResult.data || null)
-        if (profile?.user_id) localStorage.setItem(`hsf_active_session_${profile.user_id}`, JSON.stringify(sessionResult.data || null))
+      if (!sessionRes.error) {
+        setActiveSession(sessionRes.data || null)
+        if (profile?.user_id) localStorage.setItem(`hsf_active_session_${profile.user_id}`, JSON.stringify(sessionRes.data || null))
       } else {
-        console.error('Error fetching active session:', sessionResult.error)
+        console.warn('Session fetch failed, using cache:', sessionRes.error)
       }
  
-      if (!historyResult.error) {
-        setTicketHistory(historyResult.data || [])
-        if (profile?.user_id) localStorage.setItem(`hsf_ticket_history_${profile.user_id}`, JSON.stringify(historyResult.data || []))
+      if (!historyRes.error) {
+        setTicketHistory(historyRes.data || [])
+        if (profile?.user_id) localStorage.setItem(`hsf_ticket_history_${profile.user_id}`, JSON.stringify(historyRes.data || []))
       } else {
-        console.error('Error fetching ticket history:', historyResult.error)
+        console.warn('History fetch failed, using cache:', historyRes.error)
       }
  
-      if (!monthlyResult.error) {
-        const total = monthlyResult.data?.reduce((acc, curr) => acc + (curr.points_awarded || 0), 0) || 0
+      if (!monthlyRes.error) {
+        const total = monthlyRes.data?.reduce((acc, curr) => acc + (curr.points_awarded || 0), 0) || 0
         setMonthlyPoints(total)
       } else {
-        console.error('Error fetching monthly points:', monthlyResult.error)
+        console.warn('Monthly points fetch failed:', monthlyRes.error)
       }
 
     } catch (err) {

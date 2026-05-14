@@ -129,14 +129,17 @@ export const AuthProvider = ({ children }) => {
              currentUserId.current = currentUser.id
              
              try {
-               const p = await withTimeout(ensureHsfProfile(currentUser), 20000, 'Verificando perfil')
+               const p = await withTimeout(ensureHsfProfile(currentUser), 30000, 'Verificando perfil')
                if (mounted && p) {
                  setProfile(p)
                  localStorage.setItem('hsf_user_profile', JSON.stringify(p))
                }
              } catch (error) {
                console.error('Error al asegurar perfil:', error)
-               // No borramos el perfil del state si falló la red, para no cerrar la sesión del usuario
+               try {
+                 const fallbackProfile = await fetchProfile(currentUser.id)
+                 if (mounted && fallbackProfile) setProfile(fallbackProfile)
+               } catch (e) { console.error('Fallback failed') }
              } finally {
                if (mounted) {
                  fetchingProfile.current = false

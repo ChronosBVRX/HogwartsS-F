@@ -1,0 +1,1 @@
+async function e(e,t=8e3,n=`Consulta`){let r,i=new Promise((e,i)=>{r=setTimeout(()=>{i(Error(`${n} tardó demasiado en responder.`))},t)});try{return await Promise.race([e,i])}finally{clearTimeout(r)}}async function t(t,n=8e3,r=`Consulta`){try{let i=await e(t,n,r);return{data:i.data||i,error:i.error||null}}catch(e){return{data:null,error:e}}}export{e as n,t};
