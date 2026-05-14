@@ -326,7 +326,7 @@ const HOUSE_DATA = {
 }
 
 export default function Quiz() {
-  const { user } = useAuth()
+  const { user, loading, refreshProfile } = useAuth()
   const [currentIndex, setCurrentIndex] = useState(-1)
   const [scores, setScores] = useState({ red: 0, green: 0, yellow: 0, blue: 0 })
   const [strongHits, setStrongHits] = useState({ red: 0, green: 0, yellow: 0, blue: 0 })
@@ -337,9 +337,16 @@ export default function Quiz() {
   const [shuffledOptions, setShuffledOptions] = useState([])
   const [startingCeremony, setStartingCeremony] = useState(false)
   const [answering, setAnswering] = useState(false)
+  const [saving, setSaving] = useState(false)
   
   const navigate = useNavigate()
   const audio = useAdventureAudio()
+
+  useEffect(() => {
+    if (!loading && !user) {
+      navigate('/login')
+    }
+  }, [user, loading, navigate])
 
   const handleStart = async () => {
     setStartingCeremony(true)
@@ -465,10 +472,28 @@ export default function Quiz() {
     }
 
     if (user) {
-      await supabase
+      setSaving(true)
+      // Use upsert to ensure the profile exists, or update if it does
+      const { error } = await supabase
         .from('hsf_profiles')
-        .update({ house_slug: winner })
-        .eq('user_id', user.id)
+        .upsert({ 
+          user_id: user.id,
+          house_slug: winner,
+          updated_at: new Date().toISOString()
+        }, { onConflict: 'user_id' })
+      
+      if (error) {
+        console.error('[QUIZ SAVE ERROR]', error)
+      } else {
+        console.log('[QUIZ SAVE SUCCESS]', winner)
+        // Refresh the global profile state so other pages see the change immediately
+        if (refreshProfile) {
+          await refreshProfile()
+          // Small delay to ensure the state propagation is complete
+          await new Promise(r => setTimeout(r, 500))
+        }
+      }
+      setSaving(false)
     }
 
     setStage('result')
@@ -534,11 +559,11 @@ export default function Quiz() {
         <div className="text-center space-y-6 relative z-10 max-w-xl">
           <div className="space-y-2">
             <p className="text-magical-gold text-xs font-black uppercase tracking-[0.4em] animate-pulse">
-              El Sombrero está leyendo tus decisiones...
+              {saving ? 'Escribiendo en los registros del castillo...' : 'El Sombrero está leyendo tus decisiones...'}
             </p>
           </div>
           <h2 className="text-2xl md:text-3xl font-black italic text-white leading-relaxed">
-            “{sortingText}”
+            “{saving ? 'Casi terminamos...' : sortingText}”
           </h2>
         </div>
       </div>
