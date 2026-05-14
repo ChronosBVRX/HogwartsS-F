@@ -1,0 +1,9 @@
+import{i as e,n as t,t as n}from"./jsx-runtime-ByY1xr43.js";import{t as r}from"./audioManager-uEqMFjQp.js";var i=e(t(),1),a=n(),o=()=>{let[e,t]=(0,i.useState)(r.isAudioEnabled());return(0,i.useEffect)(()=>{t(r.isAudioEnabled())},[]),(0,a.jsxs)(`button`,{id:`audio-toggle-btn`,onClick:()=>{let n=!e;r.setAudioEnabled(n),t(n),r.unlockAudio().catch(()=>{}),n&&r.playSfx(`ui_button_magic`)},className:`
+        fixed bottom-6 right-6 z-[100]
+        flex items-center justify-center
+        w-12 h-12 rounded-full
+        backdrop-blur-xl bg-white/10 border border-white/20
+        shadow-[0_0_20px_rgba(255,255,255,0.1)] transition-all duration-500
+        hover:scale-110 hover:bg-white/20 active:scale-95
+        text-white group
+      `,"aria-label":e?`Silenciar audio`:`Activar audio`,children:[(0,a.jsx)(`div`,{className:`relative`,children:e?(0,a.jsxs)(`svg`,{xmlns:`http://www.w3.org/2000/svg`,width:`20`,height:`20`,viewBox:`0 0 24 24`,fill:`none`,stroke:`currentColor`,strokeWidth:`2.5`,strokeLinecap:`round`,strokeLinejoin:`round`,className:`drop-shadow-sm`,children:[(0,a.jsx)(`polygon`,{points:`11 5 6 9 2 9 2 15 6 15 11 19 11 5`}),(0,a.jsx)(`path`,{d:`M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07`})]}):(0,a.jsxs)(`svg`,{xmlns:`http://www.w3.org/2000/svg`,width:`20`,height:`20`,viewBox:`0 0 24 24`,fill:`none`,stroke:`currentColor`,strokeWidth:`2.5`,strokeLinecap:`round`,strokeLinejoin:`round`,className:`opacity-60`,children:[(0,a.jsx)(`polygon`,{points:`11 5 6 9 2 9 2 15 6 15 11 19 11 5`}),(0,a.jsx)(`line`,{x1:`23`,y1:`9`,x2:`17`,y2:`15`}),(0,a.jsx)(`line`,{x1:`17`,y1:`9`,x2:`23`,y2:`15`})]})}),e&&(0,a.jsx)(`div`,{className:`absolute inset-0 rounded-full bg-white/10 animate-pulse -z-10`})]})};export{o as t};
