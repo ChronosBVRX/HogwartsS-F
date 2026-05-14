@@ -9,6 +9,16 @@ export default function ResetPassword() {
   const [message, setMessage] = useState(null)
   const navigate = useNavigate()
 
+  useEffect(() => {
+    // Check for errors in the URL (e.g., from Supabase redirect)
+    const hashParams = new URLSearchParams(window.location.hash.substring(window.location.hash.indexOf('?')))
+    const error = hashParams.get('error_description') || new URLSearchParams(window.location.search).get('error_description')
+    
+    if (error) {
+      setMessage({ type: 'error', text: 'El enlace es inválido o ha expirado. Por favor, solicita uno nuevo.' })
+    }
+  }, [])
+
   const handleResetPassword = async (e) => {
     e.preventDefault()
     if (newPassword.length < 6) {
