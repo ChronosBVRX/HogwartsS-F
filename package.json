@@ -11,6 +11,7 @@
     "predeploy": "npm run build",
     "deploy": "npm run build && git add . && git commit -m 'Deploy' && git push origin main",
     "generate:adventure-voices": "node scripts/generateAdventureVoices.mjs",
+    "generate:quiz-voices": "node scripts/generateQuizVoices.mjs",
     "check:adventure-audio": "node scripts/checkAdventureAudio.mjs"
   },
   "dependencies": {
