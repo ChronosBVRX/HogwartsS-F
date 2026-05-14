@@ -32,7 +32,7 @@ export const AuthProvider = ({ children }) => {
           .select('user_id, display_name, phone, role, house_slug, loyalty_points, gender, pasos_mapa_mes, created_at, updated_at')
           .eq('user_id', userId)
           .maybeSingle(),
-        7000,
+        12000,
         'Cargando perfil'
       )
 
@@ -77,35 +77,15 @@ export const AuthProvider = ({ children }) => {
     const ensureHsfProfile = async (user) => {
       if (!user?.id) return null
 
-      console.log('[DEBUG] ensureHsfProfile: empezando query a hsf_profiles')
-      const { data: existing, error: selectError } = await supabase
-        .from('hsf_profiles')
-        .select('user_id, display_name, phone, role, house_slug, loyalty_points, gender, pasos_mapa_mes, created_at, updated_at')
-        .eq('user_id', user.id)
-        .maybeSingle()
-      console.log('[DEBUG] ensureHsfProfile: terminó query. error:', selectError)
-
-      if (existing) return existing
-
-      const displayName = user.user_metadata?.display_name || user.email?.split('@')[0] || 'Mago sin nombre'
-      const phone = user.user_metadata?.phone || null
-
-      const { data, error } = await supabase
-        .from('hsf_profiles')
-        .upsert({
-          user_id: user.id,
-          display_name: displayName,
-          phone,
-          updated_at: new Date().toISOString()
-        }, { onConflict: 'user_id' })
-        .select('user_id, display_name, phone, role, house_slug, loyalty_points, gender, pasos_mapa_mes, created_at, updated_at')
-        .maybeSingle()
-
+      const { data, error } = await supabase.rpc('hsf_ensure_profile')
+      
       if (error) {
         console.error('[ENSURE PROFILE ERROR]', error)
         return null
       }
-      return data
+
+      if (data?.ok) return data.data
+      return null
     }
 
     // Fallback de seguridad por si Supabase no dispara onAuthStateChange
@@ -149,7 +129,7 @@ export const AuthProvider = ({ children }) => {
              currentUserId.current = currentUser.id
              
              try {
-               const p = await withTimeout(ensureHsfProfile(currentUser), 15000, 'Verificando perfil')
+               const p = await withTimeout(ensureHsfProfile(currentUser), 20000, 'Verificando perfil')
                if (mounted && p) {
                  setProfile(p)
                  localStorage.setItem('hsf_user_profile', JSON.stringify(p))
