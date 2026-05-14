@@ -4,8 +4,8 @@ import { supabase } from '../../lib/supabase'
 import { Gift, Sparkles, ChevronLeft, QrCode as QrIcon, CheckCircle2 } from 'lucide-react'
 import { useAdventureAudio } from '../../hooks/useAdventureAudio'
 import { adventureAudio } from '../../data/adventureAudioManifest'
-import AdventureAudioControl from '../../components/adventure/AdventureAudioControl'
 import QRCode from 'react-qr-code'
+import { formatMagicalText } from '../../utils/magicalFormatters'
 
 export default function AdventureReward() {
   const { runId } = useParams()
@@ -102,10 +102,10 @@ export default function AdventureReward() {
                 {isRedeemed ? 'Hechizo ya utilizado' : '¡Misión Cumplida!'}
               </p>
               <h1 className={`text-4xl md:text-5xl font-black uppercase italic tracking-tighter ${isRedeemed ? 'text-white/40' : 'text-white'}`}>
-                {title}
+                {formatMagicalText(title)}
               </h1>
             </div>
-            <p className="text-white/60 leading-relaxed italic">“{description}”</p>
+            <p className="text-white/60 leading-relaxed italic">“{formatMagicalText(description)}”</p>
             
             {!isRedeemed && (
               <div className="bg-magical-navy/40 p-4 rounded-2xl border border-white/5">

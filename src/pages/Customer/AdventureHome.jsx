@@ -12,6 +12,7 @@ import {
   getAvailableSeasonAdventures,
   startSeasonAdventure 
 } from '../../lib/adventureSeasonService'
+import { formatMagicalText } from '../../utils/magicalFormatters'
 
 export default function AdventureHome() {
   const [state, setState] = useState(null)
@@ -235,7 +236,7 @@ export default function AdventureHome() {
             </div>
             <div className="space-y-2">
               <p className="text-[10px] font-black uppercase tracking-[0.3em] text-magical-gold">Aventura activa</p>
-              <h2 className="text-3xl font-black uppercase italic tracking-tighter text-white">{state.title}</h2>
+              <h2 className="text-3xl font-black uppercase italic tracking-tighter text-white">{formatMagicalText(state.title)}</h2>
               <p className="text-white/50 text-sm">Etapa actual: {state.current_step_order}</p>
             </div>
           </div>
@@ -244,7 +245,7 @@ export default function AdventureHome() {
             <div className="bg-white/5 border border-white/10 p-6 rounded-2xl space-y-4">
               <div className="flex gap-3 items-start">
                 <AlertCircle className="w-5 h-5 text-magical-gold shrink-0 mt-1" />
-                <p className="text-white/60 italic">{state.clue || 'Busca el siguiente portal mágico.'}</p>
+                <p className="text-white/60 italic">{formatMagicalText(state.clue) || 'Busca el siguiente portal mágico.'}</p>
               </div>
               <Link to="/aventura/escanear" className="btn-gold w-full flex items-center justify-center gap-3 py-5 text-sm font-black uppercase">
                 <QrCode className="w-5 h-5" />
@@ -300,8 +301,8 @@ export default function AdventureHome() {
           ) : rewards.map((reward) => (
             <div key={reward.id} className="p-5 flex flex-col md:flex-row md:items-center justify-between gap-4">
               <div>
-                <p className="text-white font-black uppercase italic">{reward.reward_title}</p>
-                <p className="text-white/40 text-xs mt-1">{reward.reward_description}</p>
+                <p className="text-white font-black uppercase italic">{formatMagicalText(reward.reward_title)}</p>
+                <p className="text-white/40 text-xs mt-1">{formatMagicalText(reward.reward_description)}</p>
                 {Number(reward.min_consumption) > 0 && (
                   <p className="text-[10px] text-magical-gold mt-2 uppercase font-black">
                     Consumo mínimo: ${reward.min_consumption}

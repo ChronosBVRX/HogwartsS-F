@@ -6,6 +6,7 @@ import { Wand2, ChevronLeft, AlertCircle, CheckCircle2, XCircle, QrCode } from '
 import { useAdventureAudio } from '../../hooks/useAdventureAudio'
 import { adventureAudio, getStepAudio } from '../../data/adventureAudioManifest'
 import AdventureAudioControl from '../../components/adventure/AdventureAudioControl'
+import { formatMagicalText } from '../../utils/magicalFormatters'
 
 export default function AdventurePlay() {
   const { runId } = useParams()
@@ -279,19 +280,19 @@ export default function AdventurePlay() {
             </div>
             <Wand2 className="w-6 h-6 text-magical-gold" />
           <h1 className="text-2xl md:text-4xl font-black uppercase italic tracking-tighter text-white">
-            {step.narrator_name}
+            {formatMagicalText(step.narrator_name)}
           </h1>
-          <p className="text-white/60 italic leading-relaxed">“{step.narrator_line}”</p>
+          <p className="text-white/60 italic leading-relaxed">“{formatMagicalText(step.narrator_line)}”</p>
         </div>
 
         <div className="p-6 md:p-8 space-y-8">
           <div className="bg-white/5 border border-white/10 p-6 rounded-3xl">
-            <p className="text-white/70 leading-relaxed">{step.story_text}</p>
+            <p className="text-white/70 leading-relaxed">{formatMagicalText(step.story_text)}</p>
           </div>
 
           <div className="space-y-4">
             <h2 className="text-2xl md:text-3xl font-black leading-tight text-white">
-              {step.question}
+              {formatMagicalText(step.question)}
             </h2>
 
             <div className="grid gap-3">
@@ -306,7 +307,7 @@ export default function AdventurePlay() {
                     <span className="w-8 h-8 rounded-xl bg-white/10 flex items-center justify-center font-black shrink-0">
                       {option.value}
                     </span>
-                    <span className="font-bold">{option.text}</span>
+                    <span className="font-bold">{formatMagicalText(option.text)}</span>
                   </div>
                 </button>
               ))}
