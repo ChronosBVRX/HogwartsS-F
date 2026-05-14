@@ -148,12 +148,21 @@ export default function Menu() {
           .select('id, name, description, image_url, sort_order')
           .eq('active', true)
           .order('sort_order', { ascending: true }),
+
         supabase
           .from('hsf_menu_items')
-          .select('id, name, description, price, image_url, is_featured, sort_order, category:hsf_menu_categories(name)')
+          .select('id, name, description, price, image_url, is_featured, sort_order, category_id')
           .eq('active', true)
           .order('sort_order', { ascending: true })
       ])
+
+      if (catRes.error) {
+        console.error('[MENU CATEGORIES ERROR]', catRes.error)
+      }
+
+      if (itemRes.error) {
+        console.error('[MENU ITEMS ERROR]', itemRes.error)
+      }
 
       let dynamicCats = []
       let mappedItems = []
@@ -165,27 +174,34 @@ export default function Menu() {
           icon: ICON_MAP[c.description?.split('|')[0]] || <Wand2 className="w-4 h-4" />,
           img: c.image_url || STOCK_IMAGES[c.name] || STOCK_IMAGES["default"]
         }))
+
         setCategories(dynamicCats)
       }
+
+      const categoryNameById = new Map(
+        (catRes.data || []).map(c => [c.id, c.name])
+      )
 
       if (!itemRes.error && itemRes.data) {
         mappedItems = itemRes.data.map(i => ({
           id: i.id,
           nombre: i.name,
-          categoria: i.category?.name || 'Otros',
+          categoria: categoryNameById.get(i.category_id) || 'Otros',
           descripcion: i.description,
           precio: parseFloat(i.price),
           tags: i.is_featured ? ['premium'] : [],
           image_url: i.image_url || MENU_ASSETS[i.name] || null
         }))
+
         setMenuItems(mappedItems)
       }
 
-      // Guardar en caché para la próxima vez
-      setCachedQuery(cacheKey, {
-        categories: dynamicCats,
-        menuItems: mappedItems
-      })
+      if (!catRes.error && !itemRes.error) {
+        setCachedQuery(cacheKey, {
+          categories: dynamicCats,
+          menuItems: mappedItems
+        })
+      }
     } catch (err) {
       console.error('[MENU FETCH ERROR]', err)
     } finally {
