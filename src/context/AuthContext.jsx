@@ -66,11 +66,13 @@ export const AuthProvider = ({ children }) => {
     const ensureHsfProfile = async (user) => {
       if (!user?.id) return null
 
-      const { data: existing } = await supabase
+      console.log('[DEBUG] ensureHsfProfile: empezando query a hsf_profiles')
+      const { data: existing, error: selectError } = await supabase
         .from('hsf_profiles')
         .select('user_id, display_name, phone, role, house_slug, loyalty_points, gender, pasos_mapa_mes, created_at, updated_at')
         .eq('user_id', user.id)
         .maybeSingle()
+      console.log('[DEBUG] ensureHsfProfile: terminó query. error:', selectError)
 
       if (existing) return existing
 
@@ -103,29 +105,6 @@ export const AuthProvider = ({ children }) => {
         setLoading(false)
       }
     }, 15000)
-
-    const initializeAuth = async () => {
-      // Leer sesión local de inmediato sin esperar eventos asíncronos de red
-      const { data: { session } } = await supabase.auth.getSession()
-      
-      const currentUser = session?.user ?? null
-      if (mounted) {
-        setUser(currentUser)
-        if (!currentUser) {
-           setProfile(null)
-           setProfileLoading(false)
-        }
-        
-        // ¡Desbloquear la UI DE INMEDIATO!
-        if (!initialized.current) {
-          clearTimeout(fallbackTimer)
-          initialized.current = true
-          setLoading(false)
-        }
-      }
-    }
-
-    initializeAuth()
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
       console.log('Auth event:', event)

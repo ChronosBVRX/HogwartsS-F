@@ -1,4 +1,4 @@
-import{a as e,n as t,r as n}from"./createLucideIcon-C-fmWJup.js";import{o as r}from"./index-uI44pw2i.js";var i=e(n(),1),a=t(),o=()=>{let[e,t]=(0,i.useState)(r.isAudioEnabled());return(0,i.useEffect)(()=>{t(r.isAudioEnabled())},[]),(0,a.jsxs)(`button`,{id:`audio-toggle-btn`,onClick:()=>{let n=!e;r.setAudioEnabled(n),t(n),r.unlockAudio().catch(()=>{}),n&&r.playSfx(`ui_button_magic`)},className:`
+import{a as e,n as t,r as n}from"./createLucideIcon-C-fmWJup.js";import{o as r}from"./index-qm_uZfoC.js";var i=e(n(),1),a=t(),o=()=>{let[e,t]=(0,i.useState)(r.isAudioEnabled());return(0,i.useEffect)(()=>{t(r.isAudioEnabled())},[]),(0,a.jsxs)(`button`,{id:`audio-toggle-btn`,onClick:()=>{let n=!e;r.setAudioEnabled(n),t(n),r.unlockAudio().catch(()=>{}),n&&r.playSfx(`ui_button_magic`)},className:`
         fixed bottom-6 right-6 z-[100]
         flex items-center justify-center
         w-12 h-12 rounded-full
