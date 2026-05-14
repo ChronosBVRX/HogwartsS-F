@@ -36,6 +36,8 @@ const DuelWaitingRoom = lazy(() => import('./pages/Customer/DuelWaitingRoom'))
 const DuelTutorial = lazy(() => import('./pages/Customer/DuelTutorial'))
 const DuelManual = lazy(() => import('./pages/Customer/DuelManual'))
 
+import LocationGuard from './components/LocationGuard'
+
 const ProtectedRoute = ({ children, role }) => {
   const { user, profile, loading } = useAuth()
 
@@ -75,29 +77,32 @@ function App() {
               <Route path="/olvide-password" element={<ForgotPassword />} />
               <Route path="/restablecer-password" element={<ResetPassword />} />
               <Route path="/registro" element={<Register />} />
-              <Route path="/quiz" element={<Quiz />} />
+              <Route path="/quiz" element={<LocationGuard><Quiz /></LocationGuard>} />
 
               {/* Customer Routes */}
               <Route path="/perfil" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
               <Route path="/ajustes" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
               <Route path="/asistencia" element={<ProtectedRoute><Attendance /></ProtectedRoute>} />
               <Route path="/registrar-ticket" element={<ProtectedRoute><ClaimTicket /></ProtectedRoute>} />
-              <Route path="/aventura" element={<ProtectedRoute><AdventureHome /></ProtectedRoute>} />
-              <Route path="/aventura/escanear" element={<ProtectedRoute><AdventureScanner /></ProtectedRoute>} />
-              <Route path="/aventura/jugar/:runId" element={<ProtectedRoute><AdventurePlay /></ProtectedRoute>} />
-              <Route path="/aventura/recompensa/:runId" element={<ProtectedRoute><AdventureReward /></ProtectedRoute>} />
+              
+              <Route element={<ProtectedRoute><LocationGuard /></ProtectedRoute>}>
+                <Route path="/aventura" element={<AdventureHome />} />
+                <Route path="/aventura/escanear" element={<AdventureScanner />} />
+                <Route path="/aventura/jugar/:runId" element={<AdventurePlay />} />
+                <Route path="/aventura/recompensa/:runId" element={<AdventureReward />} />
 
-              {/* Magic Duels Routes */}
-              <Route path="/duelos" element={<ProtectedRoute><DuelHome /></ProtectedRoute>} />
-              <Route path="/duelos/retar" element={<ProtectedRoute><DuelLobby /></ProtectedRoute>} />
-              <Route path="/duelos/sala/:duelId" element={<ProtectedRoute><DuelRoom /></ProtectedRoute>} />
-              <Route path="/duelos/tienda" element={<ProtectedRoute><DuelShop /></ProtectedRoute>} />
-              <Route path="/duelos/ranking" element={<ProtectedRoute><DuelRanking /></ProtectedRoute>} />
-              <Route path="/duelos/hechizos" element={<ProtectedRoute><DuelSpellGuide /></ProtectedRoute>} />
-              <Route path="/duelos/logros" element={<ProtectedRoute><DuelAchievements /></ProtectedRoute>} />
-              <Route path="/duelos/espera/:duelId" element={<ProtectedRoute><DuelWaitingRoom /></ProtectedRoute>} />
-              <Route path="/duelos/tutorial" element={<ProtectedRoute><DuelTutorial /></ProtectedRoute>} />
-              <Route path="/duelos/manual" element={<ProtectedRoute><DuelManual /></ProtectedRoute>} />
+                {/* Magic Duels Routes */}
+                <Route path="/duelos" element={<DuelHome />} />
+                <Route path="/duelos/retar" element={<DuelLobby />} />
+                <Route path="/duelos/sala/:duelId" element={<DuelRoom />} />
+                <Route path="/duelos/tienda" element={<DuelShop />} />
+                <Route path="/duelos/ranking" element={<DuelRanking />} />
+                <Route path="/duelos/hechizos" element={<DuelSpellGuide />} />
+                <Route path="/duelos/logros" element={<DuelAchievements />} />
+                <Route path="/duelos/espera/:duelId" element={<DuelWaitingRoom />} />
+                <Route path="/duelos/tutorial" element={<DuelTutorial />} />
+                <Route path="/duelos/manual" element={<DuelManual />} />
+              </Route>
 
               {/* Waiter Routes */}
               <Route path="/mesero" element={<ProtectedRoute role="waiter"><WaiterDashboard /></ProtectedRoute>} />
