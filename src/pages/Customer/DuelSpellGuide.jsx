@@ -203,19 +203,24 @@ export default function DuelSpellGuide() {
       <section className="space-y-10">
         <div className="flex items-center gap-4">
           <div className="h-[1px] flex-1 bg-magical-gold/20" />
-          <h2 className="text-3xl font-black text-white uppercase italic tracking-tighter">
-            Poderes de Casa
-          </h2>
+          <div className="text-center">
+            <h2 className="text-3xl font-black text-white uppercase italic tracking-tighter">
+              Poderes de Casa — <span className="text-magical-gold">Próximamente</span>
+            </h2>
+            <p className="text-[10px] text-white/30 uppercase font-bold tracking-[0.3em] mt-2">
+              Estos poderes aún no están activos en combate.
+            </p>
+          </div>
           <div className="h-[1px] flex-1 bg-magical-gold/20" />
         </div>
 
-        <div className="grid md:grid-cols-2 gap-8">
+        <div className="grid md:grid-cols-2 gap-8 opacity-40 grayscale pointer-events-none">
           {Object.entries(HOUSE_POWERS).map(([house, power]) => (
-            <div key={house} className={`relative glass-card p-10 rounded-[3rem] border border-white/5 overflow-hidden group hover:border-magical-gold/30 transition-all`}>
-              <div className={`absolute inset-0 bg-gradient-to-br ${HOUSE_GRADIENTS[house]} opacity-40 group-hover:opacity-60 transition-opacity`} />
+            <div key={house} className={`relative glass-card p-10 rounded-[3rem] border border-white/5 overflow-hidden group`}>
+              <div className={`absolute inset-0 bg-gradient-to-br ${HOUSE_GRADIENTS[house]} opacity-40`} />
               
               <div className="relative z-10 flex gap-6 items-start">
-                <div className="text-6xl filter drop-shadow-[0_0_15px_rgba(255,255,255,0.2)] group-hover:scale-110 transition-transform duration-500">
+                <div className="text-6xl filter drop-shadow-[0_0_15px_rgba(255,255,255,0.2)]">
                   {HOUSE_ICONS[house]}
                 </div>
                 <div className="space-y-3">
@@ -233,6 +238,12 @@ export default function DuelSpellGuide() {
               </div>
             </div>
           ))}
+        </div>
+        
+        <div className="text-center">
+          <p className="text-xs text-white/40 italic">
+            "Actualmente tu estrategia depende de los hechizos, familias, posturas, energía y la lectura del rival."
+          </p>
         </div>
       </section>
 

@@ -118,7 +118,7 @@ export const SPELLS = {
     beats: ['defense'],
     losesTo: ['counter'],
     animation: 'purple_mist',
-    description: 'Confusión (2 AP). Oculta las pistas del rival el próximo turno.'
+    description: 'Control mágico. Es fuerte contra defensas y castiga rivales que abusan de Protego.'
   },
   accio: {
     key: 'accio',

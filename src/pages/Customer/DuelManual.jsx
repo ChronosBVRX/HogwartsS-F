@@ -111,20 +111,36 @@ export default function DuelManual() {
           <h3 className="text-[10px] font-black uppercase text-magical-gold tracking-[0.4em] text-center">Triángulo de Poder</h3>
           <div className="grid grid-cols-2 gap-4 text-[10px]">
              <div className="p-4 bg-black/40 border border-impact-red/20 rounded-2xl">
-                <p className="text-impact-red font-black uppercase mb-1">Ataque</p>
-                <p className="text-white/50">Vence a Carga y Curación.</p>
+                <p className="text-impact-red font-black uppercase mb-1">Ataque Directo</p>
+                <p className="text-white/50">Vence a Carga Mágica.</p>
+             </div>
+             <div className="p-4 bg-black/40 border border-impact-red/40 rounded-2xl">
+                <p className="text-impact-red font-black uppercase mb-1">Ataque Pesado</p>
+                <p className="text-white/50">Vence a Curación y Carga Mágica.</p>
              </div>
              <div className="p-4 bg-black/40 border border-spell-blue/20 rounded-2xl">
                 <p className="text-spell-blue font-black uppercase mb-1">Defensa</p>
-                <p className="text-white/50">Vence a Ataque y Ataque Pesado.</p>
+                <p className="text-white/50">Vence a Ataque Directo y Ataque Pesado.</p>
              </div>
              <div className="p-4 bg-black/40 border border-control-purple/20 rounded-2xl">
                 <p className="text-control-purple font-black uppercase mb-1">Control</p>
                 <p className="text-white/50">Vence a Defensa.</p>
              </div>
-             <div className="p-4 bg-black/40 border border-healing-green/20 rounded-2xl">
-                <p className="text-healing-green font-black uppercase mb-1">Contrahechizo</p>
+             <div className="p-4 bg-black/40 border border-smoke-white/20 rounded-2xl">
+                <p className="text-smoke-white font-black uppercase mb-1">Contrahechizo</p>
                 <p className="text-white/50">Vence a Control.</p>
+             </div>
+             <div className="p-4 bg-black/40 border border-impact-red/30 rounded-2xl">
+                <p className="text-impact-red font-black uppercase mb-1">Desarme</p>
+                <p className="text-white/50">Vence a Ataque Pesado y Ataque Directo.</p>
+             </div>
+             <div className="p-4 bg-black/40 border border-healing-green/20 rounded-2xl">
+                <p className="text-healing-green font-black uppercase mb-1">Curación</p>
+                <p className="text-white/50">Aprovecha turnos defensivos.</p>
+             </div>
+             <div className="p-4 bg-black/40 border border-magical-gold/20 rounded-2xl">
+                <p className="text-magical-gold font-black uppercase mb-1">Carga Mágica</p>
+                <p className="text-white/50">Vence a Contrahechizo.</p>
              </div>
           </div>
         </section>
@@ -218,7 +234,7 @@ export default function DuelManual() {
           <ul className="space-y-3 text-xs text-white/70 italic">
             <li>"No gastes toda tu energía en el primer turno. La paciencia gana duelos."</li>
             <li>"Usa Protego si el rival tiene mucha energía; es probable que lance un ataque pesado."</li>
-            <li>"Combina Accio Energía con una postura defensiva para recargar sin peligro."</li>
+            <li>"Combina Accio Energía con postura concentrada para recuperar +3 de energía. Usa postura defensiva solo si esperas recibir mucho daño."</li>
           </ul>
         </section>
 
