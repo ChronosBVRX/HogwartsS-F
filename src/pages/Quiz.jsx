@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import { supabase } from '../lib/supabase'
+import { withTimeout } from '../lib/supabaseSafe'
 import { Wand2, Shield, Sparkles, AlertCircle } from 'lucide-react'
 import { useAdventureAudio } from '../hooks/useAdventureAudio'
 import { quizAudio } from '../data/quizAudioManifest'
@@ -473,17 +474,26 @@ export default function Quiz() {
 
     if (user) {
       setSaving(true)
-      // Use upsert to ensure the profile exists, or update if it does
-      const { error } = await supabase
-        .from('hsf_profiles')
-        .upsert({ 
-          user_id: user.id,
-          house_slug: winner,
-          updated_at: new Date().toISOString()
-        }, { onConflict: 'user_id' })
+      
+      const { error } = await withTimeout(
+        supabase
+          .from('hsf_profiles')
+          .upsert({ 
+            user_id: user.id,
+            display_name: user.user_metadata?.display_name || user.email?.split('@')[0] || 'Mago sin nombre',
+            phone: user.user_metadata?.phone || null,
+            house_slug: winner,
+            updated_at: new Date().toISOString()
+          }, { onConflict: 'user_id' }),
+        8000,
+        'Guardando casa'
+      )
       
       if (error) {
         console.error('[QUIZ SAVE ERROR]', error)
+        alert('El Sombrero eligió tu casa, pero no se pudo guardar en tu perfil. Intenta nuevamente.')
+        setSaving(false)
+        return
       } else {
         console.log('[QUIZ SAVE SUCCESS]', winner)
         // Refresh the global profile state so other pages see the change immediately
