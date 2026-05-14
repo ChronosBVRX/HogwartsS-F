@@ -209,8 +209,10 @@ export default function Menu() {
   const filteredMenu = useMemo(() => {
     return menuItems.filter(item => {
       const matchesCategory = !activeCategory || item.categoria === activeCategory
-      const matchesSearch = item.nombre.toLowerCase().includes(searchQuery.toLowerCase()) || 
-                           item.categoria.toLowerCase().includes(searchQuery.toLowerCase())
+      const safeName = item.nombre || ""
+      const safeCat = item.categoria || ""
+      const matchesSearch = safeName.toLowerCase().includes((searchQuery || "").toLowerCase()) || 
+                           safeCat.toLowerCase().includes((searchQuery || "").toLowerCase())
       return matchesCategory && matchesSearch
     })
   }, [activeCategory, searchQuery, menuItems])
