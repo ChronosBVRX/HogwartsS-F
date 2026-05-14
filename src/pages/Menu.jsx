@@ -168,7 +168,7 @@ export default function Menu() {
         dynamicCats = catRes.data.map(c => ({
           id: c.id,
           name: c.name,
-          icon: ICON_MAP[c.description?.split('|')[0]] || <Wand2 className="w-4 h-4" />,
+          iconKey: c.description?.split('|')[0],
           img: STOCK_IMAGES[c.name] || STOCK_IMAGES["default"]
         }))
 
@@ -265,7 +265,7 @@ export default function Menu() {
                         <div className="absolute inset-0 bg-gradient-to-t from-magical-navy via-magical-navy/20 to-transparent" />
                         <div className="absolute inset-0 p-4 md:p-8 flex flex-col items-center justify-end text-center space-y-2 md:space-y-3">
                           <div className="p-2.5 md:p-4 rounded-xl md:rounded-2xl bg-white/10 backdrop-blur-md border border-white/10 text-magical-gold shadow-2xl group-hover:bg-magical-gold group-hover:text-magical-navy transition-all">
-                            {React.cloneElement(cat.icon, { className: "w-4 h-4 md:w-5 md:h-5" })}
+                            {React.cloneElement(ICON_MAP[cat.iconKey] || <Wand2 />, { className: "w-4 h-4 md:w-5 md:h-5" })}
                           </div>
                           <span className="text-[10px] md:text-lg font-black uppercase tracking-widest md:tracking-[0.2em] text-white drop-shadow-2xl">{cat.name}</span>
                         </div>
