@@ -111,6 +111,16 @@ export function buildTurnAnnouncement({ payload: rawPayload, isP1 }) {
   })
   if (my.blocked > 0) timeline.push(`Bloqueaste ${my.blocked} de daño.`)
   if (my.heal > 0) timeline.push(`Te curaste ${my.heal} HP.`)
+  
+  if (payload[myPrefix + 'burn'] > 0) {
+    timeline.push(`¡Sufres quemaduras! (Recibes 5 de daño extra).`)
+  }
+  if (payload[myPrefix + 'weakness'] > 0) {
+    timeline.push(`Te sientes débil; tu próximo ataque será menos potente.`)
+  }
+  if (my.actions.some(a => a.key === 'finite')) {
+    timeline.push(`Finite Incantatem anuló todos los efectos de control sobre ti.`)
+  }
 
   // 3. Fórmula (Daño Recibido)
   const damageFormula = []
@@ -145,7 +155,21 @@ export function buildTurnAnnouncement({ payload: rawPayload, isP1 }) {
     rivalStance: rival.stance,
     myDamageTaken: my.damageTaken,
     rivalDamageTaken: my.damageDealt,
-    myBreakdown: { blocked: my.blocked, energyChange: my.energyChange, interrupted: my.interrupted, heal: my.heal },
-    rivalBreakdown: { blocked: rival.blocked, energyChange: rival.energyChange, interrupted: rival.interrupted, heal: rival.heal }
+    myBreakdown: { 
+      blocked: payload[myPrefix + 'cancelled_damage'] || 0, 
+      energyChange: my.energyChange, 
+      interrupted: my.interrupted, 
+      heal: my.heal,
+      burn: payload[myPrefix + 'burn'] || 0,
+      weakness: payload[myPrefix + 'weakness'] || 0
+    },
+    rivalBreakdown: { 
+      blocked: payload[rivalPrefix + 'cancelled_damage'] || 0, 
+      energyChange: rival.energyChange, 
+      interrupted: rival.interrupted, 
+      heal: rival.heal,
+      burn: payload[rivalPrefix + 'burn'] || 0,
+      weakness: payload[rivalPrefix + 'weakness'] || 0
+    }
   }
 }
