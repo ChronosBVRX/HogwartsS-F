@@ -73,10 +73,12 @@ export const AuthProvider = ({ children }) => {
 
     // 2. Listen for subsequent changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
-      // Avoid re-fetching profile during initial load if initAuth is already doing it
-      if (!initialized.current && event === 'SIGNED_IN') return
-
       console.log('Auth event:', event)
+      
+      if (event === 'PASSWORD_RECOVERY') {
+        window.location.hash = '#/restablecer-password'
+      }
+
       const currentUser = session?.user ?? null
       
       if (mounted) {
