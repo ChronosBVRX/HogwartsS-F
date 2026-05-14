@@ -1,5 +1,5 @@
-import React, { useEffect, useState } from 'react'
-import { supabase } from '../lib/supabase'
+import { withTimeout } from '../lib/supabaseSafe'
+import { formatMagicalText } from '../utils/magicalFormatters'
 import { Swords, Trophy, ShoppingBag, Trash2, Edit3, Plus, Search, Check, X } from 'lucide-react'
 
 export default function AdminDuelManager() {
@@ -15,18 +15,35 @@ export default function AdminDuelManager() {
 
   const fetchDuelData = async () => {
     setLoading(true)
-    if (activeSubTab === 'items') {
-      const { data } = await supabase.from('hsf_duel_items').select('*').order('created_at', { ascending: false })
-      if (data) setItems(data)
-    } else if (activeSubTab === 'active') {
-      const { data } = await supabase.from('hsf_duels').select('*').neq('status', 'finished').order('updated_at', { ascending: false }).limit(20)
-      if (data) setActiveDuels(data)
-    } else if (activeSubTab === 'ranking') {
-      const monthKey = new Date().toISOString().substring(0, 7)
-      const { data } = await supabase.from('hsf_duel_house_points').select('*').eq('month_key', monthKey).order('points', { ascending: false })
-      if (data) setHousePoints(data)
+    try {
+      if (activeSubTab === 'items') {
+        const { data } = await withTimeout(
+          supabase.from('hsf_duel_items').select('*').order('created_at', { ascending: false }),
+          8000,
+          'Cargando tienda'
+        )
+        if (data) setItems(data)
+      } else if (activeSubTab === 'active') {
+        const { data } = await withTimeout(
+          supabase.from('hsf_duels').select('*').neq('status', 'finished').order('updated_at', { ascending: false }).limit(20),
+          8000,
+          'Cargando duelos'
+        )
+        if (data) setActiveDuels(data)
+      } else if (activeSubTab === 'ranking') {
+        const monthKey = new Date().toISOString().substring(0, 7)
+        const { data } = await withTimeout(
+          supabase.from('hsf_duel_house_points').select('*').eq('month_key', monthKey).order('points', { ascending: false }),
+          8000,
+          'Cargando ranking'
+        )
+        if (data) setHousePoints(data)
+      }
+    } catch (err) {
+      console.error('[ADMIN DUEL FETCH ERROR]', err)
+    } finally {
+      setLoading(false)
     }
-    setLoading(false)
   }
 
   const toggleItemActive = async (itemId, currentState) => {
@@ -119,9 +136,9 @@ export default function AdminDuelManager() {
             <div key={duel.id} className="glass-card p-4 flex justify-between items-center border-white/5">
               <div className="space-y-1">
                 <div className="flex items-center gap-2">
-                  <span className="text-xs font-black text-white">{duel.player_one_name}</span>
+                  <span className="text-xs font-black text-white">{formatMagicalText(duel.player_one_name)}</span>
                   <span className="text-[10px] text-white/20 italic">vs</span>
-                  <span className="text-xs font-black text-white">{duel.player_two_name}</span>
+                  <span className="text-xs font-black text-white">{formatMagicalText(duel.player_two_name)}</span>
                 </div>
                 <div className="text-[8px] font-black uppercase tracking-widest text-magical-gold">Turno {duel.turn_number} • {duel.status}</div>
               </div>

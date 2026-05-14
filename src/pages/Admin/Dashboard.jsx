@@ -1,7 +1,9 @@
 import React, { useEffect, useState } from 'react'
 import { supabase } from '../../lib/supabase'
 import { useAuth } from '../../context/AuthContext'
-import { Shield, Ticket, Check, X, Users, Star, TrendingUp, AlertCircle, Search, UserCog, UserPlus, Wand2, Map } from 'lucide-react'
+import { withTimeout } from '../../lib/supabaseSafe'
+import { formatMagicalText } from '../../utils/magicalFormatters'
+import { Shield, Ticket, Check, X, Users, Star, TrendingUp, AlertCircle, Search, UserCog, UserPlus, Wand2, Map, Home } from 'lucide-react'
 import AdminMenuManager from '../../components/AdminMenuManager'
 import AdminAdventureManager from '../../components/AdminAdventureManager'
 import AdminDuelManager from '../../components/AdminDuelManager'
@@ -23,25 +25,29 @@ export default function AdminDashboard() {
     setLoading(true)
     
     try {
-      // 1. Fetch Global Stats via RPC (Parallel with tab data)
-      const statsPromise = supabase.rpc('hsf_admin_dashboard_stats')
+      // 1. Fetch Global Stats via RPC
+      const statsPromise = withTimeout(
+        supabase.rpc('hsf_admin_dashboard_stats'),
+        8000,
+        'Cargando estadísticas'
+      )
       
       if (activeTab === 'tickets') {
-        let ticketQuery = supabase
-          .from('hsf_ticket_claims')
-          .select(`
-            id, folio, amount, points_awarded, status, customer_id, created_at,
-            session:hsf_visit_sessions!hsf_ticket_claims_session_id_fkey (
-              id,
-              customer:hsf_profiles!hsf_visit_sessions_customer_id_fkey (user_id, display_name, phone)
-            )
-          `)
-          .order('created_at', { ascending: false })
-          .limit(100)
-
-        if (filter !== 'all') {
-          ticketQuery = ticketQuery.eq('status', filter)
-        }
+        const ticketQuery = withTimeout(
+          supabase
+            .from('hsf_ticket_claims')
+            .select(`
+              id, folio, amount, points_awarded, status, customer_id, created_at,
+              session:hsf_visit_sessions!hsf_ticket_claims_session_id_fkey (
+                id,
+                customer:hsf_profiles!hsf_visit_sessions_customer_id_fkey (user_id, display_name, phone)
+              )
+            `)
+            .order('created_at', { ascending: false })
+            .limit(100),
+          10000,
+          'Cargando tickets'
+        )
 
         const [statsRes, ticketsRes] = await Promise.all([statsPromise, ticketQuery])
 
@@ -56,13 +62,19 @@ export default function AdminDashboard() {
 
         if (!ticketsRes.error) setTickets(ticketsRes.data || [])
       } else if (activeTab === 'users') {
-        const [statsRes, usersRes] = await Promise.all([
-          statsPromise,
+        const usersQuery = withTimeout(
           supabase
             .from('hsf_profiles')
             .select('*')
             .order('created_at', { ascending: false })
-            .limit(200)
+            .limit(200),
+          10000,
+          'Cargando usuarios'
+        )
+
+        const [statsRes, usersRes] = await Promise.all([
+          statsPromise,
+          usersQuery
         ])
 
         if (!statsRes.error && statsRes.data?.[0]) {
@@ -299,6 +311,7 @@ export default function AdminDashboard() {
                 <thead className="bg-white/5 text-white/40 text-[9px] font-black uppercase tracking-[0.2em]">
                   <tr>
                     <th className="px-8 py-6">Mago</th>
+                    <th className="px-8 py-6">Casa</th>
                     <th className="px-8 py-6">Puntos</th>
                     <th className="px-8 py-6">Rol Actual</th>
                     <th className="px-8 py-6 text-right">Asignar Nuevo Rol</th>
@@ -310,8 +323,18 @@ export default function AdminDashboard() {
                   ) : allUsers.map(u => (
                     <tr key={u.user_id} className="hover:bg-white/5 transition-colors group">
                       <td className="px-8 py-6">
-                        <div className="font-bold text-white uppercase italic">{u.display_name}</div>
+                        <div className="font-bold text-white uppercase italic">{formatMagicalText(u.display_name)}</div>
                         <div className="text-[10px] text-white/30">{u.phone}</div>
+                      </td>
+                      <td className="px-8 py-6 font-bold text-[10px] uppercase tracking-widest">
+                        <span className={`px-2 py-1 rounded-md ${
+                          u.house_slug === 'red' ? 'text-red-400 bg-red-400/10' :
+                          u.house_slug === 'green' ? 'text-green-400 bg-green-400/10' :
+                          u.house_slug === 'blue' ? 'text-blue-400 bg-blue-400/10' :
+                          u.house_slug === 'yellow' ? 'text-yellow-400 bg-yellow-400/10' : 'text-white/20'
+                        }`}>
+                          {formatMagicalText(u.house_slug) || 'Sin casa'}
+                        </span>
                       </td>
                       <td className="px-8 py-6 font-black text-magical-gold">{u.loyalty_points} G</td>
                       <td className="px-8 py-6">

@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { supabase } from '../lib/supabase'
 import { withTimeout } from '../lib/supabaseSafe'
+import { formatMagicalText } from '../utils/magicalFormatters'
 import AdventurePoster from './AdventurePoster'
 import { QrCode, Printer, RefreshCw, Gift, CheckCircle2, Map, AlertCircle } from 'lucide-react'
 
@@ -130,7 +131,7 @@ export default function AdminAdventureManager() {
                       : 'bg-white/5 text-white/60 border-white/10 hover:bg-white/10'
                   }`}
                 >
-                  <p className="font-black uppercase italic text-sm">{zone.name}</p>
+                  <p className="font-black uppercase italic text-sm">{formatMagicalText(zone.name)}</p>
                   <p className="text-[9px] uppercase font-bold opacity-60">Piso {zone.floor_number || '-'}</p>
                 </button>
               ))}
@@ -234,11 +235,11 @@ export default function AdminAdventureManager() {
                 {adventures.map((adv) => (
                   <tr key={adv.id} className="hover:bg-white/5 transition-colors">
                     <td className="px-6 py-5">
-                      <p className="font-black text-white uppercase italic">{adv.title}</p>
+                      <p className="font-black text-white uppercase italic">{formatMagicalText(adv.title)}</p>
                       <p className="text-[10px] text-white/30">{adv.slug}</p>
                     </td>
                     <td className="px-6 py-5 text-magical-gold font-black">{adv.steps?.length || 0}</td>
-                    <td className="px-6 py-5 text-white/60 text-xs">{adv.reward_title}</td>
+                    <td className="px-6 py-5 text-white/60 text-xs">{formatMagicalText(adv.reward_title)}</td>
                     <td className="px-6 py-5 text-white font-black">+{adv.reward_points}</td>
                     <td className="px-6 py-5">
                       <span className={`text-[8px] px-2 py-0.5 rounded-full uppercase font-black tracking-widest border ${
@@ -271,8 +272,8 @@ export default function AdminAdventureManager() {
           ) : rewards.map((reward) => (
             <div key={reward.id} className="p-5 flex flex-col md:flex-row md:items-center justify-between gap-4">
               <div>
-                <p className="font-black text-white uppercase italic">{reward.reward_title}</p>
-                <p className="text-white/40 text-xs">{reward.reward_description}</p>
+                <p className="font-black text-white uppercase italic">{formatMagicalText(reward.reward_title)}</p>
+                <p className="text-white/40 text-xs">{formatMagicalText(reward.reward_description)}</p>
                 <p className="text-[10px] text-magical-gold mt-1 uppercase font-black">
                   Usuario ID: {reward.customer_id?.slice(0,8)}
                 </p>

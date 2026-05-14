@@ -1,5 +1,4 @@
-import React, { useState, useEffect } from 'react'
-import { supabase } from '../lib/supabase'
+import { withTimeout } from '../lib/supabaseSafe'
 import { Wand2, Plus, Edit2, Trash2, Save, X, Eye, EyeOff } from 'lucide-react'
 
 export default function AdminMenuManager() {
@@ -17,13 +16,26 @@ export default function AdminMenuManager() {
 
   const fetchData = async () => {
     setLoading(true)
-    const [catRes, itemRes] = await Promise.all([
-      supabase.from('hsf_menu_categories').select('id, name, description, sort_order, active').order('sort_order', { ascending: true }),
-      supabase.from('hsf_menu_items').select('*, category:hsf_menu_categories(name)').order('sort_order', { ascending: true })
-    ])
-    if (catRes.data) setCategories(catRes.data)
-    if (itemRes.data) setItems(itemRes.data)
-    setLoading(false)
+    try {
+      const [catRes, itemRes] = await Promise.all([
+        withTimeout(
+          supabase.from('hsf_menu_categories').select('id, name, description, sort_order, active').order('sort_order', { ascending: true }),
+          8000,
+          'Cargando categorías'
+        ),
+        withTimeout(
+          supabase.from('hsf_menu_items').select('*, category:hsf_menu_categories(name)').order('sort_order', { ascending: true }),
+          10000,
+          'Cargando menú'
+        )
+      ])
+      if (catRes.data) setCategories(catRes.data)
+      if (itemRes.data) setItems(itemRes.data)
+    } catch (err) {
+      console.error('[ADMIN MENU FETCH ERROR]', err)
+    } finally {
+      setLoading(false)
+    }
   }
 
   const [uploading, setUploading] = useState(false)
