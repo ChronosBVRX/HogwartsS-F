@@ -44,6 +44,7 @@ export const AuthProvider = ({ children }) => {
 
     const initialHref = window.location.href
     const isRecoveryUrl =
+      initialHref.includes('recovery=1') ||
       initialHref.includes('type=recovery') ||
       initialHref.includes('access_token=') ||
       initialHref.includes('refresh_token=') ||
@@ -92,7 +93,7 @@ export const AuthProvider = ({ children }) => {
             await fetchProfile(currentUser.id)
           }
 
-          if (isRecoveryUrl && currentUser) {
+          if (isRecoveryUrl) {
             goToResetPassword()
           }
         }
