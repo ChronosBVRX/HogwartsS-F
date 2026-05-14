@@ -33,7 +33,7 @@ const HOUSE_CONFIG = {
 }
 
 export default function Profile() {
-  const { profile, signOut } = useAuth()
+  const { profile, profileLoading, signOut } = useAuth()
   const [activeSession, setActiveSession] = useState(null)
   const [ticketHistory, setTicketHistory] = useState([])
   const [monthlyPoints, setMonthlyPoints] = useState(0)
@@ -47,58 +47,56 @@ export default function Profile() {
     }
     
     try {
-      // Fetch active session
-      const { data: sessionData, error: sessionError } = await withTimeout(
-        supabase
-          .from('hsf_visit_sessions')
-          .select('*')
-          .in('status', ['qr_generated', 'seated', 'closed_waiting_ticket', 'ticket_submitted'])
-          .eq('customer_id', profile.user_id)
-          .order('created_at', { ascending: false })
-          .limit(1)
-          .maybeSingle(),
-        8000,
-        'Cargando sesión de visita'
-      )
-
-      if (sessionError) console.error('Error fetching active session:', sessionError)
-      if (sessionData) setActiveSession(sessionData)
-      else setActiveSession(null)
-
-      // Fetch ticket history
-      const { data: historyData, error: historyError } = await withTimeout(
-        supabase
-          .from('hsf_ticket_claims')
-          .select('*')
-          .eq('customer_id', profile.user_id)
-          .order('created_at', { ascending: false })
-          .limit(10),
-        8000,
-        'Cargando historial de tickets'
-      )
-
-      if (historyError) console.error('Error fetching ticket history:', historyError)
-      setTicketHistory(historyData || [])
-
-      // Fetch monthly approved points
       const startOfMonth = new Date()
       startOfMonth.setDate(1)
       startOfMonth.setHours(0, 0, 0, 0)
 
-      const { data: monthlyData, error: monthlyError } = await withTimeout(
-        supabase
-          .from('hsf_ticket_claims')
-          .select('points_awarded')
-          .eq('customer_id', profile.user_id)
-          .eq('status', 'approved')
-          .gte('created_at', startOfMonth.toISOString()),
-        8000,
-        'Cargando puntos mensuales'
-      )
+      // Fetch all data in parallel to save time
+      const [sessionResult, historyResult, monthlyResult] = await Promise.all([
+        withTimeout(
+          supabase
+            .from('hsf_visit_sessions')
+            .select('*')
+            .in('status', ['qr_generated', 'seated', 'closed_waiting_ticket', 'ticket_submitted'])
+            .eq('customer_id', profile.user_id)
+            .order('created_at', { ascending: false })
+            .limit(1)
+            .maybeSingle(),
+          8000,
+          'Cargando sesión de visita'
+        ),
+        withTimeout(
+          supabase
+            .from('hsf_ticket_claims')
+            .select('*')
+            .eq('customer_id', profile.user_id)
+            .order('created_at', { ascending: false })
+            .limit(10),
+          8000,
+          'Cargando historial de tickets'
+        ),
+        withTimeout(
+          supabase
+            .from('hsf_ticket_claims')
+            .select('points_awarded')
+            .eq('customer_id', profile.user_id)
+            .eq('status', 'approved')
+            .gte('created_at', startOfMonth.toISOString()),
+          8000,
+          'Cargando puntos mensuales'
+        )
+      ])
 
-      if (monthlyError) console.error('Error fetching monthly points:', monthlyError)
-      const total = monthlyData?.reduce((acc, curr) => acc + (curr.points_awarded || 0), 0) || 0
+      if (sessionResult.error) console.error('Error fetching active session:', sessionResult.error)
+      setActiveSession(sessionResult.data || null)
+
+      if (historyResult.error) console.error('Error fetching ticket history:', historyResult.error)
+      setTicketHistory(historyResult.data || [])
+
+      if (monthlyResult.error) console.error('Error fetching monthly points:', monthlyResult.error)
+      const total = monthlyResult.data?.reduce((acc, curr) => acc + (curr.points_awarded || 0), 0) || 0
       setMonthlyPoints(total)
+
     } catch (err) {
       console.error('fetchActiveSession failed:', err)
     } finally {
@@ -145,7 +143,7 @@ export default function Profile() {
     if (!error) fetchActiveSession()
   }
 
-  if (loading && !activeSession) {
+  if ((loading && !activeSession) || profileLoading) {
     return (
       <div className="flex-1 flex items-center justify-center">
         <div className="animate-pulse text-magical-gold font-black uppercase tracking-widest text-xs">
@@ -155,7 +153,7 @@ export default function Profile() {
     )
   }
 
-  if (!profile) {
+  if (!profile && !profileLoading) {
     return (
       <div className="flex-1 flex items-center justify-center p-6">
         <div className="glass-card p-8 rounded-[2.5rem] text-center space-y-6 max-w-md border border-white/10">

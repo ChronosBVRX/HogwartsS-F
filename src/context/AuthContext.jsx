@@ -7,9 +7,12 @@ const AuthContext = createContext({})
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null)
   const [profile, setProfile] = useState(null)
-  const [loading, setLoading] = useState(true)
+  const [loading, setLoading] = useState(true) // Initial auth loading
+  const [profileLoading, setProfileLoading] = useState(true) // Background profile loading
   const [authError, setAuthError] = useState(null)
   const initialized = useRef(false)
+  const fetchingProfile = useRef(false)
+  const currentUserId = useRef(null)
 
   const fetchProfile = useCallback(async (userId) => {
     if (!userId) {
@@ -101,6 +104,29 @@ export const AuthProvider = ({ children }) => {
       }
     }, 15000)
 
+    const initializeAuth = async () => {
+      // Leer sesión local de inmediato sin esperar eventos asíncronos de red
+      const { data: { session } } = await supabase.auth.getSession()
+      
+      const currentUser = session?.user ?? null
+      if (mounted) {
+        setUser(currentUser)
+        if (!currentUser) {
+           setProfile(null)
+           setProfileLoading(false)
+        }
+        
+        // ¡Desbloquear la UI DE INMEDIATO!
+        if (!initialized.current) {
+          clearTimeout(fallbackTimer)
+          initialized.current = true
+          setLoading(false)
+        }
+      }
+    }
+
+    initializeAuth()
+
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
       console.log('Auth event:', event)
 
@@ -114,21 +140,39 @@ export const AuthProvider = ({ children }) => {
         setUser(currentUser)
 
         if (currentUser) {
-          try {
-            const p = await withTimeout(ensureHsfProfile(currentUser), 15000, 'Verificando perfil')
-            if (mounted) setProfile(p)
-          } catch (error) {
-            console.error('Error al asegurar perfil:', error)
-            if (mounted) setProfile(null)
+          if (currentUserId.current === currentUser.id && profile) {
+             setProfileLoading(false)
+          } else if (!fetchingProfile.current) {
+             fetchingProfile.current = true
+             setProfileLoading(true)
+             currentUserId.current = currentUser.id
+             
+             try {
+               const p = await withTimeout(ensureHsfProfile(currentUser), 15000, 'Verificando perfil')
+               if (mounted) setProfile(p)
+             } catch (error) {
+               console.error('Error al asegurar perfil:', error)
+               if (mounted) setProfile(null)
+             } finally {
+               if (mounted) {
+                 fetchingProfile.current = false
+                 setProfileLoading(false)
+               }
+             }
           }
         } else {
-          setProfile(null)
+          currentUserId.current = null
+          if (mounted) {
+            setProfile(null)
+            setProfileLoading(false)
+          }
         }
 
         if (isRecoveryUrl && event === 'INITIAL_SESSION') {
           goToResetPassword()
         }
 
+        // Failsafe por si initializeAuth falló
         if (!initialized.current) {
           clearTimeout(fallbackTimer)
           initialized.current = true
@@ -160,6 +204,7 @@ export const AuthProvider = ({ children }) => {
     user,
     profile,
     loading,
+    profileLoading,
     authError,
     isAdmin: profile?.role === 'admin',
     isWaiter: profile?.role === 'waiter' || profile?.role === 'admin',
