@@ -71,6 +71,10 @@ export default function AdventureScanner() {
       return
     }
 
+    setLoading(true)
+    setError(null)
+    setMessage('Consultando el portal mágico...')
+
     let data
     let error
 
@@ -111,6 +115,7 @@ export default function AdventureScanner() {
 
     audio.stopSequence()
     audio.stopVoice()
+    setMessage(null)
     
     timeoutRef.current = setTimeout(() => {
       navigate(`/aventura/jugar/${data.run_id}`)

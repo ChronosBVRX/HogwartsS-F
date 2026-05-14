@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../../context/AuthContext'
 import { supabase } from '../../lib/supabase'
+import { withTimeout } from '../../lib/supabaseSafe'
 import { QRCodeSVG } from 'qrcode.react'
 import { ChevronLeft, QrCode, Clock, ShieldCheck, AlertCircle } from 'lucide-react'
 
@@ -12,63 +13,79 @@ export default function Attendance() {
   const navigate = useNavigate()
 
   useEffect(() => {
-    if (user) {
-      fetchOrCreateSession()
-
-      const channel = supabase
-        .channel(`attendance_updates_${user.id}`)
-        .on(
-          'postgres_changes',
-          {
-            event: 'UPDATE',
-            table: 'hsf_visit_sessions',
-            filter: `customer_id=eq.${user.id}`
-          },
-          (payload) => {
-            if (payload.new.status === 'seated') {
-              navigate('/perfil')
-            } else {
-              fetchOrCreateSession()
-            }
-          }
-        )
-        .subscribe()
-
-      return () => supabase.removeChannel(channel)
+    if (!user) {
+      setLoading(false)
+      return
     }
+
+    fetchOrCreateSession()
+
+    const channel = supabase
+      .channel(`attendance_updates_${user.id}`)
+      .on(
+        'postgres_changes',
+        {
+          event: 'UPDATE',
+          table: 'hsf_visit_sessions',
+          filter: `customer_id=eq.${user.id}`
+        },
+        (payload) => {
+          if (payload.new.status === 'seated') {
+            navigate('/perfil')
+          } else {
+            fetchOrCreateSession()
+          }
+        }
+      )
+      .subscribe()
+
+    return () => supabase.removeChannel(channel)
   }, [user, navigate])
 
   const fetchOrCreateSession = async () => {
     setLoading(true)
     
-    // 1. Check for active session
-    const { data: existing } = await supabase
-      .from('hsf_visit_sessions')
-      .select('*')
-      .in('status', ['qr_generated', 'seated'])
-      .eq('customer_id', user.id)
-      .order('created_at', { ascending: false })
-      .limit(1)
-      .maybeSingle()
+    try {
+      // 1. Check for active session
+      const { data: existing } = await withTimeout(
+        supabase
+          .from('hsf_visit_sessions')
+          .select('*')
+          .in('status', ['qr_generated', 'seated'])
+          .eq('customer_id', user.id)
+          .order('created_at', { ascending: false })
+          .limit(1)
+          .maybeSingle(),
+        7000,
+        'Consultando sesión activa'
+      )
 
-    if (existing) {
-      setSession(existing)
-      setLoading(false)
-    } else {
-      // 2. Create new session (DB handles qr_token as UUID)
-      const { data, error } = await supabase
-        .from('hsf_visit_sessions')
-        .insert({ 
-          customer_id: user.id 
-        })
-        .select()
-        .single()
-      
-      if (error) {
-        console.error('[ATTENDANCE INSERT ERROR]', error)
+      if (existing) {
+        setSession(existing)
+        setLoading(false)
       } else {
-        setSession(data)
+        // 2. Create new session (DB handles qr_token as UUID)
+        const { data, error } = await withTimeout(
+          supabase
+            .from('hsf_visit_sessions')
+            .insert({ 
+              customer_id: user.id 
+            })
+            .select()
+            .single(),
+          10000,
+          'Invocando pase'
+        )
+        
+        if (error) {
+          console.error('[ATTENDANCE INSERT ERROR]', error)
+        } else {
+          setSession(data)
+        }
+        setLoading(false)
       }
+    } catch (err) {
+      console.error('[ATTENDANCE ERROR]', err)
       setLoading(false)
     }
   }
@@ -77,6 +94,16 @@ export default function Attendance() {
     return (
       <div className="flex-1 flex items-center justify-center p-6 text-center animate-pulse">
         <p className="text-magical-gold uppercase font-black tracking-widest italic">Invocando pase de entrada...</p>
+      </div>
+    )
+  }
+
+  if (!user) {
+    return (
+      <div className="flex-1 flex items-center justify-center p-6 text-center">
+        <p className="text-white/50 uppercase font-black tracking-widest text-xs">
+          Inicia sesión para generar tu pase mágico.
+        </p>
       </div>
     )
   }

@@ -117,10 +117,29 @@ export default function AdventurePlay() {
     audio.stopVoice()
     await audio.playSfx(adventureAudio.ui.magicClick, { volume: 0.55 })
 
-    const { data, error } = await supabase.rpc('hsf_answer_adventure_step', {
-      p_run_id: runId,
-      p_answer: value
-    })
+    let data
+    let error
+
+    try {
+      const result = await withTimeout(
+        supabase.rpc('hsf_answer_adventure_step', {
+          p_run_id: runId,
+          p_answer: value
+        }),
+        10000,
+        'Consultando respuesta'
+      )
+
+      data = result.data
+      error = result.error
+    } catch (err) {
+      setAnswering(false)
+      setResult({
+        ok: false,
+        message: 'El pergamino tardó demasiado en responder. Intenta nuevamente.'
+      })
+      return
+    }
 
     setAnswering(false)
 
