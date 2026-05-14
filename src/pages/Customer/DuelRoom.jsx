@@ -27,7 +27,6 @@ export default function DuelRoom() {
   const [resolutionStage, setResolutionStage] = useState('idle') // idle, casting, impact, narrative
   const [showResult, setShowResult] = useState(false)
   const [timeLeft, setTimeLeft] = useState(20)
-  const [cooldowns, setCooldowns] = useState({})
   const [isMenuOpen, setIsMenuOpen] = useState(false)
   
   const STANCES = [
@@ -60,6 +59,10 @@ export default function DuelRoom() {
   const iWon = duelFinished && duel?.winner_id === profile?.user_id
   const isDraw = duelFinished && !duel?.winner_id && duel?.player_one_hp === duel?.player_two_hp
   const iLost = duelFinished && !iWon && !isDraw
+
+  const myCooldowns = isP1
+    ? duel?.player_one_cooldowns || {}
+    : duel?.player_two_cooldowns || {}
 
   const getDuelResultExplanation = () => {
     if (!duelFinished) return null
@@ -188,11 +191,6 @@ export default function DuelRoom() {
       
       setDuel(formattedData)
       
-      // Sync initial cooldowns
-      const localIsP1 = profile?.user_id === formattedData.player_one
-      const cds = localIsP1 ? formattedData.player_one_cooldowns : formattedData.player_two_cooldowns
-      setCooldowns(cds || {})
-      
       if (formattedData.status === 'finished') {
         setShowResult(true)
       }
@@ -245,12 +243,6 @@ export default function DuelRoom() {
       }, (payload) => {
         console.log('DUEL UPDATE:', payload.new)
         setDuel(prev => ({ ...prev, ...payload.new }))
-        // Sync cooldowns if it's my turn
-        if (payload.new.status === 'active') {
-          const localIsP1 = profile?.user_id === payload.new.player_one
-          const cds = localIsP1 ? payload.new.player_one_cooldowns : payload.new.player_two_cooldowns
-          setCooldowns(cds || {})
-        }
         if (payload.new.status === 'finished') {
           setShowResult(true)
         }
@@ -269,18 +261,6 @@ export default function DuelRoom() {
         
         setLastEvent(enrichedEvent)
         setResolutionStage('casting')
-        
-        // Si el evento es de resolución de turno, reducir cooldowns localmente
-        if (payload.new.event_type === 'turn_resolved') {
-          setCooldowns(prev => {
-            const nextCds = { ...prev }
-            Object.keys(nextCds).forEach(k => {
-              if (nextCds[k] > 0) nextCds[k] -= 1
-              if (nextCds[k] <= 0) delete nextCds[k]
-            })
-            return nextCds
-          })
-        }
         
         if (cleanPayload) {
           const p1_damage = cleanPayload.p1_damage || 0
@@ -628,7 +608,7 @@ export default function DuelRoom() {
                         audioManager.playSfx('ui_card_select')
                       }}
                       disabled={isSubmitting}
-                      cooldown={cooldowns[key] || 0}
+                      cooldown={Number(myCooldowns?.[key] ?? 0)}
                       compact
                     />
                   )
@@ -645,7 +625,12 @@ export default function DuelRoom() {
           spell={detailedSpell} 
           onClose={() => setDetailedSpell(null)}
           isSelected={selectedActions.some(a => a.key === detailedSpell.key)}
-          canCast={usedAP + (detailedSpell.apCost ?? 1) <= 2 && (myEnergy - totalEnergyCost) >= (detailedSpell.energyCost ?? 0) && !isSubmitting}
+          canCast={
+            Number(myCooldowns?.[detailedSpell.key] ?? 0) <= 0 &&
+            usedAP + (detailedSpell.apCost ?? 1) <= 2 && 
+            (myEnergy - totalEnergyCost) >= (detailedSpell.energyCost ?? 0) && 
+            !isSubmitting
+          }
           onCast={() => {
             const isSelected = selectedActions.some(a => a.key === detailedSpell.key)
             if (isSelected) {
