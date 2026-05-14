@@ -2,8 +2,11 @@ import { normalizeHouseSlug, HOUSE_META, getAvatar } from '../../lib/houses'
 import audioManager from '../../lib/audioManager'
 import { useEffect } from 'react'
 import { SPELLS } from '../../lib/duelSpells'
+import { normalizeDuelPayload } from '../../lib/duelRules'
 
 export default function DuelArena({ duel, lastEvent, isResolving, player, opponent, isP1 }) {
+  const payload = normalizeDuelPayload(lastEvent?.payload)
+  
   const normPlayer = normalizeHouseSlug(player?.house)
   const normOpponent = normalizeHouseSlug(opponent?.house)
   
@@ -13,16 +16,15 @@ export default function DuelArena({ duel, lastEvent, isResolving, player, oppone
   const pMeta = HOUSE_META[normPlayer] || { name: 'Mago' }
   const oMeta = HOUSE_META[normOpponent] || { name: 'Rival' }
 
-  const p1Damage = lastEvent?.payload?.p1_damage || 0
-  const p2Damage = lastEvent?.payload?.p2_damage || 0
+  const p1Damage = payload?.p1_damage || 0
+  const p2Damage = payload?.p2_damage || 0
 
   // Perspective based damage
   const myDamageTaken = isP1 ? p1Damage : p2Damage
   const rivalDamageTaken = isP1 ? p2Damage : p1Damage
 
   useEffect(() => {
-    if (isResolving && lastEvent?.payload) {
-      const payload = lastEvent.payload
+    if (isResolving && payload) {
       const myPrefix = isP1 ? 'p1_' : 'p2_'
       const rivalPrefix = isP1 ? 'p2_' : 'p1_'
 
@@ -33,7 +35,7 @@ export default function DuelArena({ duel, lastEvent, isResolving, player, oppone
       
       const hasHeavy = allActions.some(a => {
         const spell = SPELLS[a.key]
-        return spell?.cost >= 2
+        return (spell?.apCost ?? 1) >= 2
       })
       if (hasHeavy) {
         audioManager.playSfx('spell_cast_heavy')
@@ -59,7 +61,7 @@ export default function DuelArena({ duel, lastEvent, isResolving, player, oppone
       }, 500)
 
       // 3. Status Effects
-      if (payload[myPrefix + 'energy_change'] > 0 || payload[rivalPrefix + 'energy_change'] > 0) {
+      if ((payload[myPrefix + 'energy_change'] || 0) > 0 || (payload[rivalPrefix + 'energy_change'] || 0) > 0) {
         setTimeout(() => audioManager.playSfx('energy_charge'), 800)
       }
       

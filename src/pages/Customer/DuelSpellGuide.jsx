@@ -141,9 +141,15 @@ export default function DuelSpellGuide() {
                   </h3>
                 </div>
 
-                <div className="bg-black/40 border border-white/10 rounded-2xl px-4 py-3 text-center shadow-xl backdrop-blur-md">
-                  <p className="text-2xl font-black text-magical-gold leading-none">{spell.cost}</p>
-                  <p className="text-[8px] uppercase tracking-widest text-white/40 mt-1">Energía</p>
+                <div className="flex gap-2">
+                  <div className="bg-black/40 border border-white/10 rounded-2xl px-3 py-2 text-center shadow-xl backdrop-blur-md">
+                    <p className="text-xl font-black text-white leading-none">{spell.apCost}</p>
+                    <p className="text-[7px] uppercase tracking-widest text-white/40 mt-1">Movs</p>
+                  </div>
+                  <div className="bg-magical-gold/10 border border-magical-gold/20 rounded-2xl px-3 py-2 text-center shadow-xl backdrop-blur-md">
+                    <p className="text-xl font-black text-magical-gold leading-none">{spell.energyCost}</p>
+                    <p className="text-[7px] uppercase tracking-widest text-magical-gold/40 mt-1">Energía</p>
+                  </div>
                 </div>
               </div>
 

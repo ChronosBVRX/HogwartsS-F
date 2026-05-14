@@ -2,6 +2,7 @@ import React from 'react'
 import { useNavigate } from 'react-router-dom'
 import { BookOpen, Shield, Zap, Sword, Sparkles, ArrowLeft, Star, AlertTriangle, HelpCircle } from 'lucide-react'
 import { SPELLS } from '../../lib/duelSpells'
+import { STANCES } from '../../lib/duelRules'
 
 const FAMILY_NAMES = {
   attack: 'Ataque Directo',
@@ -58,15 +59,14 @@ export default function DuelManual() {
         <section className="bg-white/5 rounded-3xl p-6 border border-white/5 space-y-4">
           <div className="flex items-center gap-3">
              <div className="w-8 h-8 rounded-lg bg-magical-gold/20 flex items-center justify-center">
-               <Zap className="w-4 h-4 text-magical-gold" />
+                <Zap className="w-4 h-4 text-magical-gold" />
              </div>
              <h3 className="font-black uppercase italic tracking-tight">El Turno y los Movimientos</h3>
           </div>
           <div className="space-y-3 text-sm text-white/60">
             <p>• Cada turno tienes <span className="text-white font-bold">2 Movimientos (AP)</span>.</p>
-            <p>• Hechizos ligeros consumen <span className="text-white font-bold">1 AP</span>.</p>
-            <p>• Hechizos pesados (como Stupefy) consumen <span className="text-white font-bold">2 AP</span>.</p>
-            <p>• Puedes mezclar acciones: p.ej. <span className="italic">Defensa + Carga de Energía</span>.</p>
+            <p>• Un hechizo puede consumir <span className="text-white font-bold">1 o 2 AP</span>.</p>
+            <p>• Puedes mezclar acciones siempre que no superes los <span className="text-white font-bold">2 AP</span> totales.</p>
           </div>
         </section>
 
@@ -74,14 +74,14 @@ export default function DuelManual() {
         <section className="bg-white/5 rounded-3xl p-6 border border-white/5 space-y-4">
           <div className="flex items-center gap-3">
              <div className="w-8 h-8 rounded-lg bg-spell-blue/20 flex items-center justify-center">
-               <Sparkles className="w-4 h-4 text-spell-blue" />
+                <Sparkles className="w-4 h-4 text-spell-blue" />
              </div>
              <h3 className="font-black uppercase italic tracking-tight">La Energía</h3>
           </div>
           <div className="space-y-3 text-sm text-white/60">
-            <p>• La <span className="text-magical-gold font-bold">Energía (⚡)</span> es necesaria para lanzar hechizos.</p>
-            <p>• Recuperas energía con hechizos de <span className="text-white font-bold">Carga</span> o mediante bonos de postura.</p>
-            <p>• Administra tu energía; sin ella, quedarás vulnerable.</p>
+            <p>• La <span className="text-magical-gold font-bold">Energía (⚡)</span> es el recurso para lanzar hechizos.</p>
+            <p>• Cada hechizo tiene un <span className="text-white font-bold">Costo de Energía</span> específico.</p>
+            <p>• Recuperas energía con <span className="italic">Accio Energía</span> o mediante bonos de postura.</p>
           </div>
         </section>
 
@@ -89,11 +89,20 @@ export default function DuelManual() {
         <section className="space-y-6">
           <h3 className="text-[10px] font-black uppercase text-magical-gold tracking-[0.4em] text-center">Glosario de Estilos</h3>
           <div className="grid gap-3">
-             <StanceRow name="Ataque Valiente" desc="+5 Daño / +4 Daño recibido" icon="⚔️" />
-             <StanceRow name="Guardia Protegida" desc="+8 Bloqueo / -4 Daño" icon="🛡️" />
-             <StanceRow name="Enfoque Arcano" desc="+1 Energía si no recibes daño fuerte" icon="🧘" />
-             <StanceRow name="Lectura Táctica" desc="Bonus si tu familia de hechizo vence al rival" icon="🧠" />
-             <StanceRow name="Último Recurso" desc="Potencia desesperada cuando tienes poca vida" icon="🔥" />
+             {Object.values(STANCES).map(s => (
+               <StanceRow 
+                 key={s.key} 
+                 name={s.name} 
+                 desc={s.description} 
+                 icon={
+                   s.key === 'neutral' ? '🪄' : 
+                   s.key === 'offensive' ? '⚔️' : 
+                   s.key === 'defensive' ? '🛡️' : 
+                   s.key === 'concentrated' ? '🧘' : 
+                   s.key === 'cunning' ? '🧠' : '🔥'
+                 } 
+               />
+             ))}
           </div>
         </section>
 
@@ -102,20 +111,20 @@ export default function DuelManual() {
           <h3 className="text-[10px] font-black uppercase text-magical-gold tracking-[0.4em] text-center">Triángulo de Poder</h3>
           <div className="grid grid-cols-2 gap-4 text-[10px]">
              <div className="p-4 bg-black/40 border border-impact-red/20 rounded-2xl">
-               <p className="text-impact-red font-black uppercase mb-1">Ataque</p>
-               <p className="text-white/50">Vence a Carga y Curación.</p>
+                <p className="text-impact-red font-black uppercase mb-1">Ataque</p>
+                <p className="text-white/50">Vence a Carga y Curación.</p>
              </div>
              <div className="p-4 bg-black/40 border border-spell-blue/20 rounded-2xl">
-               <p className="text-spell-blue font-black uppercase mb-1">Defensa</p>
-               <p className="text-white/50">Vence a Ataque y Ataque Pesado.</p>
+                <p className="text-spell-blue font-black uppercase mb-1">Defensa</p>
+                <p className="text-white/50">Vence a Ataque y Ataque Pesado.</p>
              </div>
              <div className="p-4 bg-black/40 border border-control-purple/20 rounded-2xl">
-               <p className="text-control-purple font-black uppercase mb-1">Control</p>
-               <p className="text-white/50">Vence a Defensa.</p>
+                <p className="text-control-purple font-black uppercase mb-1">Control</p>
+                <p className="text-white/50">Vence a Defensa.</p>
              </div>
              <div className="p-4 bg-black/40 border border-healing-green/20 rounded-2xl">
-               <p className="text-healing-green font-black uppercase mb-1">Contrahechizo</p>
-               <p className="text-white/50">Vence a Control.</p>
+                <p className="text-healing-green font-black uppercase mb-1">Contrahechizo</p>
+                <p className="text-white/50">Vence a Control.</p>
              </div>
           </div>
         </section>
@@ -146,9 +155,15 @@ export default function DuelManual() {
                     <h4 className="text-lg font-black uppercase italic text-white leading-none">{spell.name}</h4>
                     <span className="text-[9px] font-black text-magical-gold uppercase tracking-[0.2em]">{FAMILY_NAMES[spell.family]}</span>
                   </div>
-                  <div className="flex items-center gap-1.5 px-3 py-1.5 bg-black/40 rounded-xl border border-white/5">
-                    <Zap className="w-3 h-3 text-magical-gold" />
-                    <span className="text-xs font-black">{spell.cost} AP</span>
+                  <div className="flex flex-col items-end gap-1">
+                    <div className="flex items-center gap-1.5 px-3 py-1 bg-black/40 rounded-lg border border-white/5">
+                      <Sword className="w-3 h-3 text-white/40" />
+                      <span className="text-[10px] font-black">{spell.apCost} AP</span>
+                    </div>
+                    <div className="flex items-center gap-1.5 px-3 py-1 bg-magical-gold/10 rounded-lg border border-magical-gold/20">
+                      <Zap className="w-3 h-3 text-magical-gold" />
+                      <span className="text-[10px] font-black text-magical-gold">{spell.energyCost} ⚡</span>
+                    </div>
                   </div>
                 </div>
 
@@ -233,7 +248,7 @@ function StanceRow({ name, desc, icon }) {
       <span className="text-2xl">{icon}</span>
       <div>
         <p className="text-[10px] font-black uppercase text-white tracking-widest">{name}</p>
-        <p className="text-[10px] text-white/40">{desc}</p>
+        <p className="text-[10px] text-white/40 leading-tight mt-1">{desc}</p>
       </div>
     </div>
   )

@@ -8,6 +8,7 @@ import DuelArena from '../../components/duels/DuelArena'
 import DuelTurnAnnouncement from '../../components/duels/DuelTurnAnnouncement'
 import SpellDetailModal from '../../components/duels/SpellDetailModal'
 import { SPELLS } from '../../lib/duelSpells'
+import { STANCES as DUEL_STANCES, DUEL_LIMITS, normalizeDuelPayload } from '../../lib/duelRules'
 import audioManager from '../../lib/audioManager'
 import { Trophy, Skull, Swords, Repeat, Home, BarChart3, Volume2, Flag, X, Zap } from 'lucide-react'
 
@@ -30,17 +31,17 @@ export default function DuelRoom() {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
   
   const STANCES = [
-    { key: 'neutral', name: 'Neutral', icon: '🪄', desc: 'Sin bonos ni penalizaciones' },
-    { key: 'offensive', name: 'Ofensiva', icon: '⚔️', desc: '+4 Daño / +3 Daño recibido' },
-    { key: 'defensive', name: 'Defensiva', icon: '🛡️', desc: '+6 Bloqueo / -3 Daño' },
-    { key: 'concentrated', name: 'Concentrada', icon: '🧘', desc: '+1 Energía extra al usar Accio' },
-    { key: 'cunning', name: 'Astuta', icon: '🧠', desc: 'Bonus táctico si vences la familia' },
-    { key: 'desperate', name: 'Desesperada', icon: '🔥', desc: '+6 Daño si tienes < 25 HP / si no, -3 Daño' }
+    { key: 'neutral', name: DUEL_STANCES.neutral.name, icon: '🪄', desc: DUEL_STANCES.neutral.description },
+    { key: 'offensive', name: DUEL_STANCES.offensive.name, icon: '⚔️', desc: DUEL_STANCES.offensive.description },
+    { key: 'defensive', name: DUEL_STANCES.defensive.name, icon: '🛡️', desc: DUEL_STANCES.defensive.description },
+    { key: 'concentrated', name: DUEL_STANCES.concentrated.name, icon: '🧘', desc: DUEL_STANCES.concentrated.description },
+    { key: 'cunning', name: DUEL_STANCES.cunning.name, icon: '🧠', desc: DUEL_STANCES.cunning.description },
+    { key: 'desperate', name: DUEL_STANCES.desperate.name, icon: '🔥', desc: DUEL_STANCES.desperate.description }
   ]
 
   // Calculate used AP and Energy
-  const usedAP = selectedActions.reduce((sum, s) => sum + (s.cost >= 2 ? 2 : 1), 0)
-  const totalEnergyCost = selectedActions.reduce((sum, s) => sum + s.cost, 0)
+  const usedAP = selectedActions.reduce((sum, s) => sum + (s.apCost ?? 1), 0)
+  const totalEnergyCost = selectedActions.reduce((sum, s) => sum + (s.energyCost ?? 0), 0)
   
   // Audio state
   const [audioReady, setAudioReady] = useState(audioManager.isUnlocked)
@@ -563,7 +564,7 @@ export default function DuelRoom() {
           spell={detailedSpell} 
           onClose={() => setDetailedSpell(null)}
           isSelected={selectedActions.some(a => a.key === detailedSpell.key)}
-          canCast={usedAP + (detailedSpell.cost >= 2 ? 2 : 1) <= 2 && (myEnergy - totalEnergyCost) >= detailedSpell.cost && !isSubmitting}
+          canCast={usedAP + (detailedSpell.apCost ?? 1) <= 2 && (myEnergy - totalEnergyCost) >= (detailedSpell.energyCost ?? 0) && !isSubmitting}
           onCast={() => {
             const isSelected = selectedActions.some(a => a.key === detailedSpell.key)
             if (isSelected) {
