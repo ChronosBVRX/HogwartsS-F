@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { supabase } from '../../lib/supabase'
+import { withTimeout } from '../../lib/supabaseSafe'
 import { useAuth } from '../../context/AuthContext'
 import { Copy, Check, Shield, Zap, ChevronLeft, Loader2, Wand2 } from 'lucide-react'
 import audioManager from '../../lib/audioManager'
@@ -20,11 +21,15 @@ export default function DuelWaitingRoom() {
 
   const fetchDuelData = async () => {
     try {
-      const { data, error } = await supabase
-        .from('hsf_duels')
-        .select('*')
-        .eq('id', duelId)
-        .single()
+      const { data, error } = await withTimeout(
+        supabase
+          .from('hsf_duels')
+          .select('*')
+          .eq('id', duelId)
+          .single(),
+        8000,
+        'Cargando duelo'
+      )
 
       if (error) throw error
       setDuel(data)
@@ -95,7 +100,11 @@ export default function DuelWaitingRoom() {
     setActionLoading(true)
     audioManager.playSfx('ui_button_magic')
     try {
-      const { error } = await supabase.rpc('hsf_set_duel_ready', { p_duel_id: duelId })
+      const { error } = await withTimeout(
+        supabase.rpc('hsf_set_duel_ready', { p_duel_id: duelId }),
+        8000,
+        'Preparando duelo'
+      )
       if (error) throw error
     } catch (err) {
       alert(err.message)

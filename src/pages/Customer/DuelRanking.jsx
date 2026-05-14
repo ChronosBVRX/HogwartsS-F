@@ -89,10 +89,10 @@ export default function DuelRanking() {
   }
 
   const houseData = {
-    gryffindor: { name: 'Gryffindor', color: 'text-impact-red', icon: '🦁', gradient: 'from-impact-red/20 to-magical-navy' },
-    slytherin: { name: 'Slytherin', color: 'text-healing-green', icon: '🐍', gradient: 'from-healing-green/20 to-magical-navy' },
-    ravenclaw: { name: 'Ravenclaw', color: 'text-spell-blue', icon: '🦅', gradient: 'from-spell-blue/20 to-magical-navy' },
-    hufflepuff: { name: 'Hufflepuff', color: 'text-magical-gold', icon: '🦡', gradient: 'from-magical-gold/20 to-magical-navy' }
+    red: { name: 'Gryffindor', color: 'text-impact-red', icon: '🦁', gradient: 'from-impact-red/20 to-magical-navy' },
+    green: { name: 'Slytherin', color: 'text-healing-green', icon: '🐍', gradient: 'from-healing-green/20 to-magical-navy' },
+    blue: { name: 'Ravenclaw', color: 'text-spell-blue', icon: '🦅', gradient: 'from-spell-blue/20 to-magical-navy' },
+    yellow: { name: 'Hufflepuff', color: 'text-magical-gold', icon: '🦡', gradient: 'from-magical-gold/20 to-magical-navy' }
   }
 
   if (loading) {
@@ -140,7 +140,7 @@ export default function DuelRanking() {
             </div>
           ) : (
             <div className="space-y-6">
-              {['gryffindor', 'slytherin', 'ravenclaw', 'hufflepuff']
+              {['red', 'green', 'blue', 'yellow']
                 .sort((a, b) => {
                   const ptsA = housePoints.find(p => p.house_slug === a)?.points || 0
                   const ptsB = housePoints.find(p => p.house_slug === b)?.points || 0
@@ -174,7 +174,7 @@ export default function DuelRanking() {
 
                       {/* Top 2 Wizards of this House - Compact */}
                       <div className="relative z-10 grid grid-cols-2 gap-2 pt-2 border-t border-white/5">
-                        {(houseLeaders[slug === 'gryffindor' ? 'red' : slug === 'slytherin' ? 'green' : slug === 'ravenclaw' ? 'blue' : 'yellow'] || []).map((leader, li) => (
+                        {(houseLeaders[slug] || []).map((leader, li) => (
                           <div key={leader.user_id} className="flex flex-col">
                             <span className="text-[7px] font-black text-text-gray uppercase tracking-widest opacity-40 mb-0.5">#{li + 1} Líder</span>
                             <div className="flex items-center gap-1.5 truncate">
@@ -183,7 +183,7 @@ export default function DuelRanking() {
                             <span className={`text-[8px] font-black ${data.color}`}>{leader.mmr} MMR</span>
                           </div>
                         ))}
-                        {(!houseLeaders[slug === 'gryffindor' ? 'red' : slug === 'slytherin' ? 'green' : slug === 'ravenclaw' ? 'blue' : 'yellow'] || houseLeaders[slug === 'gryffindor' ? 'red' : slug === 'slytherin' ? 'green' : slug === 'ravenclaw' ? 'blue' : 'yellow'].length === 0) && (
+                        {(!houseLeaders[slug] || houseLeaders[slug].length === 0) && (
                           <div className="col-span-2 py-1 text-center">
                              <p className="text-[8px] text-white/10 italic uppercase font-black tracking-widest">Sin duelistas activos</p>
                           </div>
@@ -233,17 +233,9 @@ export default function DuelRanking() {
                         </p>
                         <div className="flex items-center gap-2">
                           <div className={`w-2 h-2 rounded-full ${houseData[
-                            player.user?.house_slug === 'red' ? 'gryffindor' :
-                            player.user?.house_slug === 'green' ? 'slytherin' :
-                            player.user?.house_slug === 'blue' ? 'ravenclaw' :
-                            player.user?.house_slug === 'yellow' ? 'hufflepuff' :
                             player.user?.house_slug
                           ]?.color.replace('text-', 'bg-') || 'bg-white/20'}`} />
                           <p className={`text-[9px] font-black uppercase tracking-[0.2em] ${houseData[
-                            player.user?.house_slug === 'red' ? 'gryffindor' :
-                            player.user?.house_slug === 'green' ? 'slytherin' :
-                            player.user?.house_slug === 'blue' ? 'ravenclaw' :
-                            player.user?.house_slug === 'yellow' ? 'hufflepuff' :
                             player.user?.house_slug
                           ]?.color || 'text-text-gray/40'}`}>
                             {player.user?.house_slug === 'red' ? 'Gryffindor' :

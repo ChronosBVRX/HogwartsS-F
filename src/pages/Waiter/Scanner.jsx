@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { supabase } from '../../lib/supabase'
+import { withTimeout } from '../../lib/supabaseSafe'
 import { ChevronLeft, Info, CheckCircle2, AlertCircle, QrCode } from 'lucide-react'
 import QRScanner from '../../components/QRScanner'
 
@@ -23,13 +24,17 @@ export default function WaiterScanner() {
     setError(null)
 
     // 1. Check if token exists
-    const { data: session, error: fetchError } = await supabase
-      .from('hsf_visit_sessions')
-      .select('*')
-      .eq('qr_token', scanResult?.trim())
-      .eq('status', 'qr_generated')
-      .gt('qr_expires_at', new Date().toISOString())
-      .single()
+    const { data: session, error: fetchError } = await withTimeout(
+      supabase
+        .from('hsf_visit_sessions')
+        .select('*')
+        .eq('qr_token', scanResult?.trim())
+        .eq('status', 'qr_generated')
+        .gt('qr_expires_at', new Date().toISOString())
+        .single(),
+      8000,
+      'Buscando token'
+    )
 
     if (fetchError || !session) {
       setError('Código QR no válido o expirado.')
@@ -38,15 +43,19 @@ export default function WaiterScanner() {
     }
 
     // 2. Update session
-    const { error: updateError } = await supabase
-      .from('hsf_visit_sessions')
-      .update({
-        status: 'seated',
-        table_number: tableNumber,
-        seated_by: (await supabase.auth.getUser()).data.user.id,
-        seated_at: new Date().toISOString()
-      })
-      .eq('id', session.id)
+    const { error: updateError } = await withTimeout(
+      supabase
+        .from('hsf_visit_sessions')
+        .update({
+          status: 'seated',
+          table_number: tableNumber,
+          seated_by: (await supabase.auth.getUser()).data.user.id,
+          seated_at: new Date().toISOString()
+        })
+        .eq('id', session.id),
+      8000,
+      'Asignando mesa'
+    )
 
     if (updateError) {
       console.error("Update Error:", updateError)

@@ -117,7 +117,11 @@ export const AuthProvider = ({ children }) => {
       try {
         setLoading(true)
 
-        const { data: { session }, error } = await supabase.auth.getSession()
+        const { data: { session }, error } = await withTimeout(
+          supabase.auth.getSession(),
+          8000,
+          'Cargando sesión'
+        )
 
         if (error) throw error
 

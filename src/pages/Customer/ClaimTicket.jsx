@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { supabase } from '../../lib/supabase'
+import { withTimeout } from '../../lib/supabaseSafe'
 import { useAuth } from '../../context/AuthContext'
 import { ChevronLeft, Ticket, Send, Wand2, AlertCircle } from 'lucide-react'
 
@@ -19,14 +20,18 @@ export default function ClaimTicket() {
   }, [])
 
   const fetchSession = async () => {
-    const { data } = await supabase
-      .from('hsf_visit_sessions')
-      .select('*')
-      .eq('status', 'closed_waiting_ticket')
-      .eq('customer_id', user.id)
-      .order('created_at', { ascending: false })
-      .limit(1)
-      .maybeSingle()
+    const { data } = await withTimeout(
+      supabase
+        .from('hsf_visit_sessions')
+        .select('*')
+        .eq('status', 'closed_waiting_ticket')
+        .eq('customer_id', user.id)
+        .order('created_at', { ascending: false })
+        .limit(1)
+        .maybeSingle(),
+      8000,
+      'Buscando visita pendiente'
+    )
 
     if (!data) {
       alert('No tienes una visita cerrada pendiente de ticket.')
@@ -55,24 +60,32 @@ export default function ClaimTicket() {
     }
 
     // 1. Create ticket claim
-    const { error: claimError } = await supabase
-      .from('hsf_ticket_claims')
-      .insert({
-        session_id: activeSession.id,
-        customer_id: user.id,
-        folio,
-        amount: parseFloat(amount)
-      })
+    const { error: claimError } = await withTimeout(
+      supabase
+        .from('hsf_ticket_claims')
+        .insert({
+          session_id: activeSession.id,
+          customer_id: user.id,
+          folio,
+          amount: parseFloat(amount)
+        }),
+      8000,
+      'Registrando ticket'
+    )
 
     if (claimError) {
       setError('Error al enviar el ticket. ¿Ya registraste este folio?')
       setLoading(false)
     } else {
       // 2. Update session status to ticket_submitted
-      await supabase
-        .from('hsf_visit_sessions')
-        .update({ status: 'ticket_submitted' })
-        .eq('id', activeSession.id)
+      await withTimeout(
+        supabase
+          .from('hsf_visit_sessions')
+          .update({ status: 'ticket_submitted' })
+          .eq('id', activeSession.id),
+        8000,
+        'Actualizando visita'
+      )
 
       setSuccess(true)
       setTimeout(() => navigate('/perfil'), 3000)

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { supabase } from '../../lib/supabase'
+import { withTimeout } from '../../lib/supabaseSafe'
 import { useAuth } from '../../context/AuthContext'
 import HealthBar from '../../components/duels/HealthBar'
 import SpellCard from '../../components/duels/SpellCard'
@@ -132,11 +133,15 @@ export default function DuelRoom() {
 
   const fetchDuel = async (retryCount = 0) => {
     try {
-      const { data, error } = await supabase
-        .from('hsf_duels')
-        .select('*')
-        .eq('id', duelId)
-        .maybeSingle()
+      const { data, error } = await withTimeout(
+        supabase
+          .from('hsf_duels')
+          .select('*')
+          .eq('id', duelId)
+          .maybeSingle(),
+        8000,
+        'Cargando duelo'
+      )
 
       if (error) throw error
       if (!data) {
@@ -318,7 +323,11 @@ export default function DuelRoom() {
 
     try {
       setIsSubmitting(true)
-      const { error } = await supabase.rpc('hsf_abandon_duel', { p_duel_id: duelId })
+      const { error } = await withTimeout(
+        supabase.rpc('hsf_abandon_duel', { p_duel_id: duelId }),
+        8000,
+        'Abandonando duelo'
+      )
       if (error) throw error
       navigate('/duelos')
     } catch (err) {
@@ -352,12 +361,16 @@ export default function DuelRoom() {
       // Create simplified actions array for the database
       const actionsPayload = selectedActions.map(s => ({ type: 'spell', key: s.key }))
 
-      const { error } = await supabase.rpc('hsf_submit_duel_strategy', {
-        p_duel_id: duelId,
-        p_turn_number: duel.turn_number,
-        p_actions: actionsPayload,
-        p_stance: selectedStance
-      })
+      const { error } = await withTimeout(
+        supabase.rpc('hsf_submit_duel_strategy', {
+          p_duel_id: duelId,
+          p_turn_number: duel.turn_number,
+          p_actions: actionsPayload,
+          p_stance: selectedStance
+        }),
+        8000,
+        'Enviando estrategia'
+      )
 
       if (error) throw error
       

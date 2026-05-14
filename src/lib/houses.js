@@ -1,12 +1,12 @@
 export const HOUSE_NORMALIZER = {
-  red: 'gryffindor',
-  green: 'slytherin',
-  blue: 'ravenclaw',
-  yellow: 'hufflepuff',
-  gryffindor: 'gryffindor',
-  slytherin: 'slytherin',
-  ravenclaw: 'ravenclaw',
-  hufflepuff: 'hufflepuff',
+  gryffindor: 'red',
+  slytherin: 'green',
+  ravenclaw: 'blue',
+  hufflepuff: 'yellow',
+  red: 'red',
+  green: 'green',
+  blue: 'blue',
+  yellow: 'yellow',
   ai: 'ai'
 }
 
@@ -15,7 +15,7 @@ export function normalizeHouseSlug(slug) {
 }
 
 export const HOUSE_META = {
-  gryffindor: {
+  red: {
     name: 'Gryffindor',
     icon: '🦁',
     avatar_male: '/assets/duels/avatars/avatar_red_idle.webp',
@@ -23,7 +23,7 @@ export const HOUSE_META = {
     color: 'text-impact-red',
     gradient: 'from-red-600 via-red-500 to-amber-500'
   },
-  slytherin: {
+  green: {
     name: 'Slytherin',
     icon: '🐍',
     avatar_male: '/assets/duels/avatars/avatar_green_idle.webp',
@@ -31,7 +31,7 @@ export const HOUSE_META = {
     color: 'text-healing-green',
     gradient: 'from-green-700 via-green-600 to-emerald-400'
   },
-  ravenclaw: {
+  blue: {
     name: 'Ravenclaw',
     icon: '🦅',
     avatar_male: '/assets/duels/avatars/avatar_blue_idle.webp',
@@ -39,7 +39,7 @@ export const HOUSE_META = {
     color: 'text-spell-blue',
     gradient: 'from-blue-700 via-blue-600 to-cyan-400'
   },
-  hufflepuff: {
+  yellow: {
     name: 'Hufflepuff',
     icon: '🦡',
     avatar_male: '/assets/duels/avatars/avatar_yellow_idle.webp',
@@ -59,7 +59,7 @@ export const HOUSE_META = {
 
 export function getAvatar(house, gender = 'male') {
   const norm = normalizeHouseSlug(house)
-  const meta = HOUSE_META[norm] || HOUSE_META.gryffindor
+  const meta = HOUSE_META[norm] || HOUSE_META.red
   return gender === 'female' ? meta.avatar_female : meta.avatar_male
 }
 

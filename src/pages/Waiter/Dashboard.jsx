@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { supabase } from '../../lib/supabase'
+import { withTimeout } from '../../lib/supabaseSafe'
 import { useAuth } from '../../context/AuthContext'
 import { QrCode, LogOut, Users, Clock, Coffee, CheckCircle2 } from 'lucide-react'
 
@@ -21,11 +22,15 @@ export default function WaiterDashboard() {
   }, [])
 
   const fetchActiveVisits = async () => {
-    const { data } = await supabase
-      .from('hsf_visit_sessions')
-      .select('*, customer:hsf_profiles!hsf_visit_sessions_customer_id_fkey(user_id, display_name, phone)')
-      .eq('status', 'seated')
-      .order('created_at', { ascending: false })
+    const { data } = await withTimeout(
+      supabase
+        .from('hsf_visit_sessions')
+        .select('*, customer:hsf_profiles!hsf_visit_sessions_customer_id_fkey(user_id, display_name, phone)')
+        .eq('status', 'seated')
+        .order('created_at', { ascending: false }),
+      8000,
+      'Cargando mesas activas'
+    )
 
     setActiveVisits(data || [])
     setLoading(false)
@@ -34,15 +39,19 @@ export default function WaiterDashboard() {
   const handleCloseVisit = async (visitId) => {
     if (!confirm('¿Liberar esta mesa? El cliente podrá registrar su ticket de consumo.')) return
 
-    await supabase
-      .from('hsf_visit_sessions')
-      .update({
-        status: 'closed_waiting_ticket',
-        closed_by: user.id,
-        closed_at: new Date().toISOString(),
-        updated_at: new Date().toISOString()
-      })
-      .eq('id', visitId)
+    await withTimeout(
+      supabase
+        .from('hsf_visit_sessions')
+        .update({
+          status: 'closed_waiting_ticket',
+          closed_by: user.id,
+          closed_at: new Date().toISOString(),
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', visitId),
+      8000,
+      'Cerrando mesa'
+    )
   }
 
   return (

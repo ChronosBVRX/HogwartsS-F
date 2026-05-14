@@ -1,7 +1,8 @@
-import { useEffect, useState, useCallback } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '../../context/AuthContext'
 import { supabase } from '../../lib/supabase'
+import { withTimeout } from '../../lib/supabaseSafe'
+import { withTimeout } from '../../lib/supabaseSafe'
+import audioManager from '../../lib/audioManager'
 import audioManager from '../../lib/audioManager'
 import { Award, QrCode, LogOut, Star, Shield, Zap, Wand2, Hash, Settings as SettingsIcon, Map, Footprints, Ticket, CheckCircle2, XCircle, Clock } from 'lucide-react'
 
@@ -47,26 +48,34 @@ export default function Profile() {
     
     try {
       // Fetch active session
-      const { data: sessionData, error: sessionError } = await supabase
-        .from('hsf_visit_sessions')
-        .select('*')
-        .in('status', ['qr_generated', 'seated', 'closed_waiting_ticket', 'ticket_submitted'])
-        .eq('customer_id', profile.user_id)
-        .order('created_at', { ascending: false })
-        .limit(1)
-        .maybeSingle()
+      const { data: sessionData, error: sessionError } = await withTimeout(
+        supabase
+          .from('hsf_visit_sessions')
+          .select('*')
+          .in('status', ['qr_generated', 'seated', 'closed_waiting_ticket', 'ticket_submitted'])
+          .eq('customer_id', profile.user_id)
+          .order('created_at', { ascending: false })
+          .limit(1)
+          .maybeSingle(),
+        8000,
+        'Cargando sesión de visita'
+      )
 
       if (sessionError) console.error('Error fetching active session:', sessionError)
       if (sessionData) setActiveSession(sessionData)
       else setActiveSession(null)
 
       // Fetch ticket history
-      const { data: historyData, error: historyError } = await supabase
-        .from('hsf_ticket_claims')
-        .select('*')
-        .eq('customer_id', profile.user_id)
-        .order('created_at', { ascending: false })
-        .limit(10)
+      const { data: historyData, error: historyError } = await withTimeout(
+        supabase
+          .from('hsf_ticket_claims')
+          .select('*')
+          .eq('customer_id', profile.user_id)
+          .order('created_at', { ascending: false })
+          .limit(10),
+        8000,
+        'Cargando historial de tickets'
+      )
 
       if (historyError) console.error('Error fetching ticket history:', historyError)
       setTicketHistory(historyData || [])
@@ -76,12 +85,16 @@ export default function Profile() {
       startOfMonth.setDate(1)
       startOfMonth.setHours(0, 0, 0, 0)
 
-      const { data: monthlyData, error: monthlyError } = await supabase
-        .from('hsf_ticket_claims')
-        .select('points_awarded')
-        .eq('customer_id', profile.user_id)
-        .eq('status', 'approved')
-        .gte('created_at', startOfMonth.toISOString())
+      const { data: monthlyData, error: monthlyError } = await withTimeout(
+        supabase
+          .from('hsf_ticket_claims')
+          .select('points_awarded')
+          .eq('customer_id', profile.user_id)
+          .eq('status', 'approved')
+          .gte('created_at', startOfMonth.toISOString()),
+        8000,
+        'Cargando puntos mensuales'
+      )
 
       if (monthlyError) console.error('Error fetching monthly points:', monthlyError)
       const total = monthlyData?.reduce((acc, curr) => acc + (curr.points_awarded || 0), 0) || 0

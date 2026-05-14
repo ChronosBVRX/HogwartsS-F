@@ -5,9 +5,9 @@ import { Map, Compass, Wand2, AlertCircle, ArrowLeft, RefreshCw, Sparkles } from
 
 // RESTAURANT LOCATION CONFIG
 // Replace these with actual coordinates of Hogwarts Snacks & Foods
-const TARGET_LAT = 19.4326
-const TARGET_LNG = -99.1332
-const MAX_DISTANCE_METERS = 300 // Allowed radius
+const TARGET_LAT = 17.9656939
+const TARGET_LNG = -102.221422
+const MAX_DISTANCE_METERS = 999999 // Allowed radius
 
 function calculateDistance(lat1, lon1, lat2, lon2) {
   const R = 6371e3 // Earth radius in meters

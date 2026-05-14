@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { supabase } from '../../lib/supabase'
+import { withTimeout } from '../../lib/supabaseSafe'
 import { PlusCircle, Search, Sparkles, Wand2, ChevronLeft } from 'lucide-react'
 import audioManager from '../../lib/audioManager'
 
@@ -21,7 +22,11 @@ export default function DuelLobby() {
     audioManager.playSfx('ui_button_magic')
     setLoading(true)
     setError(null)
-    const { data, error: err } = await supabase.rpc('hsf_create_pvp_duel')
+    const { data, error: err } = await withTimeout(
+      supabase.rpc('hsf_create_pvp_duel'),
+      8000,
+      'Creando sala de duelo'
+    )
     if (err) setError(err.message)
     else if (data && data.duel_id) navigate(`/duelos/espera/${data.duel_id}`)
     setLoading(false)
@@ -40,7 +45,11 @@ export default function DuelLobby() {
     if (!inviteCode) return
     setLoading(true)
     setError(null)
-    const { data, error: err } = await supabase.rpc('hsf_join_pvp_duel', { p_invite_code: inviteCode })
+    const { data, error: err } = await withTimeout(
+      supabase.rpc('hsf_join_pvp_duel', { p_invite_code: inviteCode }),
+      8000,
+      'Uniéndose a la sala'
+    )
     if (err) setError(err.message)
     else if (data) navigate(`/duelos/espera/${data}`)
     setLoading(false)

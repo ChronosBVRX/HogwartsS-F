@@ -139,12 +139,14 @@ export default function AdminDuelManager() {
         <div className="glass-card p-8 space-y-6">
           <h2 className="text-xl font-black text-white uppercase italic tracking-tighter">Puntos de Copa Mensual</h2>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-            {['gryffindor', 'slytherin', 'ravenclaw', 'hufflepuff'].map(slug => {
+            {['red', 'green', 'blue', 'yellow'].map(slug => {
               const pts = housePoints.find(p => p.house_slug === slug)?.points || 0
               return (
                 <div key={slug} className="p-6 rounded-3xl bg-white/5 border border-white/10 text-center space-y-2">
-                  <div className="text-2xl">{slug === 'gryffindor' ? '🦁' : slug === 'slytherin' ? '🐍' : slug === 'ravenclaw' ? '🦅' : '🦡'}</div>
-                  <p className="text-[10px] font-black uppercase tracking-widest text-white/40">{slug}</p>
+                  <div className="text-2xl">{slug === 'red' ? '🦁' : slug === 'green' ? '🐍' : slug === 'blue' ? '🦅' : '🦡'}</div>
+                  <p className="text-[10px] font-black uppercase tracking-widest text-white/40">
+                     {slug === 'red' ? 'Gryffindor' : slug === 'green' ? 'Slytherin' : slug === 'blue' ? 'Ravenclaw' : 'Hufflepuff'}
+                  </p>
                   <p className="text-3xl font-black text-white">{pts}</p>
                 </div>
               )

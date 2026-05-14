@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useAuth } from '../../context/AuthContext'
 import { supabase } from '../../lib/supabase'
+import { withTimeout } from '../../lib/supabaseSafe'
 import { ShoppingBag, Star, Zap, Wand2, Box, ChevronLeft } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import audioManager from '../../lib/audioManager'
@@ -24,15 +25,32 @@ export default function DuelShop() {
   }, [profile])
 
   const fetchData = async () => {
-    if (!profile) return
-    const [itemsRes, profileRes] = await Promise.all([
-      supabase.from('hsf_duel_items').select('*').eq('is_active', true).order('category'),
-      supabase.from('hsf_duel_profiles').select('*').eq('user_id', profile.user_id).maybeSingle()
-    ])
+    if (!profile) {
+      setLoading(false)
+      return
+    }
+    
+    try {
+      const [itemsRes, profileRes] = await Promise.all([
+        withTimeout(
+          supabase.from('hsf_duel_items').select('*').eq('is_active', true).order('category'),
+          8000,
+          'Cargando objetos de tienda'
+        ),
+        withTimeout(
+          supabase.from('hsf_duel_profiles').select('*').eq('user_id', profile.user_id).maybeSingle(),
+          8000,
+          'Cargando perfil de duelo'
+        )
+      ])
 
-    if (itemsRes.data) setItems(itemsRes.data)
-    if (profileRes.data) setDuelProfile(profileRes.data)
-    setLoading(false)
+      if (itemsRes.data) setItems(itemsRes.data)
+      if (profileRes.data) setDuelProfile(profileRes.data)
+    } catch (err) {
+      console.error('Error fetching shop data:', err)
+    } finally {
+      setLoading(false)
+    }
   }
 
   const handlePurchase = async (item) => {
@@ -50,28 +68,18 @@ export default function DuelShop() {
 
     setPurchasing(item.item_key)
     
-    // Purchase Logic (Inventory + Deducting funds)
-    const { error: invError } = await supabase.from('hsf_duel_inventory').insert({
-      user_id: profile.user_id,
-      item_key: item.item_key
-    })
+    // Purchase Logic (Inventory + Deducting funds via transaction)
+    const { error: invError } = await withTimeout(
+      supabase.rpc('hsf_purchase_duel_item', { p_item_key: item.item_key }),
+      8000,
+      'Procesando compra'
+    )
 
     if (invError) {
-      if (invError.code === '23505') alert('Ya posees este objeto')
-      else alert('Error en la compra')
+      if (invError.message.includes('Ya posees')) alert('Ya posees este objeto')
+      else alert('Error en la compra: ' + invError.message)
       setPurchasing(null)
       return
-    }
-
-    // Deduct funds (Simplified update)
-    if (item.price_shards > 0) {
-      await supabase.from('hsf_duel_profiles').update({
-        duel_shards: duelProfile.duel_shards - item.price_shards
-      }).eq('user_id', profile.user_id)
-    } else if (item.price_galleons > 0) {
-      await supabase.from('hsf_profiles').update({
-        loyalty_points: profile.loyalty_points - item.price_galleons
-      }).eq('user_id', profile.user_id)
     }
 
     audioManager.playVoice('shop_purchase_success')

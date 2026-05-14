@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../../context/AuthContext'
 import { supabase } from '../../lib/supabase'
+import { withTimeout } from '../../lib/supabaseSafe'
 import { 
   Trophy, Star, Zap, Wand2, Medal, 
   Crown, Sword, Shield, ChevronLeft, 
@@ -106,15 +107,28 @@ export default function DuelAchievements() {
   }, [profile])
 
   const fetchDuelProfile = async () => {
-    if (!profile) return
-    const { data } = await supabase
-      .from('hsf_duel_profiles')
-      .select('*')
-      .eq('user_id', profile.user_id)
-      .maybeSingle()
-    
-    if (data) setDuelProfile(data)
-    setLoading(false)
+    if (!profile) {
+      setLoading(false)
+      return
+    }
+
+    try {
+      const { data } = await withTimeout(
+        supabase
+          .from('hsf_duel_profiles')
+          .select('*')
+          .eq('user_id', profile.user_id)
+          .maybeSingle(),
+        8000,
+        'Consultando perfil de duelo'
+      )
+      
+      if (data) setDuelProfile(data)
+    } catch (err) {
+      console.error(err)
+    } finally {
+      setLoading(false)
+    }
   }
 
   const unlockedCount = ACHIEVEMENT_DEFINITIONS.filter(ach => 
