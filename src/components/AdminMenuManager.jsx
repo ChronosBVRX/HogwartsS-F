@@ -18,7 +18,7 @@ export default function AdminMenuManager() {
   const fetchData = async () => {
     setLoading(true)
     const [catRes, itemRes] = await Promise.all([
-      supabase.from('hsf_menu_categories').select('*').order('sort_order', { ascending: true }),
+      supabase.from('hsf_menu_categories').select('id, name, description, sort_order, active').order('sort_order', { ascending: true }),
       supabase.from('hsf_menu_items').select('*, category:hsf_menu_categories(name)').order('sort_order', { ascending: true })
     ])
     if (catRes.data) setCategories(catRes.data)
