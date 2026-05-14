@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { supabase } from '../lib/supabase'
+import { withTimeout } from '../lib/supabaseSafe'
 import AdventurePoster from './AdventurePoster'
 import { QrCode, Printer, RefreshCw, Gift, CheckCircle2, Map, AlertCircle } from 'lucide-react'
 
@@ -18,25 +19,50 @@ export default function AdminAdventureManager() {
   const fetchData = async () => {
     setLoading(true)
 
-    const [zonesRes, adventuresRes, rewardsRes] = await Promise.all([
-      supabase.from('hsf_active_adventure_zones').select('*'),
-      supabase.from('hsf_adventures').select('*, steps:hsf_adventure_steps(id)').order('created_at', { ascending: true }),
-      supabase
-        .from('hsf_adventure_rewards')
-        .select('*')
-        .order('created_at', { ascending: false })
-        .limit(30)
-    ])
+    try {
+      const [zonesRes, adventuresRes, rewardsRes] = await Promise.all([
+        withTimeout(
+          supabase.from('hsf_active_adventure_zones').select('*'),
+          8000,
+          'Cargando zonas de aventura'
+        ),
+        withTimeout(
+          supabase
+            .from('hsf_adventures')
+            .select('*, steps:hsf_adventure_steps(id)')
+            .order('created_at', { ascending: true }),
+          8000,
+          'Cargando aventuras'
+        ),
+        withTimeout(
+          supabase
+            .from('hsf_adventure_rewards')
+            .select('*')
+            .order('created_at', { ascending: false })
+            .limit(30),
+          8000,
+          'Cargando recompensas'
+        )
+      ])
 
-    if (!zonesRes.error) {
+      if (zonesRes.error) throw zonesRes.error
+      if (adventuresRes.error) throw adventuresRes.error
+      if (rewardsRes.error) throw rewardsRes.error
+
       setZones(zonesRes.data || [])
-      if (!selectedZone && zonesRes.data?.length) setSelectedZone(zonesRes.data[0])
+
+      if (!selectedZone && zonesRes.data?.length) {
+        setSelectedZone(zonesRes.data[0])
+      }
+
+      setAdventures(adventuresRes.data || [])
+      setRewards(rewardsRes.data || [])
+    } catch (err) {
+      console.error('[ADMIN ADVENTURE FETCH ERROR]', err)
+      setMessage('No se pudieron cargar las aventuras. Revisa permisos, vistas o RPC en Supabase.')
+    } finally {
+      setLoading(false)
     }
-
-    if (!adventuresRes.error) setAdventures(adventuresRes.data || [])
-    if (!rewardsRes.error) setRewards(rewardsRes.data || [])
-
-    setLoading(false)
   }
 
   const regenerateZone = async (zoneId) => {

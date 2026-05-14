@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import { supabase } from '../../lib/supabase'
+import { withTimeout } from '../../lib/supabaseSafe'
 import { Wand2, ChevronLeft, AlertCircle, CheckCircle2, XCircle, QrCode } from 'lucide-react'
 import { useAdventureAudio } from '../../hooks/useAdventureAudio'
 import { adventureAudio, getStepAudio } from '../../data/adventureAudioManifest'
@@ -72,14 +73,40 @@ export default function AdventurePlay() {
 
   const fetchStep = async () => {
     setLoading(true)
-    const { data, error } = await supabase.rpc('hsf_get_active_adventure')
 
-    if (!error) {
+    try {
+      const { data, error } = await withTimeout(
+        supabase.rpc('hsf_get_active_adventure'),
+        8000,
+        'Leyendo pergamino'
+      )
+
+      if (error) {
+        console.error('Error hsf_get_active_adventure:', error)
+        setState({
+          ok: false,
+          needs_scan: true,
+          message: 'No se pudo leer la aventura.'
+        })
+        return
+      }
+
       setState(data)
-      if (data?.step) setStep(data.step)
-    }
 
-    setLoading(false)
+      if (data?.step) {
+        setStep(data.step)
+        sessionStorage.setItem(`hsf_adventure_step_${runId}`, JSON.stringify(data.step))
+      }
+    } catch (err) {
+      console.error('fetchStep failed:', err)
+      setState({
+        ok: false,
+        needs_scan: true,
+        message: 'El pergamino tardó demasiado en responder. Intenta volver al mapa.'
+      })
+    } finally {
+      setLoading(false)
+    }
   }
 
   const handleAnswer = async (value) => {

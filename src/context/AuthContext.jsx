@@ -1,5 +1,6 @@
 import { createContext, useContext, useEffect, useState, useCallback, useRef } from 'react'
 import { supabase } from '../lib/supabase'
+import { withTimeout } from '../lib/supabaseSafe'
 
 const AuthContext = createContext({})
 
@@ -17,12 +18,15 @@ export const AuthProvider = ({ children }) => {
     }
 
     try {
-      const { data, error } = await supabase
-        .from('hsf_profiles')
-        .select('*, house:hsf_houses(*)')
-        .eq('user_id', userId)
-        .limit(1)
-        .maybeSingle()
+      const { data, error } = await withTimeout(
+        supabase
+          .from('hsf_profiles')
+          .select('id, user_id, display_name, phone, role, house_id, loyalty_points, created_at')
+          .eq('user_id', userId)
+          .maybeSingle(),
+        7000,
+        'Cargando perfil'
+      )
 
       if (error) {
         console.error('Error fetching profile:', error)
@@ -69,7 +73,9 @@ export const AuthProvider = ({ children }) => {
         setUser(currentUser)
 
         if (currentUser) {
-          await fetchProfile(currentUser.id)
+          fetchProfile(currentUser.id).catch((err) => {
+            console.error('fetchProfile after auth change failed:', err)
+          })
         } else {
           setProfile(null)
         }

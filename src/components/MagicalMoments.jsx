@@ -10,13 +10,21 @@ const MagicalMoments = () => {
   useEffect(() => {
     const fetchPhotos = async () => {
       try {
-        const response = await fetch('https://nyfokfwghqvitfmbhkgc.supabase.co/functions/v1/drive-photos');
+        const controller = new AbortController()
+        const timeout = setTimeout(() => controller.abort(), 5000)
+
+        const response = await fetch(
+          'https://nyfokfwghqvitfmbhkgc.supabase.co/functions/v1/drive-photos',
+          { signal: controller.signal }
+        )
+
+        clearTimeout(timeout)
         if (!response.ok) throw new Error('Error al invocar la magia fotográfica');
         
         const data = await response.json();
         if (data.ok && data.photos && data.photos.length > 0) {
           // Tomar un subconjunto aleatorio para mayor dinamismo o usarlas todas
-          const shuffled = data.photos.sort(() => 0.5 - Math.random()).slice(0, 15); 
+          const shuffled = data.photos.sort(() => 0.5 - Math.random()).slice(0, 8); 
           setPhotos(shuffled);
         } else {
           throw new Error('No se encontraron recuerdos');

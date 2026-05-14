@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState, useCallback } from 'react'
 import { useNavigate, useSearchParams, Link } from 'react-router-dom'
 import { supabase } from '../../lib/supabase'
+import { withTimeout } from '../../lib/supabaseSafe'
 import { QrCode, AlertCircle, ChevronLeft } from 'lucide-react'
 import { useAdventureAudio } from '../../hooks/useAdventureAudio'
 import { adventureAudio } from '../../data/adventureAudioManifest'
@@ -50,8 +51,17 @@ export default function AdventureScanner() {
   const audio = useAdventureAudio()
 
   const fetchAdventureState = useCallback(async () => {
-    const { data } = await supabase.rpc('hsf_get_active_adventure')
-    if (data?.ok) setAdventureState(data)
+    try {
+      const { data } = await withTimeout(
+        supabase.rpc('hsf_get_active_adventure'),
+        8000,
+        'Consultando aventura activa'
+      )
+
+      if (data?.ok) setAdventureState(data)
+    } catch (err) {
+      console.warn('fetchAdventureState failed:', err)
+    }
   }, [])
 
   const handleScanPayload = useCallback(async ({ zone, token }) => {
@@ -61,16 +71,28 @@ export default function AdventureScanner() {
       return
     }
 
-    setLoading(true)
-    setError(null)
-    setMessage('Consultando el portal mágico...')
+    let data
+    let error
 
-    const { data, error } = await supabase.rpc('hsf_scan_adventure_zone', {
-      p_zone_slug: zone,
-      p_zone_token: token
-    })
+    try {
+      const result = await withTimeout(
+        supabase.rpc('hsf_scan_adventure_zone', {
+          p_zone_slug: zone,
+          p_zone_token: token
+        }),
+        10000,
+        'Consultando portal mágico'
+      )
 
-    setLoading(false)
+      data = result.data
+      error = result.error
+    } catch (err) {
+      setError('El portal mágico tardó demasiado en responder. Intenta escanear nuevamente.')
+      setMessage(null)
+      return
+    } finally {
+      setLoading(false)
+    }
 
     if (error) {
       setError(error.message)
