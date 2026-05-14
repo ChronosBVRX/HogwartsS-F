@@ -222,7 +222,7 @@ export default function AdventureHome() {
           </div>
           <div className="space-y-2">
             <h2 className="text-2xl font-black uppercase italic tracking-tighter text-white">Magia agotada</h2>
-            <p className="text-white/50 max-w-md mx-auto">{state.message}</p>
+            <p className="text-white/50 max-w-md mx-auto">{formatMagicalText(state.message)}</p>
           </div>
           <div className="pt-4 border-t border-white/5">
              <p className="text-[10px] font-black uppercase tracking-widest text-magical-gold/40 italic">Vuelve mañana para recuperar tu energía mágica</p>

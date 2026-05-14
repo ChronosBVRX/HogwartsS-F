@@ -331,7 +331,7 @@ export default function AdventurePlay() {
                 <p className="text-sm font-bold">{result.message}</p>
                 {result.clue && (
                   <>
-                    <p className="text-white/60 italic">{result.clue}</p>
+                    <p className="text-white/60 italic">{formatMagicalText(result.clue)}</p>
                     {autoAdvancing ? (
                       <p className="text-[10px] font-black uppercase tracking-widest text-magical-gold animate-pulse">
                         El mapa se está moviendo hacia el siguiente sello...
