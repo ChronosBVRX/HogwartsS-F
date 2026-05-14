@@ -40,6 +40,13 @@ export default function ClaimTicket() {
     e.preventDefault()
     setLoading(true)
     setError(null)
+    
+    const parsedAmount = parseFloat(amount)
+    if (!Number.isFinite(parsedAmount) || parsedAmount <= 0) {
+      setError('El monto debe ser mayor a cero.')
+      setLoading(false)
+      return
+    }
 
     // 1. Create ticket claim
     const { error: claimError } = await supabase

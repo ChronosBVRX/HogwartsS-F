@@ -64,7 +64,11 @@ export default function Attendance() {
         .select()
         .single()
       
-      if (!error) setSession(data)
+      if (error) {
+        console.error('[ATTENDANCE INSERT ERROR]', error)
+      } else {
+        setSession(data)
+      }
       setLoading(false)
     }
   }

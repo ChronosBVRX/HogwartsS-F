@@ -21,7 +21,7 @@ export const AuthProvider = ({ children }) => {
       const { data, error } = await withTimeout(
         supabase
           .from('hsf_profiles')
-          .select('user_id, display_name, phone, role, house_slug, loyalty_points, created_at')
+          .select('user_id, display_name, phone, role, house_slug, loyalty_points, gender, pasos_mapa_mes, created_at, updated_at')
           .eq('user_id', userId)
           .maybeSingle(),
         7000,

@@ -34,6 +34,18 @@ export default function Register() {
       setError(error.message)
       setLoading(false)
     } else {
+      const { data: { user } } = await supabase.auth.getUser()
+      if (user) {
+        // Ensure profile exists (failsafe for triggers)
+        await supabase
+          .from('hsf_profiles')
+          .upsert({
+            user_id: user.id,
+            display_name: formData.displayName,
+            phone: formData.phone,
+            updated_at: new Date().toISOString()
+          }, { onConflict: 'user_id' })
+      }
       navigate('/perfil')
     }
   }

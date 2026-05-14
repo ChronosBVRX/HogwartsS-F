@@ -26,7 +26,7 @@ export default function WaiterScanner() {
     const { data: session, error: fetchError } = await supabase
       .from('hsf_visit_sessions')
       .select('*')
-      .eq('qr_token', scanResult)
+      .eq('qr_token', scanResult?.trim())
       .single()
 
     if (fetchError || !session) {

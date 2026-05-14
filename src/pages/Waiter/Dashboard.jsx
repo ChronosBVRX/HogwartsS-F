@@ -23,7 +23,7 @@ export default function WaiterDashboard() {
   const fetchActiveVisits = async () => {
     const { data } = await supabase
       .from('hsf_visit_sessions')
-      .select('*, customer:hsf_profiles!customer_id(*)')
+      .select('*, customer:hsf_profiles!hsf_visit_sessions_customer_id_fkey(user_id, display_name, phone)')
       .eq('status', 'seated')
       .order('created_at', { ascending: false })
 
