@@ -99,7 +99,7 @@ export const AuthProvider = ({ children }) => {
         initialized.current = true
         setLoading(false)
       }
-    }, 8000)
+    }, 15000)
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
       console.log('Auth event:', event)
@@ -115,7 +115,7 @@ export const AuthProvider = ({ children }) => {
 
         if (currentUser) {
           try {
-            const p = await withTimeout(ensureHsfProfile(currentUser), 8000, 'Verificando perfil')
+            const p = await withTimeout(ensureHsfProfile(currentUser), 15000, 'Verificando perfil')
             if (mounted) setProfile(p)
           } catch (error) {
             console.error('Error al asegurar perfil:', error)
