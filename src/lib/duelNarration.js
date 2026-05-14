@@ -38,8 +38,10 @@ export function buildTurnAnnouncement({ payload: rawPayload, isP1 }) {
     damageTaken: payload[myPrefix + 'damage'] || 0,
     damageDealt: payload[myPrefix + 'damage_dealt'] || 0,
     blocked: payload[myPrefix + 'blocked'] || 0,
-    bonus: payload[myPrefix + 'bonus'] || 0,
-    penalty: payload[myPrefix + 'penalty'] || 0,
+    bonus: payload[myPrefix + 'stance_bonus'] || 0,
+    takenBonus: payload[myPrefix + 'damage_taken_bonus'] || 0,
+    dealtPenalty: payload[myPrefix + 'damage_dealt_penalty'] || 0,
+    strategyBonus: payload[myPrefix + 'strategy_bonus'] || 0,
     energyChange: payload[myPrefix + 'energy_change'] || 0,
     heal: payload[myPrefix + 'heal'] || 0,
     interrupted: payload[myPrefix + 'interrupted'] || false
@@ -51,91 +53,90 @@ export function buildTurnAnnouncement({ payload: rawPayload, isP1 }) {
     damageTaken: payload[rivalPrefix + 'damage'] || 0,
     damageDealt: payload[rivalPrefix + 'damage_dealt'] || 0,
     blocked: payload[rivalPrefix + 'blocked'] || 0,
-    bonus: payload[rivalPrefix + 'bonus'] || 0,
-    penalty: payload[rivalPrefix + 'penalty'] || 0,
+    bonus: payload[rivalPrefix + 'stance_bonus'] || 0,
+    takenBonus: payload[rivalPrefix + 'damage_taken_bonus'] || 0,
+    dealtPenalty: payload[rivalPrefix + 'damage_dealt_penalty'] || 0,
+    strategyBonus: payload[rivalPrefix + 'strategy_bonus'] || 0,
     energyChange: payload[rivalPrefix + 'energy_change'] || 0,
     heal: payload[rivalPrefix + 'heal'] || 0,
     interrupted: payload[rivalPrefix + 'interrupted'] || false
   }
 
-  // Análisis de ventaja estratégica (basado en la acción principal)
-  const myFirstSpell = SPELLS[my.actions[0]?.key] || SPELLS.rictusempra
-  const rivalFirstSpell = SPELLS[rival.actions[0]?.key] || SPELLS.rictusempra
-  const myWon = myFirstSpell.beats.includes(rivalFirstSpell.family)
-  const rivalWon = rivalFirstSpell.beats.includes(myFirstSpell.family)
-
-  // 1. Veredicto
-  let verdictTitle = "Choque Neutral"
-  if (myWon && !rivalWon) verdictTitle = "¡Leíste mejor al rival!"
-  else if (rivalWon && !myWon) verdictTitle = "El rival te leyó mejor"
-
-  let verdictText = `Ambos chocaron sus hechizos en un duelo de voluntades.`
-  if (myWon && !rivalWon) verdictText = `Tu ${myFirstSpell.name} dominó el intercambio estratégico.`
-  else if (rivalWon && !myWon) verdictText = `El rival anticipó tu jugada con un ${rivalFirstSpell.name}.`
-
-  // 2. Timeline detallada
-  const timeline = []
-  timeline.push(`Iniciaste el turno en postura ${STANCES[my.stance].name}.`)
+  // Análisis de ventaja estratégica (COMBO COMPLETO)
+  const myFamilies = my.actions.map(a => SPELLS[a.key]?.family).filter(Boolean)
+  const rivalFamilies = rival.actions.map(a => SPELLS[a.key]?.family).filter(Boolean)
   
-  my.actions.forEach((a, i) => {
-    const spell = SPELLS[a.key]
-    if (spell) {
-      if (i === 1 && my.interrupted) {
-        timeline.push(`Intentaste lanzar ${spell.name}, ¡pero fuiste interrumpido!`)
-      } else {
-        timeline.push(`Lanzaste ${spell.name} (${spell.apCost} AP).`)
-      }
+  let myAdvantageCount = 0
+  let rivalAdvantageCount = 0
+
+  my.actions.forEach(a => {
+    const s = SPELLS[a.key]
+    if (s) {
+      rivalFamilies.forEach(rf => {
+        if (s.beats.includes(rf)) myAdvantageCount++
+      })
     }
   })
 
-  if (my.blocked > 0) timeline.push(`Tu defensa y postura absorbieron ${my.blocked} puntos de daño.`)
-  if (my.heal > 0) timeline.push(`Recuperaste ${my.heal} HP mediante artes curativas.`)
-  if (my.energyChange !== 0) timeline.push(`${my.energyChange > 0 ? 'Ganaste' : 'Perdiste'} ${Math.abs(my.energyChange)} de energía.`)
-
-  // 3. Desglose de Daño Recibido
-  const damageFormula = []
-  const rivalPrimarySpell = SPELLS[rival.actions[0]?.key]
-  if (rivalPrimarySpell && rivalPrimarySpell.damage > 0) {
-    damageFormula.push({ label: `Daño base de ${rivalPrimarySpell.name}`, value: rivalPrimarySpell.damage, type: 'danger' })
-  }
-  
-  if (rival.actions.length > 1 && !rival.interrupted) {
-    const rivalSecondSpell = SPELLS[rival.actions[1]?.key]
-    if (rivalSecondSpell && rivalSecondSpell.damage > 0) {
-      damageFormula.push({ label: `Daño por segunda acción`, value: rivalSecondSpell.damage, type: 'danger' })
+  rival.actions.forEach(a => {
+    const s = SPELLS[a.key]
+    if (s) {
+      myFamilies.forEach(mf => {
+        if (s.beats.includes(mf)) rivalAdvantageCount++
+      })
     }
-  }
+  })
 
-  if (payload[rivalPrefix + 'strategy_bonus'] > 0) {
-    damageFormula.push({ label: "Bonus por ventaja táctica rival", value: `+${payload[rivalPrefix + 'strategy_bonus']}`, type: 'danger' })
-  }
+  const myWon = myAdvantageCount > rivalAdvantageCount
+  const rivalWon = rivalAdvantageCount > myAdvantageCount
 
-  if (payload[rivalPrefix + 'stance_bonus'] > 0) {
-    damageFormula.push({ label: `Bonus por postura ${STANCES[rival.stance].name} rival`, value: `+${payload[rivalPrefix + 'stance_bonus']}`, type: 'danger' })
-  }
+  // 1. Veredicto
+  let verdictTitle = "Choque de Voluntades"
+  if (myWon) verdictTitle = "¡Dominio Estratégico!"
+  else if (rivalWon) verdictTitle = "Rival al Acecho"
 
-  if (my.penalty > 0) {
-    damageFormula.push({ label: `Penalización por tu postura ${STANCES[my.stance].name}`, value: `+${my.penalty}`, type: 'danger' })
-  }
+  let verdictText = `Un intercambio neutral donde ambos magos mantuvieron su posición.`
+  if (myWon) verdictText = `Tu combinación de hechizos logró superar las defensas y el ritmo del rival.`
+  else if (rivalWon) verdictText = `El rival leyó tus movimientos y logró posicionarse mejor en el duelo.`
 
-  if (my.blocked > 0) {
-    damageFormula.push({ label: "Daño mitigado por bloqueo", value: `-${my.blocked}`, type: 'defense' })
-  }
+  // 2. Timeline
+  const timeline = []
+  timeline.push(`Iniciaste en postura ${STANCES[my.stance].name}.`)
+  my.actions.forEach((a, i) => {
+    const s = SPELLS[a.key]
+    if (s) {
+      if (i === 1 && my.interrupted) timeline.push(`¡${s.name} fue interrumpido por el impacto rival!`)
+      else timeline.push(`Lanzaste ${s.name}.`)
+    }
+  })
+  if (my.blocked > 0) timeline.push(`Bloqueaste ${my.blocked} de daño.`)
+  if (my.heal > 0) timeline.push(`Te curaste ${my.heal} HP.`)
 
+  // 3. Fórmula (Daño Recibido)
+  const damageFormula = []
+  rival.actions.forEach((a, i) => {
+    const s = SPELLS[a.key]
+    if (s && s.damage > 0) {
+      if (i === 1 && rival.interrupted) return
+      damageFormula.push({ label: `Daño de ${s.name}`, value: s.damage, type: 'danger' })
+    }
+  })
+
+  if (rival.strategyBonus > 0) damageFormula.push({ label: "Bonus táctico rival", value: `+${rival.strategyBonus}`, type: 'danger' })
+  if (rival.bonus > 0) damageFormula.push({ label: "Bonus de postura rival", value: `+${rival.bonus}`, type: 'danger' })
+  if (my.takenBonus > 0) damageFormula.push({ label: `Vulnerabilidad (${STANCES[my.stance].name})`, value: `+${my.takenBonus}`, type: 'danger' })
+  if (rival.dealtPenalty > 0) damageFormula.push({ label: "Penalización rival", value: `-${rival.dealtPenalty}`, type: 'defense' })
+  if (my.blocked > 0) damageFormula.push({ label: "Tu bloqueo total", value: `-${my.blocked}`, type: 'defense' })
+  
   damageFormula.push({ label: "Daño final recibido", value: my.damageTaken, type: 'final' })
-
-  // 4. Lección
-  let finalLesson = "Vigila la energía del rival; si tiene más de 2, un ataque pesado es inminente."
-  if (my.interrupted) finalLesson = "Tu segunda acción fue interrumpida. Recibir un daño fuerte mientras lanzas hechizos lentos puede ser fatal."
-  if (myWon) finalLesson = "¡Excelente lectura! Mantener la ventaja de familia es la clave para ganar sin gastar toda tu energía."
 
   return {
     verdictTitle,
     verdictText,
-    damageReason: my.damageTaken > 0 ? `El rival logró conectar sus hechizos superando tu resistencia.` : `Lograste mitigar cualquier daño entrante con éxito.`,
+    damageReason: my.damageTaken > 0 ? `El impacto rival superó tu umbral de defensa.` : `Tu estrategia defensiva fue perfecta este turno.`,
     damageFormula,
     damageFormulaExact: true,
-    finalLesson,
+    finalLesson: myWon ? "¡Sigue así! Mantener la presión obliga al rival a gastar energía en defenderse." : "Observa sus recursos; un rival sin energía es vulnerable a hechizos pesados.",
     timeline,
     tone: myWon ? 'good' : rivalWon ? 'bad' : 'neutral',
     myActions: my.actions.map(a => SPELLS[a.key]).filter(Boolean),
@@ -144,11 +145,7 @@ export function buildTurnAnnouncement({ payload: rawPayload, isP1 }) {
     rivalStance: rival.stance,
     myDamageTaken: my.damageTaken,
     rivalDamageTaken: my.damageDealt,
-    myBreakdown: { 
-      blocked: my.blocked, 
-      energyChange: my.energyChange, 
-      interrupted: my.interrupted,
-      heal: my.heal
-    }
+    myBreakdown: { blocked: my.blocked, energyChange: my.energyChange, interrupted: my.interrupted, heal: my.heal },
+    rivalBreakdown: { blocked: rival.blocked, energyChange: rival.energyChange, interrupted: rival.interrupted, heal: rival.heal }
   }
 }

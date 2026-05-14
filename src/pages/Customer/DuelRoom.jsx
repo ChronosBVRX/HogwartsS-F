@@ -196,14 +196,29 @@ export default function DuelRoom() {
         filter: `duel_id=eq.${duelId}`
       }, (payload) => {
         console.log('DUEL EVENT INSERT:', payload.new)
-        console.log('DUEL EVENT PAYLOAD:', payload.new.payload)
         
-        setLastEvent(payload.new)
+        // Normalizar el payload antes de procesar
+        const cleanPayload = normalizeDuelPayload(payload.new.payload)
+        const enrichedEvent = { ...payload.new, payload: cleanPayload }
+        
+        setLastEvent(enrichedEvent)
         setResolutionStage('casting')
         
-        if (payload.new.payload) {
-          const p1_damage = payload.new.payload.p1_damage ?? payload.new.payload.player_one_damage ?? 0
-          const p2_damage = payload.new.payload.p2_damage ?? payload.new.payload.player_two_damage ?? 0
+        // Si el evento es de resolución de turno, reducir cooldowns localmente
+        if (payload.new.event_type === 'turn_resolved') {
+          setCooldowns(prev => {
+            const nextCds = { ...prev }
+            Object.keys(nextCds).forEach(k => {
+              if (nextCds[k] > 0) nextCds[k] -= 1
+              if (nextCds[k] <= 0) delete nextCds[k]
+            })
+            return nextCds
+          })
+        }
+        
+        if (cleanPayload) {
+          const p1_damage = cleanPayload.p1_damage || 0
+          const p2_damage = cleanPayload.p2_damage || 0
           
           const iAmP1 = profile?.user_id === duel?.player_one
           const myDamageTaken = iAmP1 ? p1_damage : p2_damage

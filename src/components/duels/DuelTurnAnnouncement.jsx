@@ -104,6 +104,14 @@ export default function DuelTurnAnnouncement({ lastEvent, isP1, onContinue }) {
         </div>
       </div>
 
+      {/* 2. RESUMEN DE IMPACTO */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 animate-in fade-in zoom-in duration-500 delay-200">
+        <ImpactStat label="Daño que hiciste" value={announcement.rivalDamageTaken} color="text-healing-green" />
+        <ImpactStat label="Daño recibido" value={announcement.myDamageTaken} color="text-impact-red" />
+        <ImpactStat label="Anulaste (Def)" value={announcement.myBreakdown.blocked} color="text-spell-blue" />
+        <ImpactStat label="Te anularon" value={announcement.rivalBreakdown.blocked} color="text-text-gray" />
+      </div>
+
       {/* 2. DESGLOSE DE DAÑO (LA FÓRMULA) */}
       <div className="bg-black/60 rounded-[2.5rem] border border-white/5 p-8 space-y-6">
         <div className="flex items-center justify-between mb-2">
@@ -199,6 +207,15 @@ function StrategyCard({ label, actions, stance, isPlayer }) {
         </div>
         <p className="text-[9px] font-black uppercase text-white/50 italic">{STANCE_LABELS[stance] || stance}</p>
       </div>
+    </div>
+  )
+}
+
+function ImpactStat({ label, value, color }) {
+  return (
+    <div className="bg-black/60 border border-white/5 p-4 rounded-3xl text-center space-y-1">
+      <p className="text-[8px] font-black uppercase tracking-widest text-white/30">{label}</p>
+      <p className={`text-2xl font-black italic ${color}`}>{value}</p>
     </div>
   )
 }

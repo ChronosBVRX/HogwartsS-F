@@ -53,8 +53,10 @@ export default function SpellCard({ spell, disabled, selected, onClick, cooldown
       >
         {/* Energy Cost Badge */}
         <div className="absolute top-1 right-1 z-20">
-          <div className={`bg-night-blue/90 border border-magical-gold/40 ${compact ? 'w-4 h-4' : 'w-6 h-6 md:w-7 md:h-7'} rounded-full flex items-center justify-center shadow-lg backdrop-blur-md`}>
-            <span className={`${compact ? 'text-[7px]' : 'text-[10px] md:text-xs'} font-black text-magical-gold leading-none`}>{spell.cost}</span>
+          <div className={`bg-night-blue/90 border border-magical-gold/40 ${compact ? 'px-1 py-0.5' : 'px-2 py-1'} rounded-lg flex items-center gap-1 shadow-lg backdrop-blur-md`}>
+            <span className={`${compact ? 'text-[7px]' : 'text-[10px]'} font-black text-white leading-none`}>{spell.apCost || 1}</span>
+            <span className="text-white/20 text-[8px]">|</span>
+            <span className={`${compact ? 'text-[7px]' : 'text-[10px]'} font-black text-magical-gold leading-none`}>{spell.energyCost || 0}⚡</span>
           </div>
         </div>
 

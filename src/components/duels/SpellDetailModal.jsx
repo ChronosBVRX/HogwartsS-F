@@ -58,10 +58,17 @@ export default function SpellDetailModal({ spell, onClose, canCast, onCast, isSe
           {/* Stats Bar */}
           <div className="flex gap-4">
              <div className="flex-1 bg-white/5 rounded-2xl p-3 border border-white/5 text-center">
+                <p className="text-[8px] uppercase tracking-widest text-white/40 mb-1">Movimientos</p>
+                <div className="flex items-center justify-center gap-1">
+                   <Swords className="w-3 h-3 text-white" />
+                   <span className="text-xl font-black">{spell.apCost || 1}</span>
+                </div>
+             </div>
+             <div className="flex-1 bg-white/5 rounded-2xl p-3 border border-white/5 text-center">
                 <p className="text-[8px] uppercase tracking-widest text-white/40 mb-1">Energía</p>
                 <div className="flex items-center justify-center gap-1">
                    <Zap className="w-3 h-3 text-magical-gold" />
-                   <span className="text-xl font-black">{spell.cost}</span>
+                   <span className="text-xl font-black">{spell.energyCost || 0}</span>
                 </div>
              </div>
              <div className="flex-1 bg-white/5 rounded-2xl p-3 border border-white/5 text-center">
