@@ -139,19 +139,23 @@ export default function Menu() {
     if (!cached?.data) setLoading(true)
 
     try {
-      const [catRes, itemRes] = await Promise.all([
-        supabase
-          .from('hsf_menu_categories')
-          .select('id, name, description, sort_order')
-          .eq('active', true)
-          .order('sort_order', { ascending: true }),
+      const [catRes, itemRes] = await withTimeout(
+        Promise.all([
+          supabase
+            .from('hsf_menu_categories')
+            .select('id, name, description, sort_order')
+            .eq('active', true)
+            .order('sort_order', { ascending: true }),
 
-        supabase
-          .from('hsf_menu_items')
-          .select('id, name, description, price, image_url, is_featured, sort_order, category_id')
-          .eq('active', true)
-          .order('sort_order', { ascending: true })
-      ])
+          supabase
+            .from('hsf_menu_items')
+            .select('id, name, description, price, image_url, is_featured, sort_order, category_id')
+            .eq('active', true)
+            .order('sort_order', { ascending: true })
+        ]),
+        10000,
+        'Cargando menú'
+      )
 
       let dynamicCats = []
       let mappedItems = []
