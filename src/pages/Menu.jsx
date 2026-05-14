@@ -133,19 +133,16 @@ export default function Menu() {
       setCategories(cached.data.categories || [])
       setMenuItems(cached.data.menuItems || [])
       setLoading(false)
-
-      // Si no ha expirado, no hacemos nada más
       if (!cached.expired) return
     }
 
-    // Si no hay caché o expiró, cargamos de Supabase
     if (!cached?.data) setLoading(true)
 
     try {
       const [catRes, itemRes] = await Promise.all([
         supabase
           .from('hsf_menu_categories')
-          .select('id, name, description, image_url, sort_order')
+          .select('id, name, description, sort_order')
           .eq('active', true)
           .order('sort_order', { ascending: true }),
 
@@ -156,6 +153,9 @@ export default function Menu() {
           .order('sort_order', { ascending: true })
       ])
 
+      let dynamicCats = []
+      let mappedItems = []
+
       if (catRes.error) {
         console.error('[MENU CATEGORIES ERROR]', catRes.error)
       }
@@ -164,15 +164,12 @@ export default function Menu() {
         console.error('[MENU ITEMS ERROR]', itemRes.error)
       }
 
-      let dynamicCats = []
-      let mappedItems = []
-
       if (!catRes.error && catRes.data) {
         dynamicCats = catRes.data.map(c => ({
           id: c.id,
           name: c.name,
           icon: ICON_MAP[c.description?.split('|')[0]] || <Wand2 className="w-4 h-4" />,
-          img: c.image_url || STOCK_IMAGES[c.name] || STOCK_IMAGES["default"]
+          img: STOCK_IMAGES[c.name] || STOCK_IMAGES["default"]
         }))
 
         setCategories(dynamicCats)
