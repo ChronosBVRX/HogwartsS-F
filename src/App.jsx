@@ -6,14 +6,16 @@ import { AuthProvider, useAuth } from './context/AuthContext'
 import Navbar from './components/layout/Navbar'
 import InstallPWA from './components/InstallPWA'
 
-// Pages - Lazy loaded
-const Home = lazy(() => import('./pages/Home'))
-const Login = lazy(() => import('./pages/Login'))
-const Register = lazy(() => import('./pages/Register'))
-const Profile = lazy(() => import('./pages/Customer/Profile'))
-const Menu = lazy(() => import('./pages/Menu'))
+// Pages - Eager loaded (para navegación instantánea)
+import Home from './pages/Home'
+import Login from './pages/Login'
+import Register from './pages/Register'
+import Profile from './pages/Customer/Profile'
+import Menu from './pages/Menu'
+import Attendance from './pages/Customer/Attendance'
+
+// Pages - Lazy loaded (para no saturar el inicio)
 const Quiz = lazy(() => import('./pages/Quiz'))
-const Attendance = lazy(() => import('./pages/Customer/Attendance'))
 const ClaimTicket = lazy(() => import('./pages/Customer/ClaimTicket'))
 const WaiterDashboard = lazy(() => import('./pages/Waiter/Dashboard'))
 const WaiterScanner = lazy(() => import('./pages/Waiter/Scanner'))
