@@ -349,7 +349,13 @@ begin
   ));
 
   if v_duel.player_one_hp <= 0 or v_duel.player_two_hp <= 0 or v_duel.turn_number > 12 then
-    update hsf_duels set status = 'finished', winner_id = case when player_one_hp > player_two_hp then player_one else player_two end where id = p_duel_id;
+    update hsf_duels set status = 'finished', 
+      winner_id = case 
+        when player_one_hp > player_two_hp then player_one 
+        when player_two_hp > player_one_hp then player_two
+        else null 
+      end 
+    where id = p_duel_id;
     perform hsf_finish_duel_rewards(p_duel_id);
   end if;
   return jsonb_build_object('status', 'resolved');

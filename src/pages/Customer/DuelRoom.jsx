@@ -58,8 +58,74 @@ export default function DuelRoom() {
 
   const duelFinished = duel?.status === 'finished'
   const iWon = duelFinished && duel?.winner_id === profile?.user_id
-  const isDraw = duelFinished && duel?.mode === 'pvp' && !duel?.winner_id && duel?.player_one_hp === duel?.player_two_hp
+  const isDraw = duelFinished && !duel?.winner_id && duel?.player_one_hp === duel?.player_two_hp
   const iLost = duelFinished && !iWon && !isDraw
+
+  const getDuelResultExplanation = () => {
+    if (!duelFinished) return null
+
+    const myFinalHp = isP1 ? duel?.player_one_hp : duel?.player_two_hp
+    const rivalFinalHp = isP1 ? duel?.player_two_hp : duel?.player_one_hp
+
+    const reachedTurnLimit = duel?.turn_number > DUEL_LIMITS.maxTurns
+    const someoneWasDefeated = duel?.player_one_hp <= 0 || duel?.player_two_hp <= 0
+
+    if (isDraw) {
+      return {
+        title: 'Duelo empatado',
+        text: 'El duelo terminó empatado porque ambos magos conservaron la misma cantidad de vida al finalizar.',
+        reason: `Ambos terminaron con ${myFinalHp} HP.`
+      }
+    }
+
+    if (someoneWasDefeated) {
+      if (iWon) {
+        return {
+          title: 'Victoria por caída del rival',
+          text: 'Ganaste porque redujiste la vida de tu rival a 0 antes de que terminara el duelo.',
+          reason: `Terminaste con ${myFinalHp} HP y tu rival quedó con ${rivalFinalHp} HP.`
+        }
+      }
+
+      return {
+        title: 'Derrota por caída',
+        text: 'Perdiste porque tu vida llegó a 0 antes de que terminara el duelo.',
+        reason: `Tu rival terminó con ${rivalFinalHp} HP.`
+      }
+    }
+
+    if (reachedTurnLimit) {
+      if (iWon) {
+        return {
+          title: 'Victoria por ventaja de vida',
+          text: `Se alcanzó el límite de ${DUEL_LIMITS.maxTurns} turnos y ganaste porque terminaste con más vida que tu rival.`,
+          reason: `Terminaste con ${myFinalHp} HP contra ${rivalFinalHp} HP del rival.`
+        }
+      }
+
+      return {
+        title: 'Derrota por límite de turnos',
+        text: `Se alcanzó el límite de ${DUEL_LIMITS.maxTurns} turnos y perdiste porque tu rival terminó con más vida.`,
+        reason: `Terminaste con ${myFinalHp} HP contra ${rivalFinalHp} HP del rival.`
+      }
+    }
+
+    if (iWon) {
+      return {
+        title: 'Victoria del duelo',
+        text: 'Ganaste el duelo por mejor resultado final.',
+        reason: `Terminaste con ${myFinalHp} HP contra ${rivalFinalHp} HP del rival.`
+      }
+    }
+
+    return {
+      title: 'Derrota del duelo',
+      text: 'Perdiste el duelo por resultado final.',
+      reason: `Terminaste con ${myFinalHp} HP contra ${rivalFinalHp} HP del rival.`
+    }
+  }
+
+  const resultExplanation = getDuelResultExplanation()
 
   const fetchDuel = async (retryCount = 0) => {
     try {
@@ -604,6 +670,20 @@ export default function DuelRoom() {
                   <h1 className="text-6xl font-black italic text-white uppercase drop-shadow-2xl">Derrota</h1>
                 ) : (
                   <h1 className="text-6xl font-black italic text-white uppercase drop-shadow-2xl">Empate</h1>
+                )}
+                
+                {resultExplanation && (
+                  <div className="bg-white/5 border border-magical-gold/20 rounded-3xl p-6 space-y-3 animate-in fade-in slide-in-from-bottom-4 duration-500 delay-300">
+                    <p className="text-[10px] font-black uppercase tracking-[0.3em] text-magical-gold">
+                      {resultExplanation.title}
+                    </p>
+                    <p className="text-sm text-white/80 leading-relaxed font-medium">
+                      {resultExplanation.text}
+                    </p>
+                    <p className="text-xs text-white/40 italic">
+                      {resultExplanation.reason}
+                    </p>
+                  </div>
                 )}
               </div>
 
