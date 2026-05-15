@@ -19,6 +19,7 @@ const Quiz = lazy(() => import('./pages/Quiz'))
 const ClaimTicket = lazy(() => import('./pages/Customer/ClaimTicket'))
 const WaiterDashboard = lazy(() => import('./pages/Waiter/Dashboard'))
 const WaiterScanner = lazy(() => import('./pages/Waiter/Scanner'))
+const WaiterRewardScanner = lazy(() => import('./pages/Waiter/RewardScanner'))
 const AdminDashboard = lazy(() => import('./pages/Admin/Dashboard'))
 const Settings = lazy(() => import('./pages/Customer/Settings'))
 const ForgotPassword = lazy(() => import('./pages/ForgotPassword'))
@@ -110,6 +111,7 @@ function App() {
               {/* Waiter Routes */}
               <Route path="/mesero" element={<ProtectedRoute role="waiter"><WaiterDashboard /></ProtectedRoute>} />
               <Route path="/mesero/escanear" element={<ProtectedRoute role="waiter"><WaiterScanner /></ProtectedRoute>} />
+              <Route path="/mesero/escanear-recompensa" element={<ProtectedRoute role="waiter"><WaiterRewardScanner /></ProtectedRoute>} />
 
               {/* Admin Routes */}
               <Route path="/admin" element={<ProtectedRoute role="admin"><AdminDashboard /></ProtectedRoute>} />

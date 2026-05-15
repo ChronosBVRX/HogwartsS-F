@@ -4,6 +4,7 @@ import { useAuth } from '../../context/AuthContext'
 import { supabase } from '../../lib/supabase'
 import { withTimeout } from '../../lib/supabaseSafe'
 import audioManager from '../../lib/audioManager'
+import { QRCodeSVG } from 'qrcode.react'
 import { Award, QrCode, LogOut, Star, Shield, Zap, Wand2, Hash, Settings as SettingsIcon, Map, Footprints, Ticket, CheckCircle2, XCircle, Clock } from 'lucide-react'
 
 // House assets
@@ -37,6 +38,7 @@ export default function Profile() {
   const [activeSession, setActiveSession] = useState(null)
   const [ticketHistory, setTicketHistory] = useState([])
   const [monthlyPoints, setMonthlyPoints] = useState(0)
+  const [welcomeReward, setWelcomeReward] = useState(null)
   const [loading, setLoading] = useState(true)
   const navigate = useNavigate()
 
@@ -48,7 +50,7 @@ export default function Profile() {
       startOfMonth.setDate(1)
       startOfMonth.setHours(0, 0, 0, 0)
 
-      const [sessionRes, historyRes, monthlyRes] = await Promise.all([
+      const [sessionRes, historyRes, monthlyRes, welcomeRes] = await Promise.all([
         withTimeout(
           supabase
             .from('hsf_visit_sessions')
@@ -80,11 +82,24 @@ export default function Profile() {
             .gte('created_at', startOfMonth.toISOString()),
           20000,
           'Puntos'
+        ),
+        withTimeout(
+          supabase
+            .from('hsf_adventure_rewards')
+            .select('*')
+            .eq('customer_id', profile.user_id)
+            .eq('reward_title', 'Recompensa de Ceremonia')
+            .order('created_at', { ascending: false })
+            .limit(1)
+            .maybeSingle(),
+          20000,
+          'Recompensa Bienvenida'
         )
       ])
 
       if (sessionRes.data) setActiveSession(sessionRes.data)
       if (historyRes.data) setTicketHistory(historyRes.data)
+      if (welcomeRes?.data) setWelcomeReward(welcomeRes.data)
       if (monthlyRes.data) {
         const total = monthlyRes.data.reduce((acc, curr) => acc + (curr.points_awarded || 0), 0)
         setMonthlyPoints(total)
@@ -104,6 +119,7 @@ export default function Profile() {
       .channel(`profile_updates_${profile.user_id}`)
       .on('postgres_changes', { event: '*', table: 'hsf_visit_sessions', filter: `customer_id=eq.${profile.user_id}` }, () => fetchData())
       .on('postgres_changes', { event: '*', table: 'hsf_ticket_claims', filter: `customer_id=eq.${profile.user_id}` }, () => fetchData())
+      .on('postgres_changes', { event: '*', table: 'hsf_adventure_rewards', filter: `customer_id=eq.${profile.user_id}` }, () => fetchData())
       .subscribe()
 
     return () => supabase.removeChannel(channel)
@@ -213,9 +229,19 @@ export default function Profile() {
               <h4 className="text-6xl font-black tracking-tighter text-white">{profile?.loyalty_points || 0}</h4>
            </div>
            {house && (
-             <div className="bg-white/5 rounded-2xl p-6 border border-white/5 space-y-2 relative z-10">
-                <p className="text-[9px] font-black text-white/30 uppercase tracking-widest">Beneficio de Casa Activo</p>
-                <p className="text-lg font-black text-white uppercase italic">{house.reward}</p>
+             <div className="bg-white/5 rounded-2xl p-6 border border-white/5 space-y-4 relative z-10 text-center">
+                <div className="space-y-1">
+                  <p className="text-[9px] font-black text-white/30 uppercase tracking-widest">Recompensa de Casa</p>
+                  <p className="text-lg font-black text-white uppercase italic">{house.reward}</p>
+                </div>
+                {welcomeReward?.status === 'available' ? (
+                  <div className="bg-white p-3 rounded-xl inline-block mx-auto border-4 border-magical-gold/20">
+                    <QRCodeSVG value={`reward-${welcomeReward.id}`} size={100} />
+                    <p className="text-[8px] font-black text-black text-center mt-2 uppercase tracking-widest">ESCANEAR<br/>PARA CANJEAR</p>
+                  </div>
+                ) : welcomeReward?.status === 'redeemed' ? (
+                  <p className="text-[10px] font-bold text-white/30 uppercase tracking-widest border border-white/10 py-2 px-4 rounded-full inline-block mt-2">Recompensa de casa reclamada</p>
+                ) : null}
              </div>
            )}
            <Star className="absolute -bottom-10 -right-10 w-48 h-48 text-magical-gold/5 rotate-12" />

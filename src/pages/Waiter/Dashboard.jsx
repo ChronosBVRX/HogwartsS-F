@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom'
 import { supabase } from '../../lib/supabase'
 import { withTimeout } from '../../lib/supabaseSafe'
 import { useAuth } from '../../context/AuthContext'
-import { QrCode, LogOut, Users, Clock, Coffee, CheckCircle2 } from 'lucide-react'
+import { QrCode, LogOut, Users, Clock, Coffee, CheckCircle2, Gift } from 'lucide-react'
 
 export default function WaiterDashboard() {
   const { user } = useAuth()
@@ -61,10 +61,16 @@ export default function WaiterDashboard() {
           <h1 className="text-4xl font-black uppercase italic tracking-tighter text-white">Panel de <span className="text-magical-gold">Atención</span></h1>
           <p className="text-xs text-white/30 uppercase font-bold tracking-[0.3em]">Gestión de Comensales y Mesas</p>
         </div>
-        <Link to="/mesero/escanear" className="btn-gold flex items-center gap-3 px-8 py-4 shadow-[0_0_30px_rgba(212,175,55,0.2)]">
-          <QrCode className="w-6 h-6" />
-          <span className="font-black uppercase italic tracking-tighter">Recibir Cliente</span>
-        </Link>
+        <div className="flex flex-col md:flex-row gap-4 w-full md:w-auto">
+          <Link to="/mesero/escanear" className="btn-gold flex items-center justify-center gap-3 px-6 py-4 shadow-[0_0_30px_rgba(212,175,55,0.2)]">
+            <QrCode className="w-5 h-5" />
+            <span className="font-black uppercase italic tracking-tighter text-sm">Recibir Cliente</span>
+          </Link>
+          <Link to="/mesero/escanear-recompensa" className="btn-gold flex items-center justify-center gap-3 px-6 py-4 shadow-[0_0_30px_rgba(212,175,55,0.2)]">
+            <Gift className="w-5 h-5" />
+            <span className="font-black uppercase italic tracking-tighter text-sm">Canjear Recompensa</span>
+          </Link>
+        </div>
       </header>
 
       <div className="space-y-6">

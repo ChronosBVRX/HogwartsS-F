@@ -494,6 +494,18 @@ export default function Quiz() {
         return
       } else {
         console.log('[QUIZ SAVE SUCCESS]', winner)
+        
+        // Asignar recompensa de bienvenida
+        const houseData = HOUSE_DATA[winner]
+        await supabase.from('hsf_adventure_rewards').insert({
+          customer_id: user.id,
+          reward_title: 'Recompensa de Ceremonia',
+          reward_description: houseData.reward,
+          reward_points: 0,
+          min_consumption: 0,
+          status: 'available'
+        }).select('id').single()
+
         // Refresh the global profile state so other pages see the change immediately
         if (refreshProfile) {
           await refreshProfile()
