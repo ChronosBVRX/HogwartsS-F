@@ -1,6 +1,5 @@
 import { createContext, useContext, useEffect, useState, useCallback, useRef } from 'react'
 import { supabase } from '../lib/supabase'
-import { withTimeout } from '../lib/supabaseSafe'
 
 const AuthContext = createContext({})
 
@@ -12,169 +11,72 @@ export const AuthProvider = ({ children }) => {
       return cached ? JSON.parse(cached) : null
     } catch (e) { return null }
   })
-  const [loading, setLoading] = useState(true) // Initial auth loading
-  const [profileLoading, setProfileLoading] = useState(false) // Start as false to avoid blocking if we have cache
-  const [authError, setAuthError] = useState(null)
-  const initialized = useRef(false)
+  const [loading, setLoading] = useState(true)
+  const [profileLoading, setProfileLoading] = useState(false)
+  
   const fetchingProfile = useRef(false)
-  const currentUserId = useRef(null)
+  const lastUserId = useRef(null)
 
-  const fetchProfile = useCallback(async (userId) => {
-    if (!userId) {
-      setProfile(null)
-      return null
-    }
-
+  const ensureHsfProfile = async (u) => {
+    if (!u?.id || fetchingProfile.current) return
+    fetchingProfile.current = true
+    setProfileLoading(true)
+    
     try {
-      const { data, error } = await withTimeout(
-        supabase
-          .from('hsf_profiles')
-          .select('user_id, display_name, phone, role, house_slug, loyalty_points, gender, pasos_mapa_mes, created_at, updated_at')
-          .eq('user_id', userId)
-          .maybeSingle(),
-        12000,
-        'Cargando perfil'
-      )
-
-      if (error) {
-        console.error('Error fetching profile:', error)
-        setProfile(null)
-        return null
+      const { data, error } = await supabase.rpc('hsf_ensure_profile')
+      if (!error && data?.ok) {
+        setProfile(data.data)
+        localStorage.setItem('hsf_user_profile', JSON.stringify(data.data))
       }
+    } catch (e) {
+      console.error('Error ensuring profile:', e)
+    } finally {
+      fetchingProfile.current = false
+      setProfileLoading(false)
+    }
+  }
 
-      if (data) {
-        setProfile(data)
-        localStorage.setItem('hsf_user_profile', JSON.stringify(data))
+  useEffect(() => {
+    // 1. Inicialización inmediata
+    const init = async () => {
+      const { data: { session } } = await supabase.auth.getSession()
+      const currentUser = session?.user ?? null
+      setUser(currentUser)
+      if (currentUser) {
+        lastUserId.current = currentUser.id
+        ensureHsfProfile(currentUser)
+      }
+      setLoading(false)
+    }
+    init()
+
+    // 2. Escuchar cambios
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+      const currentUser = session?.user ?? null
+      setUser(currentUser)
+      
+      if (currentUser) {
+        if (lastUserId.current !== currentUser.id) {
+          lastUserId.current = currentUser.id
+          ensureHsfProfile(currentUser)
+        }
       } else {
+        lastUserId.current = null
         setProfile(null)
         localStorage.removeItem('hsf_user_profile')
       }
-      return data || null
-    } catch (err) {
-      console.error('fetchProfile failed:', err)
-      setProfile(null)
-      return null
-    }
-  }, [])
-
-  useEffect(() => {
-    let mounted = true
-
-    const initialHref = window.location.href
-    const isRecoveryUrl =
-      initialHref.includes('recovery=1') ||
-      initialHref.includes('type=recovery') ||
-      initialHref.includes('access_token=') ||
-      initialHref.includes('refresh_token=') ||
-      initialHref.includes('code=')
-
-    const goToResetPassword = () => {
-      setTimeout(() => {
-        window.location.hash = '#/restablecer-password'
-      }, 0)
-    }
-
-    const ensureHsfProfile = async (user) => {
-      if (!user?.id) return null
-
-      const { data, error } = await supabase.rpc('hsf_ensure_profile')
-      
-      if (error) {
-        console.error('[ENSURE PROFILE ERROR]', error)
-        return null
-      }
-
-      if (data?.ok) return data.data
-      return null
-    }
-
-    // Fallback de seguridad por si Supabase no dispara onAuthStateChange
-    const fallbackTimer = setTimeout(() => {
-      if (mounted && !initialized.current) {
-        console.warn('Auth event fallback triggered (Supabase tardó demasiado)')
-        initialized.current = true
-        setLoading(false)
-      }
-    }, 15000)
-
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
-      console.log('Auth event:', event)
-
-      if (event === 'PASSWORD_RECOVERY') {
-        goToResetPassword()
-      }
-
-      const currentUser = session?.user ?? null
-
-      if (mounted) {
-        setUser(currentUser)
-
-        if (isRecoveryUrl && event === 'INITIAL_SESSION') {
-          goToResetPassword()
-        }
-
-        // Failsafe por si initializeAuth falló (Desbloquear UI básica)
-        if (!initialized.current) {
-          clearTimeout(fallbackTimer)
-          initialized.current = true
-          setLoading(false)
-        }
-
-        if (currentUser) {
-          if (currentUserId.current === currentUser.id && profile) {
-             setProfileLoading(false)
-          } else if (!fetchingProfile.current) {
-             fetchingProfile.current = true
-             setProfileLoading(true)
-             currentUserId.current = currentUser.id
-             
-             try {
-               const p = await withTimeout(ensureHsfProfile(currentUser), 30000, 'Verificando perfil')
-               if (mounted && p) {
-                 setProfile(p)
-                 localStorage.setItem('hsf_user_profile', JSON.stringify(p))
-               }
-             } catch (error) {
-               console.error('Error al asegurar perfil:', error)
-               try {
-                 const fallbackProfile = await fetchProfile(currentUser.id)
-                 if (mounted && fallbackProfile) setProfile(fallbackProfile)
-               } catch (e) { console.error('Fallback failed') }
-             } finally {
-               if (mounted) {
-                 fetchingProfile.current = false
-                 setProfileLoading(false)
-               }
-             }
-          }
-        } else {
-          currentUserId.current = null
-          if (mounted) {
-            setProfile(null)
-            setProfileLoading(false)
-          }
-        }
-      }
+      setLoading(false)
     })
 
-    return () => {
-      mounted = false
-      clearTimeout(fallbackTimer)
-      subscription?.unsubscribe()
-    }
+    return () => subscription?.unsubscribe()
   }, [])
 
   const signOut = async () => {
-    try {
-      await supabase.auth.signOut()
-      setUser(null)
-      setProfile(null)
-      localStorage.removeItem('hsf_user_profile')
-      window.location.href = '/'
-    } catch (err) {
-      console.error('signOut failed:', err)
-      window.location.reload()
-    }
+    await supabase.auth.signOut()
+    setUser(null)
+    setProfile(null)
+    localStorage.removeItem('hsf_user_profile')
+    window.location.href = '/'
   }
 
   const value = {
@@ -182,10 +84,9 @@ export const AuthProvider = ({ children }) => {
     profile,
     loading,
     profileLoading,
-    authError,
     isAdmin: profile?.role === 'admin',
-    isWaiter: profile?.role === 'waiter' || profile?.role === 'admin',
-    refreshProfile: () => user?.id ? fetchProfile(user.id) : null,
+    isWaiter: ['waiter', 'admin'].includes(profile?.role),
+    refreshProfile: () => user ? ensureHsfProfile(user) : null,
     signOut
   }
 
