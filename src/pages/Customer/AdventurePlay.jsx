@@ -152,20 +152,18 @@ export default function AdventurePlay() {
     const stepContextId = `adventure-play-${runId}-${step.id}`
 
     if (!data?.ok) {
-      // Handle failure limits
-      if (data?.out_of_attempts) {
-        setResult({ ok: false, message: data.message, outOfAttempts: true })
-        timeoutRef.current = setTimeout(() => fetchStep(), 3000)
-        return
-      }
-      setResult({ ok: false, message: data?.message || 'Respuesta incorrecta.' })
-      
       const stepAudio = getStepAudio(step)
       audio.playSequence([
         { type: 'sfx', src: adventureAudio.ui.wrong, volume: 0.75 },
         { type: 'voice', src: stepAudio?.fail, volume: 0.95, delay: 250 }
       ], { contextId: stepContextId })
 
+      if (data?.out_of_attempts) {
+        setResult({ ok: false, message: data.message, outOfAttempts: true })
+        return
+      }
+      
+      setResult({ ok: false, message: data?.message || 'Respuesta incorrecta.' })
       fetchStep()
       return
     }
@@ -299,7 +297,7 @@ export default function AdventurePlay() {
               {(step.options || []).map((option) => (
                 <button
                   key={option.value}
-                  disabled={answering || result?.ok}
+                  disabled={answering || result?.ok || result?.outOfAttempts}
                   onClick={() => handleAnswer(option.value)}
                   className="w-full text-left p-5 bg-white/5 border border-white/10 rounded-2xl hover:bg-magical-gold hover:text-magical-navy transition-all disabled:opacity-60"
                 >
@@ -327,8 +325,19 @@ export default function AdventurePlay() {
                 : 'bg-red-400/10 border-red-400/20 text-red-400'
             }`}>
               {result.ok ? <CheckCircle2 className="w-5 h-5 shrink-0 mt-0.5" /> : <XCircle className="w-5 h-5 shrink-0 mt-0.5" />}
-              <div className="space-y-3">
+              <div className="space-y-3 w-full">
                 <p className="text-sm font-bold">{result.message}</p>
+                
+                {result.outOfAttempts && (
+                  <div className="pt-4 space-y-4">
+                    <p className="text-white/80 italic text-sm">Vuelvan mañana, ¡seguro ahora sí lo lograrán!</p>
+                    <Link to="/aventura" className="btn-gold w-full flex items-center justify-center gap-3 py-4 text-sm font-black uppercase">
+                      <ChevronLeft className="w-5 h-5" />
+                      Regresar al inicio
+                    </Link>
+                  </div>
+                )}
+
                 {result.clue && (
                   <>
                     <p className="text-white/60 italic">{formatMagicalText(result.clue)}</p>
@@ -337,7 +346,7 @@ export default function AdventurePlay() {
                         El mapa se está moviendo hacia el siguiente sello...
                       </p>
                     ) : (
-                      <Link to="/aventura/escanear" className="btn-gold inline-flex items-center gap-2 px-5 py-3 text-xs font-black uppercase">
+                      <Link to="/aventura/escanear" className="btn-gold inline-flex items-center justify-center gap-2 px-5 py-3 text-xs font-black uppercase w-full">
                         <QrCode className="w-4 h-4" />
                         Escanear siguiente sello
                       </Link>

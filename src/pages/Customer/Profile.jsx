@@ -201,7 +201,7 @@ export default function Profile() {
           <div className="glass-card p-16 text-center space-y-6 border-dashed border-2 border-white/5 bg-transparent">
             <Zap className="w-12 h-12 text-white/10 mx-auto" />
             <p className="text-white/40 font-bold uppercase text-xs tracking-widest">Sin casa asignada. La ceremonia te espera.</p>
-            <Link to="/quiz" className="btn-gold px-10 py-4 text-sm font-black uppercase">Comenzar Ceremonia</Link>
+            <Link to="/quiz" className="btn-gold inline-block px-10 py-4 text-sm font-black uppercase">Comenzar Ceremonia</Link>
           </div>
         )}
       </section>

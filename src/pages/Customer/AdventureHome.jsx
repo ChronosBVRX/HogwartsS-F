@@ -178,6 +178,10 @@ export default function AdventureHome() {
   }
 
   const handleStartAdventure = async (adventure) => {
+    if (!audio.enabled) {
+      audio.unlockAudio();
+    }
+
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) {
       navigate('/login')
@@ -247,13 +251,13 @@ export default function AdventureHome() {
                 <AlertCircle className="w-5 h-5 text-magical-gold shrink-0 mt-1" />
                 <p className="text-white/60 italic">{formatMagicalText(state.clue) || 'Busca el siguiente portal mágico.'}</p>
               </div>
-              <Link to="/aventura/escanear" className="btn-gold w-full flex items-center justify-center gap-3 py-5 text-sm font-black uppercase">
+              <Link onClick={() => !audio.enabled && audio.unlockAudio()} to="/aventura/escanear" className="btn-gold w-full flex items-center justify-center gap-3 py-5 text-sm font-black uppercase">
                 <QrCode className="w-5 h-5" />
                 Escanear siguiente sello
               </Link>
             </div>
           ) : (
-            <Link to={`/aventura/jugar/${state.run_id}`} className="btn-gold w-full flex items-center justify-center gap-3 py-5 text-sm font-black uppercase">
+            <Link onClick={() => !audio.enabled && audio.unlockAudio()} to={`/aventura/jugar/${state.run_id}`} className="btn-gold w-full flex items-center justify-center gap-3 py-5 text-sm font-black uppercase">
               <Wand2 className="w-5 h-5" />
               Continuar pregunta
             </Link>
@@ -279,7 +283,7 @@ export default function AdventureHome() {
                 Si prefieres la sorpresa, escanea cualquier sello mágico y el mapa elegirá la aventura que inicie en esa zona.
               </p>
             </div>
-            <Link to="/aventura/escanear" className="btn-gold w-full flex items-center justify-center gap-3 py-5 text-sm font-black uppercase">
+            <Link onClick={() => !audio.enabled && audio.unlockAudio()} to="/aventura/escanear" className="btn-gold w-full flex items-center justify-center gap-3 py-5 text-sm font-black uppercase">
               <QrCode className="w-5 h-5" />
               Escanear cualquier sello
             </Link>
