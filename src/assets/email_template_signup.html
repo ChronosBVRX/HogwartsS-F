@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Confirmación de Correo</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700;900&family=Inter:wght@400;600&display=swap');
+        
+        body, table, td, a {
+            -webkit-text-size-adjust: 100%;
+            -ms-text-size-adjust: 100%;
+        }
+        
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: #0d1117;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            color: #ffffff;
+        }
+
+        .email-wrapper {
+            width: 100%;
+            background-color: #0d1117;
+            padding: 40px 20px;
+        }
+
+        .email-content {
+            max-width: 600px;
+            margin: 0 auto;
+            background-color: #161b22;
+            border: 1px solid rgba(212, 175, 55, 0.2);
+            border-radius: 16px;
+            overflow: hidden;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+        }
+
+        .header {
+            background-color: #10141a;
+            padding: 40px 20px;
+            text-align: center;
+            border-bottom: 1px solid rgba(212, 175, 55, 0.1);
+            background-image: radial-gradient(circle at top, rgba(212, 175, 55, 0.1) 0%, transparent 70%);
+        }
+
+        .logo {
+            width: 80px;
+            height: auto;
+            margin-bottom: 20px;
+            opacity: 0.9;
+        }
+
+        .title {
+            font-family: 'Cinzel', serif;
+            font-size: 28px;
+            font-weight: 700;
+            color: #d4af37;
+            margin: 0;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+        }
+
+        .body-section {
+            padding: 40px 30px;
+            text-align: center;
+        }
+
+        .greeting {
+            font-size: 20px;
+            font-weight: 600;
+            margin-bottom: 20px;
+            color: #e6e6e6;
+        }
+
+        .text {
+            font-size: 16px;
+            line-height: 1.6;
+            color: #a3a3a3;
+            margin-bottom: 30px;
+        }
+
+        .button-wrapper {
+            text-align: center;
+            margin: 35px 0;
+        }
+
+        .button {
+            display: inline-block;
+            padding: 16px 36px;
+            background: linear-gradient(135deg, #d4af37 0%, #b8860b 100%);
+            color: #0a0a0a !important;
+            text-decoration: none;
+            font-family: 'Cinzel', serif;
+            font-weight: 900;
+            font-size: 16px;
+            letter-spacing: 1.5px;
+            border-radius: 8px;
+            text-transform: uppercase;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            box-shadow: 0 4px 15px rgba(212, 175, 55, 0.3);
+        }
+
+        .footer {
+            padding: 30px;
+            text-align: center;
+            background-color: #0d1117;
+            border-top: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .footer-text {
+            font-size: 12px;
+            color: #666666;
+            margin: 0 0 10px 0;
+        }
+
+        .footer-link {
+            color: #d4af37;
+            text-decoration: none;
+        }
+    </style>
+</head>
+<body>
+    <table class="email-wrapper" cellpadding="0" cellspacing="0" role="presentation">
+        <tr>
+            <td align="center">
+                <table class="email-content" cellpadding="0" cellspacing="0" role="presentation">
+                    <!-- Header -->
+                    <tr>
+                        <td class="header">
+                            <h1 class="title">Hogwarts S-F</h1>
+                        </td>
+                    </tr>
+                    
+                    <!-- Body -->
+                    <tr>
+                        <td class="body-section">
+                            <p class="greeting">¡La magia te espera!</p>
+                            
+                            <p class="text">
+                                Has recibido tu carta de aceptación oficial. Para completar tu inscripción y comenzar a acumular puntos para tu casa, necesitamos verificar tu lechuza electrónica.
+                            </p>
+                            
+                            <div class="button-wrapper">
+                                <a href="{{ .ConfirmationURL }}" class="button">Confirmar Inscripción</a>
+                            </div>
+                            
+                            <p class="text" style="font-size: 14px; opacity: 0.8;">
+                                Si no has solicitado este pergamino, puedes ignorarlo con total seguridad. Ningún hechizo será conjurado.
+                            </p>
+                        </td>
+                    </tr>
+                    
+                    <!-- Footer -->
+                    <tr>
+                        <td class="footer">
+                            <p class="footer-text">
+                                &copy; 2024 Hogwarts Snacks & Foods. Todos los derechos reservados.<br>
+                                La magia ocurre en nuestras instalaciones.
+                            </p>
+                            <p class="footer-text">
+                                <a href="{{ .SiteURL }}" class="footer-link">Visitar el Gran Comedor</a>
+                            </p>
+                        </td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+    </table>
+</body>
+</html>
