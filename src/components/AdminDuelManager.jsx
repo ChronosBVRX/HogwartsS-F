@@ -1,3 +1,4 @@
+import React, { useState, useEffect } from 'react'
 import { withTimeout } from '../lib/supabaseSafe'
 import { formatMagicalText } from '../utils/magicalFormatters'
 import { Swords, Trophy, ShoppingBag, Trash2, Edit3, Plus, Search, Check, X } from 'lucide-react'

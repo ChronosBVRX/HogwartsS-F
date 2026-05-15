@@ -1,3 +1,4 @@
+import React, { useState, useEffect } from 'react'
 import { withTimeout } from '../lib/supabaseSafe'
 import { Wand2, Plus, Edit2, Trash2, Save, X, Eye, EyeOff } from 'lucide-react'
 

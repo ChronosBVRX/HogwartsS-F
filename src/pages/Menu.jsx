@@ -1,6 +1,7 @@
 import React, { useState, useMemo, useEffect } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
+import { withTimeout } from '../lib/supabaseSafe'
 import { Search, Wand2, Flame, Coffee, Wine, UtensilsCrossed, Star, Zap, ChevronLeft } from 'lucide-react'
 
 // Import illustrations
