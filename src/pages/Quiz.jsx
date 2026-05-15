@@ -478,13 +478,11 @@ export default function Quiz() {
       const { error } = await withTimeout(
         supabase
           .from('hsf_profiles')
-          .upsert({ 
-            user_id: user.id,
-            display_name: user.user_metadata?.display_name || user.email?.split('@')[0] || 'Mago sin nombre',
-            phone: user.user_metadata?.phone || null,
+          .update({ 
             house_slug: winner,
             updated_at: new Date().toISOString()
-          }, { onConflict: 'user_id' }),
+          })
+          .eq('user_id', user.id),
         8000,
         'Guardando casa'
       )
