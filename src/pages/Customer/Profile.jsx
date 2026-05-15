@@ -49,13 +49,17 @@ export default function Profile() {
   const [monthlyPoints, setMonthlyPoints] = useState(0)
   const [loading, setLoading] = useState(true)
   const [historyLoading, setHistoryLoading] = useState(true)
+  const isFetching = useRef(false)
+  const lastFetchTime = useRef(0)
   const navigate = useNavigate()
 
   const fetchActiveSession = useCallback(async () => {
-    if (!profile) {
-      setLoading(false)
-      return
-    }
+    // Throttle: Evitar más de una petición cada 3 segundos
+    const now = Date.now()
+    if (isFetching.current || (now - lastFetchTime.current < 3000)) return
+    
+    isFetching.current = true
+    lastFetchTime.current = now
     
     try {
       const startOfMonth = new Date()
@@ -122,17 +126,18 @@ export default function Profile() {
     } catch (err) {
       console.error('fetchActiveSession failed:', err)
     } finally {
+      isFetching.current = false
       setLoading(false)
     }
   }, [profile])
 
   useEffect(() => {
-    if (!profile) {
-      setLoading(false)
-      return
-    }
-
-    fetchActiveSession()
+    if (!profile) return
+    
+    // Pequeño delay inicial para dejar que AuthContext se estabilice en el refresh
+    const timer = setTimeout(() => {
+      fetchActiveSession()
+    }, 300)
 
     const channel = supabase
       .channel(`session_updates_${profile.user_id}`)
@@ -147,8 +152,11 @@ export default function Profile() {
       )
       .subscribe()
 
-    return () => supabase.removeChannel(channel)
-  }, [profile, fetchActiveSession])
+    return () => {
+      clearTimeout(timer)
+      supabase.removeChannel(channel)
+    }
+  }, [profile?.user_id, fetchActiveSession]) // Solo re-suscribir si cambia el ID de usuario
 
   const handleEndVisit = async () => {
     if (!activeSession) return
