@@ -269,15 +269,7 @@ export default function Profile() {
         )}
       </section>
 
-      <div className="grid md:grid-cols-2 gap-6">
-        <div className="bg-white/5 rounded-[2.5rem] p-8 md:p-10 border border-white/5 flex flex-col justify-between space-y-10 relative overflow-hidden">
-           <div className="space-y-1 relative z-10">
-              <p className="text-[10px] font-black text-magical-gold uppercase tracking-[0.3em]">Méritos Acumulados</p>
-              <h4 className="text-6xl font-black tracking-tighter text-white">{profile?.loyalty_points || 0}</h4>
-           </div>
-           <Star className="absolute -bottom-10 -right-10 w-48 h-48 text-magical-gold/5 rotate-12" />
-        </div>
-
+      <div className="w-full max-w-lg mx-auto">
         <div className="bg-white/5 rounded-[2.5rem] p-8 md:p-10 border border-white/5 space-y-8 flex flex-col">
           <div className="flex items-center justify-between">
             <p className="text-[10px] font-black text-white/30 uppercase tracking-[0.3em]">Acciones Mágicas</p>
