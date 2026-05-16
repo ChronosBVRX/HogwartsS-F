@@ -61,12 +61,23 @@ export default function AdminRewardManager() {
   const redeemReward = async (rewardId) => {
     if (!confirm('¿Marcar esta recompensa como canjeada?')) return
 
-    const { data, error } = await supabase.rpc('hsf_redeem_adventure_reward', {
-      p_reward_id: rewardId
-    })
+    setLoading(true)
+    const { error } = await withTimeout(
+      supabase
+        .from('hsf_adventure_rewards')
+        .update({
+          status: 'redeemed',
+          redeemed_by: (await supabase.auth.getUser()).data.user?.id,
+          redeemed_at: new Date().toISOString()
+        })
+        .eq('id', rewardId),
+      8000,
+      'Canjeando recompensa'
+    )
 
-    if (error || !data?.ok) {
-      alert(error?.message || data?.message || 'No se pudo canjear la recompensa.')
+    if (error) {
+      alert(error?.message || 'No se pudo canjear la recompensa.')
+      setLoading(false)
       return
     }
 
