@@ -53,7 +53,7 @@ export default function Profile() {
       startOfMonth.setDate(1)
       startOfMonth.setHours(0, 0, 0, 0)
 
-      const [sessionRes, historyRes, monthlyRes, welcomeRes, mapRes] = await Promise.all([
+      const [sessionRes, historyRes, monthlyRes, welcomeRes, mapRes, advRewardsRes] = await Promise.all([
         withTimeout(
           supabase
             .from('hsf_visit_sessions')
