@@ -6,31 +6,38 @@ export default function QRScanner({ onScan, onClose, title = 'Escanear QR' }) {
   const [error, setError] = useState(null)
   const [isCameraActive, setIsCameraActive] = useState(false)
   const scannerRef = useRef(null)
+  const isStoppingRef = useRef(false)
 
   const stopScanner = useCallback(async () => {
-    if (scannerRef.current) {
-      try {
-        if (scannerRef.current.isScanning) {
-          await scannerRef.current.stop()
-        }
-        await scannerRef.current.clear()
-        scannerRef.current = null
-      } catch (err) {
-        console.warn('Scanner stop warning:', err)
-      }
-    }
+    if (!scannerRef.current || isStoppingRef.current) return
+    isStoppingRef.current = true
     setIsCameraActive(false)
+
+    try {
+      if (scannerRef.current.isScanning) {
+        await scannerRef.current.stop()
+      }
+      await scannerRef.current.clear()
+    } catch (err) {
+      console.warn('Scanner stop warning:', err)
+    } finally {
+      scannerRef.current = null
+      isStoppingRef.current = false
+    }
   }, [])
 
   const startScanner = useCallback(async () => {
-    if (scannerRef.current?.isScanning) return
+    if (scannerRef.current?.isScanning || isStoppingRef.current) return
 
-    // Avoid synchronous setState in effect by ensuring it's not the first thing called if needed
-    // or just let the async boundary handle it if the lint allows it.
-    // However, to be safe and satisfy the lint:
     setError(null)
     
     try {
+      // Esperar un momento para asegurar que el hardware de la cámara haya liberado bloqueos previos
+      await new Promise(resolve => setTimeout(resolve, 350))
+      
+      // Verificar si el componente sigue montado y no se ha iniciado ya
+      if (isStoppingRef.current || scannerRef.current?.isScanning) return
+
       const html5QrCode = new Html5Qrcode('qr-reader-element')
       scannerRef.current = html5QrCode
 
@@ -44,18 +51,20 @@ export default function QRScanner({ onScan, onClose, title = 'Escanear QR' }) {
         { facingMode: 'environment' },
         config,
         async (decodedText) => {
+          if (isStoppingRef.current) return
           await stopScanner()
           onScan(decodedText)
         }
       )
       setIsCameraActive(true)
     } catch (err) {
-      setError('No se pudo acceder a la cámara. Por favor, asegúrate de dar los permisos necesarios.')
-      console.error(err)
+      setError('No se pudo acceder a la cámara. Por favor, asegúrate de dar los permisos necesarios o recarga la página.')
+      console.error('[QR SCANNER START ERROR]', err)
     }
   }, [onScan, stopScanner])
 
   useEffect(() => {
+    isStoppingRef.current = false
     const init = async () => {
       await startScanner()
     }
