@@ -232,7 +232,7 @@ export default function AdventureScanner() {
             </button>
 
             <p className="text-[10px] text-white/30 uppercase font-black tracking-[0.2em] max-w-xs mx-auto leading-relaxed">
-              Encuentra los pósters mágicos ubicados en las diferentes zonas del castillo
+              Encuentra los pósters mágicos ubicados en las diferentes zonas del restaurante
             </p>
           </div>
 
