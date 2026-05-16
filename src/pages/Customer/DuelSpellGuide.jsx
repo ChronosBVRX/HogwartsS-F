@@ -82,7 +82,7 @@ export default function DuelSpellGuide() {
 
           <Link to="/duelos" className="inline-flex items-center gap-2 text-magical-gold hover:text-white transition-all text-[10px] font-black uppercase tracking-[0.3em] group bg-magical-gold/5 px-6 py-3 rounded-full border border-magical-gold/20 hover:border-magical-gold">
             <ChevronLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
-            Volver al Castillo
+            Volver
           </Link>
         </div>
       </header>

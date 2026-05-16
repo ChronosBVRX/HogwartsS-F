@@ -130,7 +130,7 @@ export default function AdventureReward() {
 
           <div className="grid gap-3 pt-4">
             <Link to="/perfil" className="btn-gold w-full py-5 text-sm font-black uppercase">
-              Volver al Castillo
+              Volver
             </Link>
           </div>
         </div>
