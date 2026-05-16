@@ -211,7 +211,7 @@ export default function DuelShop() {
           className="group flex items-center gap-3 text-text-gray hover:text-magical-gold transition-all text-xs font-black uppercase tracking-[0.4em]"
         >
           <ChevronLeft className="w-5 h-5 group-hover:-translate-x-2 transition-transform" />
-          Volver
+          Regresar al Castillo
         </button>
       </div>
     </div>

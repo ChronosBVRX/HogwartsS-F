@@ -317,7 +317,7 @@ export default function Profile() {
               </div>
             </div>
             <div className="bg-[#5c3a21]/5 border border-[#5c3a21]/10 rounded-2xl p-6 text-center space-y-4">
-               <p className="text-[10px] uppercase font-black tracking-widest text-[#5c3a21]/60 italic max-w-lg mx-auto">“Grandes banquetes aguardan a quienes recorren el restaurante”. Junta 1,200 galeones y elige una recompensa especial.</p>
+               <p className="text-[10px] uppercase font-black tracking-widest text-[#5c3a21]/60 italic max-w-lg mx-auto">“Grandes banquetes aguardan a quienes recorren el castillo”. Junta 1,200 galeones y elige una recompensa especial.</p>
                <div>
                  <p className="text-[10px] uppercase font-black tracking-widest text-[#5c3a21]/40">Poder Mágico Mensual</p>
                  <p className="text-4xl font-black text-[#5c3a21] italic tracking-tighter">{currentSteps} pts</p>

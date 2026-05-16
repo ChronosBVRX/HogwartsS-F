@@ -80,7 +80,7 @@ const questions = [
   {
     id: 'q03',
     hatLine: 'El miedo habla bajo, pero decide mucho.',
-    question: 'Durante una noche escuchas que alguien pide ayuda desde un pasillo prohibido. No sabes si es una trampa. ¿Qué pesa más en tu decisión?',
+    question: 'Durante una noche en el castillo escuchas que alguien pide ayuda desde un pasillo prohibido. No sabes si es una trampa. ¿Qué pesa más en tu decisión?',
     options: [
       {
         id: 'q03_a',
@@ -579,7 +579,7 @@ export default function Quiz() {
         <div className="text-center space-y-6 relative z-10 max-w-xl">
           <div className="space-y-2">
             <p className="text-magical-gold text-xs font-black uppercase tracking-[0.4em] animate-pulse">
-              {saving ? 'Escribiendo en los registros mágicos...' : 'El Sombrero está leyendo tus decisiones...'}
+              {saving ? 'Escribiendo en los registros del castillo...' : 'El Sombrero está leyendo tus decisiones...'}
             </p>
           </div>
           <h2 className="text-2xl md:text-3xl font-black italic text-white leading-relaxed">
