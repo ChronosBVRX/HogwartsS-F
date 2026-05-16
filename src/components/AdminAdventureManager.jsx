@@ -105,6 +105,29 @@ export default function AdminAdventureManager() {
     fetchData()
   }
 
+  const handleRunAction = async (runId, action) => {
+    const actionText = action === 'close' ? 'cerrar (abandonar)' : 'reiniciar desde el paso 1';
+    if (!confirm(`¿Estás seguro de que deseas ${actionText} esta aventura?`)) return;
+
+    try {
+      const { data, error } = await supabase.rpc('hsf_admin_update_run_status', {
+        p_run_id: runId,
+        p_action: action
+      });
+
+      if (error || !data?.ok) {
+        alert(error?.message || data?.message || 'No se pudo realizar la acción.');
+        return;
+      }
+
+      setMessage(data.message);
+      fetchData();
+    } catch (err) {
+      console.error('[ADMIN RUN ACTION ERROR]', err);
+      alert('Error ejecutando la acción.');
+    }
+  };
+
   return (
     <div className="space-y-10 animate-in fade-in duration-700">
       {message && (
@@ -227,7 +250,7 @@ export default function AdminAdventureManager() {
 
         <div className="glass-card overflow-hidden border border-white/10">
           <div className="overflow-x-auto custom-scrollbar">
-            <table className="w-full text-left border-collapse min-w-[800px]">
+            <table className="w-full text-left border-collapse min-w-[850px]">
               <thead className="bg-white/5 text-white/40 text-[9px] font-black uppercase tracking-[0.2em]">
                 <tr>
                   <th className="px-6 py-5">Mago / Estudiante</th>
@@ -236,11 +259,12 @@ export default function AdminAdventureManager() {
                   <th className="px-6 py-5">Intentos Fallidos</th>
                   <th className="px-6 py-5">Fecha de Inicio</th>
                   <th className="px-6 py-5">Estado</th>
+                  <th className="px-6 py-5 text-right">Acciones</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-white/5">
                 {runs.length === 0 ? (
-                  <tr><td colSpan="6" className="px-6 py-16 text-center text-white/20 uppercase font-black tracking-widest">Sin registros de aventuras iniciadas</td></tr>
+                  <tr><td colSpan="7" className="px-6 py-16 text-center text-white/20 uppercase font-black tracking-widest">Sin registros de aventuras iniciadas</td></tr>
                 ) : runs.map((run) => (
                   <tr key={run.id} className="hover:bg-white/5 transition-colors">
                     <td className="px-6 py-5">
@@ -261,6 +285,22 @@ export default function AdminAdventureManager() {
                       }`}>
                         {run.status === 'completed' ? 'Completada' : run.status === 'active' ? 'Activa' : 'No completada'}
                       </span>
+                    </td>
+                    <td className="px-6 py-5 text-right space-x-2 whitespace-nowrap">
+                      {run.status === 'active' && (
+                        <button
+                          onClick={() => handleRunAction(run.id, 'close')}
+                          className="px-3 py-1.5 bg-red-500/10 border border-red-500/20 text-red-400 hover:bg-red-500/20 rounded-xl text-[10px] font-black uppercase transition-colors mr-2"
+                        >
+                          Cerrar
+                        </button>
+                      )}
+                      <button
+                        onClick={() => handleRunAction(run.id, 'restart')}
+                        className="px-3 py-1.5 bg-white/5 border border-white/10 text-white/70 hover:text-white hover:bg-white/10 rounded-xl text-[10px] font-black uppercase transition-colors"
+                      >
+                        Reiniciar
+                      </button>
                     </td>
                   </tr>
                 ))}
