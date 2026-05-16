@@ -5,9 +5,11 @@ const STORAGE_KEY = 'hsf_magic_audio_enabled'
 
 function getStoredAudioEnabled() {
   try {
-    return localStorage.getItem(STORAGE_KEY) === 'true'
+    const val = localStorage.getItem(STORAGE_KEY)
+    if (val === 'false') return false
+    return true
   } catch {
-    return false
+    return true
   }
 }
 
