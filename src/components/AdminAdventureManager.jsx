@@ -106,7 +106,7 @@ export default function AdminAdventureManager() {
   }
 
   const handleRunAction = async (runId, action) => {
-    const actionText = action === 'close' ? 'cerrar (abandonar)' : 'reiniciar desde el paso 1';
+    const actionText = action === 'close' ? 'cerrar (abandonar)' : action === 'delete' ? 'eliminar permanentemente' : 'reiniciar desde el paso 1';
     if (!confirm(`¿Estás seguro de que deseas ${actionText} esta aventura?`)) return;
 
     try {
@@ -290,16 +290,22 @@ export default function AdminAdventureManager() {
                       {run.status === 'active' && (
                         <button
                           onClick={() => handleRunAction(run.id, 'close')}
-                          className="px-3 py-1.5 bg-red-500/10 border border-red-500/20 text-red-400 hover:bg-red-500/20 rounded-xl text-[10px] font-black uppercase transition-colors mr-2"
+                          className="px-3 py-1.5 bg-yellow-500/10 border border-yellow-500/20 text-yellow-400 hover:bg-yellow-500/20 rounded-xl text-[10px] font-black uppercase transition-colors mr-2"
                         >
                           Cerrar
                         </button>
                       )}
                       <button
                         onClick={() => handleRunAction(run.id, 'restart')}
-                        className="px-3 py-1.5 bg-white/5 border border-white/10 text-white/70 hover:text-white hover:bg-white/10 rounded-xl text-[10px] font-black uppercase transition-colors"
+                        className="px-3 py-1.5 bg-white/5 border border-white/10 text-white/70 hover:text-white hover:bg-white/10 rounded-xl text-[10px] font-black uppercase transition-colors mr-2"
                       >
                         Reiniciar
+                      </button>
+                      <button
+                        onClick={() => handleRunAction(run.id, 'delete')}
+                        className="px-3 py-1.5 bg-red-500/10 border border-red-500/20 text-red-400 hover:bg-red-500/20 rounded-xl text-[10px] font-black uppercase transition-colors"
+                      >
+                        Eliminar
                       </button>
                     </td>
                   </tr>
