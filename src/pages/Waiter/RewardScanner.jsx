@@ -31,7 +31,7 @@ export default function RewardScanner() {
     const { data: reward, error: fetchError } = await withTimeout(
       supabase
         .from('hsf_adventure_rewards')
-        .select('*, customer:hsf_profiles!hsf_adventure_rewards_customer_id_fkey(display_name, house_slug)')
+        .select('*')
         .eq('id', rewardId)
         .single(),
       8000,
@@ -44,13 +44,24 @@ export default function RewardScanner() {
       return
     }
 
+    const { data: customerProfile } = await supabase
+      .from('hsf_profiles')
+      .select('display_name, house_slug')
+      .eq('user_id', reward.customer_id)
+      .single()
+
+    const fullRewardDetails = {
+      ...reward,
+      customer: customerProfile
+    }
+
     if (reward.status === 'redeemed') {
       setError('Esta recompensa ya fue reclamada.')
       setLoading(false)
       return
     }
 
-    setRewardDetails(reward)
+    setRewardDetails(fullRewardDetails)
     setLoading(false)
   }
 
