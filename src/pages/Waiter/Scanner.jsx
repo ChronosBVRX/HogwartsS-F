@@ -14,8 +14,13 @@ export default function WaiterScanner() {
   const navigate = useNavigate()
   
   const handleScan = (decodedText) => {
-    setScanResult(decodedText)
     setShowScanner(false)
+    if (decodedText.startsWith('reward-')) {
+      setError('⚠️ Escaneaste un QR de Recompensa. Ve al panel principal y usa el "Escáner de Recompensas".')
+      return
+    }
+    setError(null)
+    setScanResult(decodedText)
   }
 
   const handleAssignTable = async (e) => {

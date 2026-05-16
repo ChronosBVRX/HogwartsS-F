@@ -21,7 +21,7 @@ export default function RewardScanner() {
     setRewardDetails(null)
 
     if (!decodedText.startsWith('reward-')) {
-      setError('El código escaneado no es de una recompensa válida.')
+      setError('⚠️ Escaneaste un QR de Pase de Entrada. Ve al panel principal y usa "Recibir Cliente".')
       setLoading(false)
       return
     }
