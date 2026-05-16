@@ -5,7 +5,7 @@ import { supabase } from '../../lib/supabase'
 import { withTimeout } from '../../lib/supabaseSafe'
 import audioManager from '../../lib/audioManager'
 import { QRCodeSVG } from 'qrcode.react'
-import { Award, QrCode, LogOut, Star, Shield, Zap, Wand2, Hash, Settings as SettingsIcon, Map, Footprints, Ticket, CheckCircle2, XCircle, Clock } from 'lucide-react'
+import { Award, QrCode, LogOut, Star, Shield, Zap, Wand2, Hash, Settings as SettingsIcon, Map, Footprints, Ticket, CheckCircle2, XCircle, Clock, Gift } from 'lucide-react'
 
 // House assets
 import gryffindorLogo from '../../assets/houses/gryffindor.png'
@@ -40,6 +40,7 @@ export default function Profile() {
   const [monthlyPoints, setMonthlyPoints] = useState(0)
   const [welcomeReward, setWelcomeReward] = useState(null)
   const [mapReward, setMapReward] = useState(null)
+  const [adventureRewards, setAdventureRewards] = useState([])
   const [loading, setLoading] = useState(true)
   const navigate = useNavigate()
 
@@ -107,12 +108,25 @@ export default function Profile() {
             .maybeSingle(),
           20000,
           'Recompensa Mapa'
+        ),
+        withTimeout(
+          supabase
+            .from('hsf_adventure_rewards')
+            .select('id, reward_title, reward_description, min_consumption, status, created_at')
+            .eq('customer_id', profile.user_id)
+            .order('created_at', { ascending: false })
+            .limit(10),
+          20000,
+          'Recompensas Aventuras'
         )
       ])
 
       if (sessionRes.data) setActiveSession(sessionRes.data)
       if (historyRes.data) setTicketHistory(historyRes.data)
       if (welcomeRes?.data) setWelcomeReward(welcomeRes.data)
+      if (advRewardsRes?.data) {
+        setAdventureRewards(advRewardsRes.data.filter(r => !['Recompensa de Ceremonia', 'Mapa del Merodeador'].includes(r.reward_title)))
+      }
       
       let totalMonthly = 0;
       if (monthlyRes.data) {
@@ -365,6 +379,48 @@ export default function Profile() {
                ) : null}
             </div>
           </div>
+        </div>
+      </section>
+
+      <section className="space-y-4 pt-4">
+        <div className="flex items-center gap-2 px-2">
+          <Gift className="w-5 h-5 text-magical-gold" />
+          <h2 className="text-[10px] font-black uppercase tracking-[0.4em] text-white/40">Mis Recompensas de Aventura</h2>
+        </div>
+
+        <div className="glass-card overflow-hidden divide-y divide-white/5 border border-white/5">
+          {adventureRewards.length === 0 ? (
+            <div className="p-8 text-center text-white/30 text-xs font-black uppercase tracking-widest">
+              Aún no tienes recompensas de aventura.
+            </div>
+          ) : adventureRewards.map((reward) => (
+            <div key={reward.id} className="p-5 flex flex-col md:flex-row md:items-center justify-between gap-6 hover:bg-white/5 transition-colors">
+              <div className="flex-1">
+                <p className="text-white font-black uppercase italic">{reward.reward_title}</p>
+                <p className="text-white/40 text-xs mt-1">{reward.reward_description}</p>
+                {Number(reward.min_consumption) > 0 && (
+                  <p className="text-[10px] text-magical-gold mt-2 uppercase font-black">
+                    Consumo mínimo: ${reward.min_consumption}
+                  </p>
+                )}
+              </div>
+              <div className="flex items-center gap-4 justify-between md:justify-end">
+                {reward.status === 'available' ? (
+                  <div className="bg-white p-3 rounded-xl inline-block border-4 border-magical-gold/20 shrink-0">
+                    <QRCodeSVG value={`reward-${reward.id}`} size={80} />
+                    <p className="text-[7px] font-black text-black text-center mt-1 uppercase tracking-widest">ESCANEAR PARA<br/>CANJEAR</p>
+                  </div>
+                ) : null}
+                <span className={`px-3 py-1 rounded-full text-[9px] uppercase font-black tracking-widest border h-fit ${
+                  reward.status === 'available'
+                    ? 'border-green-500/20 text-green-400 bg-green-500/5'
+                    : 'border-white/10 text-white/30 bg-white/5'
+                }`}>
+                  {reward.status === 'available' ? 'Disponible' : reward.status === 'redeemed' ? 'Canjeada' : reward.status}
+                </span>
+              </div>
+            </div>
+          ))}
         </div>
       </section>
 

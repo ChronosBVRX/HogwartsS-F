@@ -1,25 +1,17 @@
 import { useEffect, useRef, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { supabase } from '../../lib/supabase'
-import { Wand2, QrCode, Gift, Map, AlertCircle, Sparkles, XCircle, LayoutGrid } from 'lucide-react'
+import { Wand2, QrCode, AlertCircle, Sparkles, XCircle } from 'lucide-react'
 import { useAdventureAudio } from '../../hooks/useAdventureAudio'
 import { adventureAudio } from '../../data/adventureAudioManifest'
 import AdventureAudioControl from '../../components/adventure/AdventureAudioControl'
 import SeasonBanner from '../../components/adventure/SeasonBanner'
-import SeasonAdventureGrid from '../../components/adventure/SeasonAdventureGrid'
-import { 
-  getCurrentAdventureSeason, 
-  getAvailableSeasonAdventures,
-  startSeasonAdventure 
-} from '../../lib/adventureSeasonService'
+import { getCurrentAdventureSeason } from '../../lib/adventureSeasonService'
 import { formatMagicalText } from '../../utils/magicalFormatters'
-import { QRCodeSVG } from 'qrcode.react'
 
 export default function AdventureHome() {
   const [state, setState] = useState(null)
-  const [rewards, setRewards] = useState([])
   const [season, setSeason] = useState(null)
-  const [adventures, setAdventures] = useState([])
   const [loading, setLoading] = useState(true)
   const navigate = useNavigate()
   const audio = useAdventureAudio()
@@ -30,7 +22,6 @@ export default function AdventureHome() {
     const setupRealtime = async () => {
       await Promise.all([
         fetchAdventure(),
-        fetchRewards(),
         fetchSeasonData()
       ])
 
@@ -97,12 +88,8 @@ export default function AdventureHome() {
 
   const fetchSeasonData = async () => {
     try {
-      const [seasonData, adventureData] = await Promise.all([
-        getCurrentAdventureSeason(supabase),
-        getAvailableSeasonAdventures(supabase)
-      ])
+      const seasonData = await getCurrentAdventureSeason(supabase)
       setSeason(seasonData)
-      setAdventures(adventureData)
     } catch (err) {
       console.error('fetchSeasonData failed:', err)
     }
@@ -151,56 +138,7 @@ export default function AdventureHome() {
     }
   }
 
-  const fetchRewards = async () => {
-    try {
-      const { data: { user } } = await supabase.auth.getUser()
-      if (!user) {
-        setRewards([])
-        return
-      }
 
-      const { data, error } = await supabase
-        .from('hsf_adventure_rewards')
-        .select('id, reward_title, reward_description, min_consumption, status, created_at')
-        .eq('customer_id', user.id)
-        .order('created_at', { ascending: false })
-        .limit(10)
-
-      if (error) {
-        console.error('Error cargando recompensas:', error)
-        setRewards([])
-        return
-      }
-      setRewards(data || [])
-    } catch (err) {
-      console.error('fetchRewards failed:', err)
-      setRewards([])
-    }
-  }
-
-  const handleStartAdventure = async (adventure) => {
-    if (!audio.enabled) {
-      audio.unlockAudio();
-    }
-
-    const { data: { user } } = await supabase.auth.getUser()
-    if (!user) {
-      navigate('/login')
-      return
-    }
-
-    setLoading(true)
-    try {
-      const run = await startSeasonAdventure(supabase, adventure.adventure_id, user.id)
-      await fetchAdventure()
-      navigate('/aventura/escanear')
-    } catch (error) {
-      console.error('Error starting adventure:', error)
-      alert('No se pudo iniciar la aventura. Quizás ya tienes una activa.')
-    } finally {
-      setLoading(false)
-    }
-  }
 
   return (
     <div className="flex-1 max-w-5xl mx-auto w-full p-4 md:p-6 pb-24 space-y-8 animate-in fade-in duration-700">
@@ -265,74 +203,27 @@ export default function AdventureHome() {
           )}
         </section>
       ) : (
-        <div className="space-y-8">
-          <div className="flex items-center gap-2 px-2">
-            <LayoutGrid className="w-5 h-5 text-magical-gold" />
-            <h2 className="text-[10px] md:text-xs font-black uppercase tracking-[0.4em] text-white/40">Elegir Aventura de Temporada</h2>
-          </div>
-          
-          <SeasonAdventureGrid 
-            adventures={adventures} 
-            onStartAdventure={handleStartAdventure} 
-          />
-
-          <section className="glass-card p-8 rounded-[2.5rem] border border-white/10 space-y-6 text-center">
-            <QrCode className="w-16 h-16 text-magical-gold mx-auto" />
-            <div className="space-y-2">
-              <h2 className="text-3xl font-black uppercase italic text-white">O escanea un sello directamente</h2>
-              <p className="text-white/50 max-w-xl mx-auto">
-                Si prefieres la sorpresa, escanea cualquier sello mágico y el mapa elegirá la aventura que inicie en esa zona.
+        <section className="glass-card p-8 md:p-12 rounded-[2.5rem] border border-magical-gold/30 space-y-8 text-center shadow-2xl relative overflow-hidden">
+          <div className="absolute inset-0 bg-magical-gold/5 blur-3xl pointer-events-none" />
+          <div className="relative z-10 space-y-6">
+            <div className="p-6 bg-magical-gold/10 rounded-full w-fit mx-auto text-magical-gold border border-magical-gold/20 animate-float">
+              <QrCode className="w-16 h-16" />
+            </div>
+            <div className="space-y-3 max-w-xl mx-auto">
+              <h2 className="text-3xl md:text-4xl font-black uppercase italic tracking-tighter text-white">
+                Escanear <span className="text-magical-gold">Sello Mágico</span>
+              </h2>
+              <p className="text-white/60 text-sm md:text-base leading-relaxed">
+                Busca los pósters mágicos en las distintas zonas del restaurante. La aventura que inicies dependerá del primer sello que decidas escanear.
               </p>
             </div>
-            <Link onClick={() => !audio.enabled && audio.unlockAudio()} to="/aventura/escanear" className="btn-gold w-full flex items-center justify-center gap-3 py-5 text-sm font-black uppercase">
+            <Link onClick={() => !audio.enabled && audio.unlockAudio()} to="/aventura/escanear" className="btn-gold w-full max-w-md mx-auto flex items-center justify-center gap-3 py-5 text-sm font-black uppercase tracking-widest shadow-lg shadow-magical-gold/20">
               <QrCode className="w-5 h-5" />
-              Escanear cualquier sello
+              Activar Escáner Mágico
             </Link>
-          </section>
-        </div>
+          </div>
+        </section>
       )}
-
-      <section className="space-y-4">
-        <div className="flex items-center gap-2 px-2">
-          <Gift className="w-5 h-5 text-magical-gold" />
-          <h2 className="text-[10px] md:text-xs font-black uppercase tracking-[0.4em] text-white/40">Mis recompensas mágicas</h2>
-        </div>
-
-        <div className="glass-card overflow-hidden divide-y divide-white/5">
-          {rewards.length === 0 ? (
-            <div className="p-8 text-center text-white/30 text-xs font-black uppercase tracking-widest">
-              Aún no tienes recompensas de aventura.
-            </div>
-          ) : rewards.map((reward) => (
-            <div key={reward.id} className="p-5 flex flex-col md:flex-row md:items-center justify-between gap-6">
-              <div className="flex-1">
-                <p className="text-white font-black uppercase italic">{formatMagicalText(reward.reward_title)}</p>
-                <p className="text-white/40 text-xs mt-1">{formatMagicalText(reward.reward_description)}</p>
-                {Number(reward.min_consumption) > 0 && (
-                  <p className="text-[10px] text-magical-gold mt-2 uppercase font-black">
-                    Consumo mínimo: ${reward.min_consumption}
-                  </p>
-                )}
-              </div>
-              <div className="flex items-center gap-4 justify-between md:justify-end">
-                {reward.status === 'available' ? (
-                  <div className="bg-white p-3 rounded-xl inline-block border-4 border-magical-gold/20 shrink-0">
-                    <QRCodeSVG value={`reward-${reward.id}`} size={80} />
-                    <p className="text-[7px] font-black text-black text-center mt-1 uppercase tracking-widest">ESCANEAR PARA<br/>CANJEAR</p>
-                  </div>
-                ) : null}
-                <span className={`px-3 py-1 rounded-full text-[9px] uppercase font-black tracking-widest border h-fit ${
-                  reward.status === 'available'
-                    ? 'border-green-500/20 text-green-400 bg-green-500/5'
-                    : 'border-white/10 text-white/30 bg-white/5'
-                }`}>
-                  {reward.status === 'available' ? 'Disponible' : reward.status === 'redeemed' ? 'Canjeada' : reward.status}
-                </span>
-              </div>
-            </div>
-          ))}
-        </div>
-      </section>
     </div>
   )
 }
