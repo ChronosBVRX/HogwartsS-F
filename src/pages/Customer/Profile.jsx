@@ -39,6 +39,7 @@ export default function Profile() {
   const [ticketHistory, setTicketHistory] = useState([])
   const [monthlyPoints, setMonthlyPoints] = useState(0)
   const [welcomeReward, setWelcomeReward] = useState(null)
+  const [mapReward, setMapReward] = useState(null)
   const [loading, setLoading] = useState(true)
   const navigate = useNavigate()
 
@@ -50,7 +51,7 @@ export default function Profile() {
       startOfMonth.setDate(1)
       startOfMonth.setHours(0, 0, 0, 0)
 
-      const [sessionRes, historyRes, monthlyRes, welcomeRes] = await Promise.all([
+      const [sessionRes, historyRes, monthlyRes, welcomeRes, mapRes] = await Promise.all([
         withTimeout(
           supabase
             .from('hsf_visit_sessions')
@@ -94,16 +95,47 @@ export default function Profile() {
             .maybeSingle(),
           20000,
           'Recompensa Bienvenida'
+        ),
+        withTimeout(
+          supabase
+            .from('hsf_adventure_rewards')
+            .select('*')
+            .eq('customer_id', profile.user_id)
+            .eq('reward_title', 'Mapa del Merodeador')
+            .order('created_at', { ascending: false })
+            .limit(1)
+            .maybeSingle(),
+          20000,
+          'Recompensa Mapa'
         )
       ])
 
       if (sessionRes.data) setActiveSession(sessionRes.data)
       if (historyRes.data) setTicketHistory(historyRes.data)
       if (welcomeRes?.data) setWelcomeReward(welcomeRes.data)
+      
+      let totalMonthly = 0;
       if (monthlyRes.data) {
-        const total = monthlyRes.data.reduce((acc, curr) => acc + (curr.points_awarded || 0), 0)
-        setMonthlyPoints(total)
+        totalMonthly = monthlyRes.data.reduce((acc, curr) => acc + (curr.points_awarded || 0), 0)
+        setMonthlyPoints(totalMonthly)
       }
+
+      let currentMapReward = mapRes?.data || null;
+      if (totalMonthly >= 1200 && !currentMapReward) {
+        const { data: newReward } = await supabase
+          .from('hsf_adventure_rewards')
+          .insert({
+            customer_id: profile.user_id,
+            reward_title: 'Mapa del Merodeador',
+            reward_description: 'Elige tu recompensa: Hamburguesa Sencilla o Tacos de Arrachera',
+            min_consumption: 0,
+            status: 'available'
+          })
+          .select()
+          .maybeSingle();
+        if (newReward) currentMapReward = newReward;
+      }
+      setMapReward(currentMapReward)
     } catch (err) {
       console.error('Error loading profile data:', err)
     } finally {
@@ -317,12 +349,20 @@ export default function Profile() {
               </div>
             </div>
             <div className="bg-[#5c3a21]/5 border border-[#5c3a21]/10 rounded-2xl p-6 text-center space-y-4">
-               <p className="text-[10px] uppercase font-black tracking-widest text-[#5c3a21]/60 italic max-w-lg mx-auto">“Grandes banquetes aguardan a quienes recorren el castillo”. Junta 1,200 galeones y elige una recompensa especial.</p>
+               <p className="text-[10px] uppercase font-black tracking-widest text-[#5c3a21]/60 italic max-w-lg mx-auto">“Grandes banquetes aguardan a quienes recorren el restaurante”. Junta 1,200 puntos con tus tickets validados y elige tu recompensa: ¡Hamburguesa Sencilla o Tacos de Arrachera!</p>
                <div>
                  <p className="text-[10px] uppercase font-black tracking-widest text-[#5c3a21]/40">Poder Mágico Mensual</p>
                  <p className="text-4xl font-black text-[#5c3a21] italic tracking-tighter">{currentSteps} pts</p>
                </div>
                {nextMilestone && <p className="text-[9px] font-bold text-[#5c3a21]/50">Te faltan {nextMilestone.steps - currentSteps} puntos para el {nextMilestone.name}</p>}
+               {mapReward?.status === 'available' ? (
+                 <div className="bg-white p-3 rounded-xl inline-block mx-auto border-4 border-[#8b5a2b]/30 mt-2">
+                   <QRCodeSVG value={`reward-${mapReward.id}`} size={100} />
+                   <p className="text-[8px] font-black text-black text-center mt-2 uppercase tracking-widest">ESCANEAR PARA<br/>CANJEAR</p>
+                 </div>
+               ) : mapReward?.status === 'redeemed' ? (
+                 <p className="text-[10px] font-bold text-[#5c3a21]/60 uppercase tracking-widest border border-[#5c3a21]/20 py-2 px-4 rounded-full inline-block mt-2 bg-[#5c3a21]/5">Recompensa del Mapa reclamada</p>
+               ) : null}
             </div>
           </div>
         </div>
