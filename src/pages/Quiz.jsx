@@ -299,28 +299,28 @@ const HOUSE_DATA = {
   red: { 
     name: "Gryffindor", 
     color: "from-red-600 to-amber-600", 
-    reward: "Bebida de Mantequilla de Regalo", 
+    reward: "Soda Italiana Gratis", 
     motto: "Donde habitan los valientes",
     explanation: "Tu alma arde con un fuego que no conoce el miedo. Prefieres la acción a la duda y la justicia a la comodidad. El Sombrero ha visto que ante el peligro, tu instinto es proteger y liderar con el corazón."
   },
   green: { 
     name: "Slytherin", 
     color: "from-emerald-600 to-slate-800", 
-    reward: "Postre Mágico Gratis", 
+    reward: "Soda Italiana Gratis", 
     motto: "Orgullo, ambición y astucia",
     explanation: "Posees la chispa de la grandeza y la astucia para alcanzarla. No te conformas con lo ordinario; buscas el éxito y sabes que los fines a veces justifican los medios. Eres un líder nato que sabe cuándo actuar."
   },
   blue: { 
     name: "Ravenclaw", 
     color: "from-blue-600 to-indigo-900", 
-    reward: "Upgrade a Bebida Grande", 
+    reward: "Soda Italiana Gratis", 
     motto: "Una mente dispuesta siempre aprenderá",
     explanation: "Tu curiosidad es infinita y tu lógica, impecable. Para ti, el conocimiento es el tesoro más valioso. El Sombrero ha detectado que valoras la verdad por encima de todo y tu mente es tu arma más poderosa."
   },
   yellow: { 
     name: "Hufflepuff", 
     color: "from-yellow-500 to-orange-400", 
-    reward: "Snack de Bienvenida", 
+    reward: "Soda Italiana Gratis", 
     motto: "Justos, leales y trabajadores",
     explanation: "Tu corazón es puro y tu lealtad es inquebrantable. Entiendes que la verdadera magia reside en la bondad y el trabajo duro. No buscas la gloria personal, sino el bienestar de quienes te rodean."
   }
