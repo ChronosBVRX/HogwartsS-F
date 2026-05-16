@@ -118,7 +118,7 @@ export default function AdventureReward() {
 
           {!isRedeemed && reward?.id && (
             <div className="bg-white p-6 rounded-[2.5rem] inline-block shadow-2xl border-8 border-magical-gold/20">
-              <QRCode value={`REWARD:${reward.id}`} size={180} />
+              <QRCode value={`reward-${reward.id}`} size={180} />
             </div>
           )}
 

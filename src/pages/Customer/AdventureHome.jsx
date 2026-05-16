@@ -13,6 +13,7 @@ import {
   startSeasonAdventure 
 } from '../../lib/adventureSeasonService'
 import { formatMagicalText } from '../../utils/magicalFormatters'
+import { QRCodeSVG } from 'qrcode.react'
 
 export default function AdventureHome() {
   const [state, setState] = useState(null)
@@ -303,8 +304,8 @@ export default function AdventureHome() {
               Aún no tienes recompensas de aventura.
             </div>
           ) : rewards.map((reward) => (
-            <div key={reward.id} className="p-5 flex flex-col md:flex-row md:items-center justify-between gap-4">
-              <div>
+            <div key={reward.id} className="p-5 flex flex-col md:flex-row md:items-center justify-between gap-6">
+              <div className="flex-1">
                 <p className="text-white font-black uppercase italic">{formatMagicalText(reward.reward_title)}</p>
                 <p className="text-white/40 text-xs mt-1">{formatMagicalText(reward.reward_description)}</p>
                 {Number(reward.min_consumption) > 0 && (
@@ -313,13 +314,21 @@ export default function AdventureHome() {
                   </p>
                 )}
               </div>
-              <span className={`px-3 py-1 rounded-full text-[9px] uppercase font-black tracking-widest border ${
-                reward.status === 'available'
-                  ? 'border-green-500/20 text-green-400 bg-green-500/5'
-                  : 'border-white/10 text-white/30 bg-white/5'
-              }`}>
-                {reward.status === 'available' ? 'Disponible' : reward.status}
-              </span>
+              <div className="flex items-center gap-4 justify-between md:justify-end">
+                {reward.status === 'available' ? (
+                  <div className="bg-white p-3 rounded-xl inline-block border-4 border-magical-gold/20 shrink-0">
+                    <QRCodeSVG value={`reward-${reward.id}`} size={80} />
+                    <p className="text-[7px] font-black text-black text-center mt-1 uppercase tracking-widest">ESCANEAR PARA<br/>CANJEAR</p>
+                  </div>
+                ) : null}
+                <span className={`px-3 py-1 rounded-full text-[9px] uppercase font-black tracking-widest border h-fit ${
+                  reward.status === 'available'
+                    ? 'border-green-500/20 text-green-400 bg-green-500/5'
+                    : 'border-white/10 text-white/30 bg-white/5'
+                }`}>
+                  {reward.status === 'available' ? 'Disponible' : reward.status === 'redeemed' ? 'Canjeada' : reward.status}
+                </span>
+              </div>
             </div>
           ))}
         </div>
