@@ -148,6 +148,20 @@ export default function AdminDashboard() {
     else fetchData()
   }
 
+  const handleDeleteUser = async (userId, displayName) => {
+    if (!confirm(`¿Estás absolutamente seguro de eliminar al usuario "${displayName}"?\nEsta acción es irreversible y borrar el usuario eliminará todo su historial y acceso.`)) return
+
+    const { data, error } = await supabase.rpc('hsf_delete_user', { p_user_id: userId })
+
+    if (error || !data?.ok) {
+      alert(error?.message || data?.message || 'No se pudo eliminar el usuario.')
+      return
+    }
+
+    alert('Usuario eliminado correctamente.')
+    fetchData()
+  }
+
   const filteredTickets = filter === 'all' ? tickets : tickets.filter(t => t.status === filter)
 
   const navigationCards = [
@@ -398,6 +412,13 @@ export default function AdminDashboard() {
                                 </button>
                               )
                             })}
+                            <button
+                              onClick={() => handleDeleteUser(u.user_id, u.display_name)}
+                              className="p-2 bg-red-500/10 border border-red-500/20 text-red-400 hover:bg-red-500/20 rounded-xl transition-colors shadow-sm ml-2"
+                              title="Eliminar usuario"
+                            >
+                              <X className="w-4 h-4" />
+                            </button>
                           </div>
                         </td>
                       </tr>
