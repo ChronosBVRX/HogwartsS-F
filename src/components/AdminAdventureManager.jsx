@@ -3,12 +3,12 @@ import { supabase } from '../lib/supabase'
 import { withTimeout } from '../lib/supabaseSafe'
 import { formatMagicalText } from '../utils/magicalFormatters'
 import AdventurePoster from './AdventurePoster'
-import { QrCode, Printer, RefreshCw, Gift, CheckCircle2, Map, AlertCircle } from 'lucide-react'
+import { QrCode, Printer, RefreshCw, CheckCircle2, Map, AlertCircle, Compass } from 'lucide-react'
 
 export default function AdminAdventureManager() {
   const [zones, setZones] = useState([])
   const [adventures, setAdventures] = useState([])
-  const [rewards, setRewards] = useState([])
+  const [runs, setRuns] = useState([])
   const [selectedZone, setSelectedZone] = useState(null)
   const [loading, setLoading] = useState(true)
   const [message, setMessage] = useState(null)
@@ -21,7 +21,7 @@ export default function AdminAdventureManager() {
     setLoading(true)
 
     try {
-      const [zonesRes, adventuresRes, rewardsRes] = await Promise.all([
+      const [zonesRes, adventuresRes, runsRes] = await Promise.all([
         withTimeout(
           supabase.from('hsf_active_adventure_zones').select('*'),
           8000,
@@ -37,18 +37,22 @@ export default function AdminAdventureManager() {
         ),
         withTimeout(
           supabase
-            .from('hsf_adventure_rewards')
-            .select('*')
+            .from('hsf_adventure_runs')
+            .select(`
+              id, current_step_order, status, started_at, completed_at, failed_attempts,
+              adventure:hsf_adventures!hsf_adventure_runs_adventure_id_fkey(title, slug),
+              customer:hsf_profiles!hsf_adventure_runs_customer_id_fkey(display_name, phone)
+            `)
             .order('created_at', { ascending: false })
-            .limit(30),
+            .limit(100),
           8000,
-          'Cargando recompensas'
+          'Cargando carreras de aventura'
         )
       ])
 
       if (zonesRes.error) throw zonesRes.error
       if (adventuresRes.error) throw adventuresRes.error
-      if (rewardsRes.error) throw rewardsRes.error
+      if (runsRes.error) throw runsRes.error
 
       setZones(zonesRes.data || [])
 
@@ -57,7 +61,7 @@ export default function AdminAdventureManager() {
       }
 
       setAdventures(adventuresRes.data || [])
-      setRewards(rewardsRes.data || [])
+      setRuns(runsRes.data || [])
     } catch (err) {
       console.error('[ADMIN ADVENTURE FETCH ERROR]', err)
       setMessage('No se pudieron cargar las aventuras. Revisa permisos, vistas o RPC en Supabase.')
@@ -82,24 +86,8 @@ export default function AdminAdventureManager() {
     fetchData()
   }
 
-  const redeemReward = async (rewardId) => {
-    if (!confirm('¿Marcar esta recompensa como canjeada?')) return
-
-    const { data, error } = await supabase.rpc('hsf_redeem_adventure_reward', {
-      p_reward_id: rewardId
-    })
-
-    if (error || !data?.ok) {
-      alert(error?.message || data?.message || 'No se pudo canjear la recompensa.')
-      return
-    }
-
-    setMessage('Recompensa canjeada correctamente.')
-    fetchData()
-  }
-
   return (
-    <div className="space-y-10">
+    <div className="space-y-10 animate-in fade-in duration-700">
       {message && (
         <div className="bg-green-400/10 border border-green-400/20 text-green-400 rounded-2xl p-4 flex items-center gap-3">
           <CheckCircle2 className="w-5 h-5" />
@@ -119,7 +107,7 @@ export default function AdminAdventureManager() {
           </div>
         ) : (
           <div className="flex flex-col lg:grid lg:grid-cols-[340px_1fr] gap-6 items-start">
-            {/* Zone Selector - Scrollable horizontally on mobile, list on desktop */}
+            {/* Zone Selector */}
             <div className="w-full flex lg:flex-col gap-3 overflow-x-auto lg:overflow-visible pb-4 lg:pb-0 scrollbar-hide">
               {zones.map((zone) => (
                 <button
@@ -181,7 +169,6 @@ export default function AdminAdventureManager() {
                     printWindow.focus();
                     setTimeout(() => {
                       printWindow.print();
-                      // On some mobile browsers, closing too early breaks the print dialog
                       setTimeout(() => printWindow.close(), 1000);
                     }, 1500);
                   }}
@@ -215,19 +202,69 @@ export default function AdminAdventureManager() {
 
       <section className="space-y-6">
         <div className="flex items-center gap-3 px-2">
+          <Compass className="w-5 h-5 text-magical-gold" />
+          <h2 className="text-sm font-black uppercase tracking-[0.4em] text-white/60">Progreso de Aventuras de Usuarios</h2>
+        </div>
+
+        <div className="glass-card overflow-hidden border border-white/10">
+          <div className="overflow-x-auto custom-scrollbar">
+            <table className="w-full text-left border-collapse min-w-[800px]">
+              <thead className="bg-white/5 text-white/40 text-[9px] font-black uppercase tracking-[0.2em]">
+                <tr>
+                  <th className="px-6 py-5">Mago / Estudiante</th>
+                  <th className="px-6 py-5">Aventura</th>
+                  <th className="px-6 py-5">Avance</th>
+                  <th className="px-6 py-5">Intentos Fallidos</th>
+                  <th className="px-6 py-5">Fecha de Inicio</th>
+                  <th className="px-6 py-5">Estado</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-white/5">
+                {runs.length === 0 ? (
+                  <tr><td colSpan="6" className="px-6 py-16 text-center text-white/20 uppercase font-black tracking-widest">Sin registros de aventuras iniciadas</td></tr>
+                ) : runs.map((run) => (
+                  <tr key={run.id} className="hover:bg-white/5 transition-colors">
+                    <td className="px-6 py-5">
+                      <div className="font-black text-white uppercase italic text-xs">{run.customer?.display_name || 'Desconocido'}</div>
+                      <div className="text-[9px] text-white/30">{run.customer?.phone || 'Sin teléfono'}</div>
+                    </td>
+                    <td className="px-6 py-5 font-black text-magical-gold uppercase italic text-xs">{formatMagicalText(run.adventure?.title || 'Aventura Mágica')}</td>
+                    <td className="px-6 py-5 text-white/80 font-bold text-xs">Paso {run.current_step_order}</td>
+                    <td className="px-6 py-5 text-white/60 text-xs">{run.failed_attempts || 0}</td>
+                    <td className="px-6 py-5 text-white/40 text-[10px]">{new Date(run.started_at).toLocaleDateString()}</td>
+                    <td className="px-6 py-5">
+                      <span className={`text-[8px] px-2 py-0.5 rounded-full uppercase font-black tracking-widest border ${
+                        run.status === 'completed'
+                          ? 'border-green-500/20 text-green-400 bg-green-500/5'
+                          : run.status === 'active'
+                          ? 'border-blue-500/20 text-blue-400 bg-blue-500/5'
+                          : 'border-yellow-500/20 text-yellow-400 bg-yellow-500/5'
+                      }`}>
+                        {run.status === 'completed' ? 'Completada' : run.status === 'active' ? 'Activa' : 'No completada'}
+                      </span>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <section className="space-y-6">
+        <div className="flex items-center gap-3 px-2">
           <Map className="w-5 h-5 text-magical-gold" />
           <h2 className="text-sm font-black uppercase tracking-[0.4em] text-white/60">Aventuras cargadas</h2>
         </div>
 
         <div className="glass-card overflow-hidden border border-white/10">
-          <div className="overflow-x-auto">
+          <div className="overflow-x-auto custom-scrollbar">
             <table className="w-full text-left border-collapse min-w-[760px]">
               <thead className="bg-white/5 text-white/40 text-[9px] font-black uppercase tracking-[0.2em]">
                 <tr>
                   <th className="px-6 py-5">Aventura</th>
                   <th className="px-6 py-5">Pasos</th>
                   <th className="px-6 py-5">Recompensa</th>
-                  <th className="px-6 py-5">Puntos</th>
                   <th className="px-6 py-5">Estado</th>
                 </tr>
               </thead>
@@ -240,7 +277,6 @@ export default function AdminAdventureManager() {
                     </td>
                     <td className="px-6 py-5 text-magical-gold font-black">{adv.steps?.length || 0}</td>
                     <td className="px-6 py-5 text-white/60 text-xs">{formatMagicalText(adv.reward_title)}</td>
-                    <td className="px-6 py-5 text-white font-black">+{adv.reward_points}</td>
                     <td className="px-6 py-5">
                       <span className={`text-[8px] px-2 py-0.5 rounded-full uppercase font-black tracking-widest border ${
                         adv.active
@@ -257,57 +293,7 @@ export default function AdminAdventureManager() {
           </div>
         </div>
       </section>
-
-      <section className="space-y-6">
-        <div className="flex items-center gap-3 px-2">
-          <Gift className="w-5 h-5 text-magical-gold" />
-          <h2 className="text-sm font-black uppercase tracking-[0.4em] text-white/60">Recompensas recientes</h2>
-        </div>
-
-        <div className="glass-card overflow-hidden divide-y divide-white/5 border border-white/10">
-          {rewards.length === 0 ? (
-            <div className="p-10 text-center text-white/20 uppercase font-black tracking-widest">
-              Sin recompensas todavía
-            </div>
-          ) : rewards.map((reward) => (
-            <div key={reward.id} className="p-5 flex flex-col md:flex-row md:items-center justify-between gap-4">
-              <div>
-                <p className="font-black text-white uppercase italic">{formatMagicalText(reward.reward_title)}</p>
-                <p className="text-white/40 text-xs">{formatMagicalText(reward.reward_description)}</p>
-                <p className="text-[10px] text-magical-gold mt-1 uppercase font-black">
-                  Usuario ID: {reward.customer_id?.slice(0,8)}
-                </p>
-              </div>
-
-              <div className="flex items-center gap-3">
-                <span className={`px-3 py-1 rounded-full text-[9px] uppercase font-black tracking-widest border ${
-                  reward.status === 'available'
-                    ? 'border-green-500/20 text-green-400 bg-green-500/5'
-                    : 'border-white/10 text-white/30 bg-white/5'
-                }`}>
-                  {reward.status}
-                </span>
-
-                {reward.status === 'available' && (
-                  <button
-                    onClick={() => redeemReward(reward.id)}
-                    className="px-4 py-2 bg-magical-gold text-magical-navy rounded-xl text-[10px] font-black uppercase"
-                  >
-                    Canjear
-                  </button>
-                )}
-              </div>
-            </div>
-          ))}
-        </div>
-
-        <div className="bg-yellow-400/10 border border-yellow-400/20 text-yellow-300 rounded-2xl p-4 flex items-start gap-3">
-          <AlertCircle className="w-5 h-5 shrink-0 mt-0.5" />
-          <p className="text-xs leading-relaxed">
-            Recomendación operativa: pide que el cliente muestre esta recompensa en su celular antes de entregar cortesías. Después márcala como canjeada para evitar dobles usos.
-          </p>
-        </div>
-      </section>
     </div>
   )
 }
+

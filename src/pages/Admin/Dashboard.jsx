@@ -3,9 +3,10 @@ import { supabase } from '../../lib/supabase'
 import { useAuth } from '../../context/AuthContext'
 import { withTimeout } from '../../lib/supabaseSafe'
 import { formatMagicalText } from '../../utils/magicalFormatters'
-import { Shield, Ticket, Check, X, Users, Star, TrendingUp, AlertCircle, Search, UserCog, UserPlus, Wand2, Map, Home } from 'lucide-react'
+import { Shield, Ticket, Check, X, Users, Star, TrendingUp, AlertCircle, Search, UserCog, UserPlus, Wand2, Map, Home, Gift } from 'lucide-react'
 import AdminMenuManager from '../../components/AdminMenuManager'
 import AdminAdventureManager from '../../components/AdminAdventureManager'
+import AdminRewardManager from '../../components/AdminRewardManager'
 import AdminDuelManager from '../../components/AdminDuelManager'
 import { Swords } from 'lucide-react'
 
@@ -198,6 +199,15 @@ export default function AdminDashboard() {
             Aventuras
           </button>
           <button
+            onClick={() => setActiveTab('rewards')}
+            className={`px-6 py-3 rounded-xl text-xs font-black uppercase tracking-widest transition-all flex items-center gap-2 whitespace-nowrap ${
+              activeTab === 'rewards' ? 'bg-magical-gold text-magical-navy' : 'text-white/40 hover:text-white'
+            }`}
+          >
+            <Gift className="w-4 h-4" />
+            Recompensas
+          </button>
+          <button
             onClick={() => setActiveTab('duels')}
             className={`px-6 py-3 rounded-xl text-xs font-black uppercase tracking-widest transition-all flex items-center gap-2 whitespace-nowrap ${
               activeTab === 'duels' ? 'bg-magical-gold text-magical-navy' : 'text-white/40 hover:text-white'
@@ -211,6 +221,7 @@ export default function AdminDashboard() {
 
       {activeTab === 'menu' && <AdminMenuManager />}
       {activeTab === 'adventures' && <AdminAdventureManager />}
+      {activeTab === 'rewards' && <AdminRewardManager />}
       {activeTab === 'duels' && <AdminDuelManager />}
 
       {activeTab === 'tickets' && (
