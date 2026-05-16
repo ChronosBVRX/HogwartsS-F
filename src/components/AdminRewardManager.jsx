@@ -19,10 +19,7 @@ export default function AdminRewardManager() {
     try {
       let query = supabase
         .from('hsf_adventure_rewards')
-        .select(`
-          *,
-          customer:hsf_profiles!hsf_adventure_rewards_customer_id_fkey(display_name, phone)
-        `)
+        .select('*')
         .order('created_at', { ascending: false })
         .limit(100)
 
@@ -33,7 +30,26 @@ export default function AdminRewardManager() {
       const { data, error } = await withTimeout(query, 8000, 'Cargando recompensas')
       if (error) throw error
 
-      setRewards(data || [])
+      let finalRewards = data || []
+      if (finalRewards.length > 0) {
+        const customerIds = [...new Set(finalRewards.map(r => r.customer_id).filter(Boolean))]
+        if (customerIds.length > 0) {
+          const { data: profilesData } = await supabase
+            .from('hsf_profiles')
+            .select('user_id, display_name, phone')
+            .in('user_id', customerIds)
+          
+          if (profilesData) {
+            const profileMap = Object.fromEntries(profilesData.map(p => [p.user_id, p]))
+            finalRewards = finalRewards.map(r => ({
+              ...r,
+              customer: profileMap[r.customer_id] || null
+            }))
+          }
+        }
+      }
+
+      setRewards(finalRewards)
     } catch (err) {
       console.error('[ADMIN REWARDS FETCH ERROR]', err)
       setMessage('No se pudieron cargar las recompensas.')

@@ -39,9 +39,8 @@ export default function AdminAdventureManager() {
           supabase
             .from('hsf_adventure_runs')
             .select(`
-              id, current_step_order, status, started_at, completed_at, failed_attempts,
-              adventure:hsf_adventures!hsf_adventure_runs_adventure_id_fkey(title, slug),
-              customer:hsf_profiles!hsf_adventure_runs_customer_id_fkey(display_name, phone)
+              id, customer_id, current_step_order, status, started_at, completed_at, failed_attempts,
+              adventure:hsf_adventures!hsf_adventure_runs_adventure_id_fkey(title, slug)
             `)
             .order('created_at', { ascending: false })
             .limit(100),
@@ -61,7 +60,27 @@ export default function AdminAdventureManager() {
       }
 
       setAdventures(adventuresRes.data || [])
-      setRuns(runsRes.data || [])
+
+      let finalRuns = runsRes.data || []
+      if (finalRuns.length > 0) {
+        const customerIds = [...new Set(finalRuns.map(r => r.customer_id).filter(Boolean))]
+        if (customerIds.length > 0) {
+          const { data: profilesData } = await supabase
+            .from('hsf_profiles')
+            .select('user_id, display_name, phone')
+            .in('user_id', customerIds)
+          
+          if (profilesData) {
+            const profileMap = Object.fromEntries(profilesData.map(p => [p.user_id, p]))
+            finalRuns = finalRuns.map(r => ({
+              ...r,
+              customer: profileMap[r.customer_id] || null
+            }))
+          }
+        }
+      }
+
+      setRuns(finalRuns)
     } catch (err) {
       console.error('[ADMIN ADVENTURE FETCH ERROR]', err)
       setMessage('No se pudieron cargar las aventuras. Revisa permisos, vistas o RPC en Supabase.')
