@@ -5,7 +5,7 @@ import { supabase } from '../../lib/supabase'
 import { withTimeout } from '../../lib/supabaseSafe'
 import audioManager from '../../lib/audioManager'
 import { QRCodeSVG } from 'qrcode.react'
-import { Award, QrCode, LogOut, Star, Shield, Zap, Wand2, Hash, Settings as SettingsIcon, Map, Footprints, Ticket, CheckCircle2, XCircle, Clock, Gift } from 'lucide-react'
+import { Award, QrCode, LogOut, Star, Shield, Zap, Wand2, Hash, Settings as SettingsIcon, Map, Footprints, Ticket, CheckCircle2, XCircle, Clock, Gift, X } from 'lucide-react'
 
 // House assets
 import gryffindorLogo from '../../assets/houses/gryffindor.png'
@@ -41,6 +41,7 @@ export default function Profile() {
   const [welcomeReward, setWelcomeReward] = useState(null)
   const [mapReward, setMapReward] = useState(null)
   const [adventureRewards, setAdventureRewards] = useState([])
+  const [selectedReward, setSelectedReward] = useState(null)
   const [loading, setLoading] = useState(true)
   const navigate = useNavigate()
 
@@ -274,12 +275,6 @@ export default function Profile() {
               <p className="text-[10px] font-black text-magical-gold uppercase tracking-[0.3em]">Méritos Acumulados</p>
               <h4 className="text-6xl font-black tracking-tighter text-white">{profile?.loyalty_points || 0}</h4>
            </div>
-           {house && (
-             <div className="bg-white/5 rounded-2xl p-6 border border-white/5 space-y-2 relative z-10 text-center">
-                <p className="text-[9px] font-black text-white/30 uppercase tracking-widest">Beneficio de Casa</p>
-                <p className="text-lg font-black text-white uppercase italic">{house.reward}</p>
-             </div>
-           )}
            <Star className="absolute -bottom-10 -right-10 w-48 h-48 text-magical-gold/5 rotate-12" />
         </div>
 
@@ -403,10 +398,13 @@ export default function Profile() {
               </div>
               <div className="flex items-center gap-4 justify-between md:justify-end">
                 {reward.status === 'available' ? (
-                  <div className="bg-white p-3 rounded-xl inline-block border-4 border-magical-gold/20 shrink-0">
-                    <QRCodeSVG value={`reward-${reward.id}`} size={80} />
-                    <p className="text-[7px] font-black text-black text-center mt-1 uppercase tracking-widest">ESCANEAR PARA<br/>CANJEAR</p>
-                  </div>
+                  <button
+                    onClick={() => setSelectedReward(reward)}
+                    className="btn-gold px-4 py-2 text-xs font-black uppercase tracking-widest flex items-center gap-2 shrink-0"
+                  >
+                    <QrCode className="w-4 h-4" />
+                    Ver Código
+                  </button>
                 ) : null}
                 <span className={`px-3 py-1 rounded-full text-[9px] uppercase font-black tracking-widest border h-fit ${
                   reward.status === 'available'
@@ -447,6 +445,62 @@ export default function Profile() {
           )}
         </div>
       </section>
+
+      {selectedReward && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-in fade-in duration-300">
+          <div className="glass-card max-w-md w-full p-8 md:p-10 rounded-[2.5rem] border border-magical-gold/30 space-y-6 text-center relative shadow-2xl">
+            <button
+              onClick={() => setSelectedReward(null)}
+              className="absolute top-6 right-6 p-2 rounded-full bg-white/5 hover:bg-white/10 text-white/60 hover:text-white transition-colors"
+            >
+              <X className="w-6 h-6" />
+            </button>
+
+            <div className="w-16 h-16 mx-auto rounded-full bg-magical-gold/10 border border-magical-gold/30 flex items-center justify-center">
+              <Gift className="w-8 h-8 text-magical-gold" />
+            </div>
+
+            <div className="space-y-2">
+              <div className="flex items-center justify-center gap-2">
+                <h3 className="text-2xl font-black uppercase italic tracking-tighter text-white">
+                  {selectedReward.reward_title}
+                </h3>
+                {selectedReward.reward_title === 'Recompensa de Ceremonia' && (
+                  <span className="px-2 py-0.5 bg-magical-gold/10 border border-magical-gold/20 rounded-full text-[8px] font-black text-magical-gold uppercase tracking-widest">
+                    Casa {house?.name || ''}
+                  </span>
+                )}
+              </div>
+              <p className="text-white/60 text-sm italic">“{selectedReward.reward_description}”</p>
+              {Number(selectedReward.min_consumption) > 0 && (
+                <p className="text-xs text-magical-gold uppercase font-black pt-1">
+                  Consumo mínimo: ${selectedReward.min_consumption}
+                </p>
+              )}
+            </div>
+
+            <div className="bg-white p-6 rounded-[2rem] inline-block shadow-2xl border-4 border-magical-gold/20 my-4">
+              <QRCodeSVG value={`reward-${selectedReward.id}`} size={200} />
+            </div>
+
+            <div className="bg-magical-navy/40 p-4 rounded-2xl border border-white/5 space-y-1">
+              <p className="text-[10px] text-magical-gold font-black uppercase tracking-widest">
+                Presenta este código al Personal
+              </p>
+              <p className="text-[10px] text-white/40 italic">
+                El mesero escaneará este código para aplicar tu beneficio en la cuenta.
+              </p>
+            </div>
+
+            <button
+              onClick={() => setSelectedReward(null)}
+              className="btn-gold w-full py-4 text-xs font-black uppercase"
+            >
+              Hecho
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

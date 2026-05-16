@@ -175,7 +175,7 @@ export default function AdventurePlay() {
       ], { contextId: stepContextId })
       
       timeoutRef.current = setTimeout(() => {
-        navigate(`/aventura/recompensa/${runId}`, { state: data })
+        navigate(`/aventura/recompensa/${runId}`, { state: { ...data, id: data.reward_id } })
       }, 1000)
       return
     }
