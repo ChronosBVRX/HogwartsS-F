@@ -125,7 +125,7 @@ export default function Profile() {
       if (historyRes.data) setTicketHistory(historyRes.data)
       if (welcomeRes?.data) setWelcomeReward(welcomeRes.data)
       if (advRewardsRes?.data) {
-        setAdventureRewards(advRewardsRes.data.filter(r => !['Recompensa de Ceremonia', 'Mapa del Merodeador'].includes(r.reward_title)))
+        setAdventureRewards(advRewardsRes.data.filter(r => r.reward_title !== 'Mapa del Merodeador'))
       }
       
       let totalMonthly = 0;
@@ -275,19 +275,9 @@ export default function Profile() {
               <h4 className="text-6xl font-black tracking-tighter text-white">{profile?.loyalty_points || 0}</h4>
            </div>
            {house && (
-             <div className="bg-white/5 rounded-2xl p-6 border border-white/5 space-y-4 relative z-10 text-center">
-                <div className="space-y-1">
-                  <p className="text-[9px] font-black text-white/30 uppercase tracking-widest">Recompensa de Casa</p>
-                  <p className="text-lg font-black text-white uppercase italic">{house.reward}</p>
-                </div>
-                {welcomeReward?.status === 'available' ? (
-                  <div className="bg-white p-3 rounded-xl inline-block mx-auto border-4 border-magical-gold/20">
-                    <QRCodeSVG value={`reward-${welcomeReward.id}`} size={100} />
-                    <p className="text-[8px] font-black text-black text-center mt-2 uppercase tracking-widest">ESCANEAR<br/>PARA CANJEAR</p>
-                  </div>
-                ) : welcomeReward?.status === 'redeemed' ? (
-                  <p className="text-[10px] font-bold text-white/30 uppercase tracking-widest border border-white/10 py-2 px-4 rounded-full inline-block mt-2">Recompensa de casa reclamada</p>
-                ) : null}
+             <div className="bg-white/5 rounded-2xl p-6 border border-white/5 space-y-2 relative z-10 text-center">
+                <p className="text-[9px] font-black text-white/30 uppercase tracking-widest">Beneficio de Casa</p>
+                <p className="text-lg font-black text-white uppercase italic">{house.reward}</p>
              </div>
            )}
            <Star className="absolute -bottom-10 -right-10 w-48 h-48 text-magical-gold/5 rotate-12" />
@@ -385,18 +375,25 @@ export default function Profile() {
       <section className="space-y-4 pt-4">
         <div className="flex items-center gap-2 px-2">
           <Gift className="w-5 h-5 text-magical-gold" />
-          <h2 className="text-[10px] font-black uppercase tracking-[0.4em] text-white/40">Mis Recompensas de Aventura</h2>
+          <h2 className="text-[10px] font-black uppercase tracking-[0.4em] text-white/40">Mis Recompensas Mágicas (Casa y Aventuras)</h2>
         </div>
 
         <div className="glass-card overflow-hidden divide-y divide-white/5 border border-white/5">
           {adventureRewards.length === 0 ? (
             <div className="p-8 text-center text-white/30 text-xs font-black uppercase tracking-widest">
-              Aún no tienes recompensas de aventura.
+              Aún no tienes recompensas de casa o aventura.
             </div>
           ) : adventureRewards.map((reward) => (
             <div key={reward.id} className="p-5 flex flex-col md:flex-row md:items-center justify-between gap-6 hover:bg-white/5 transition-colors">
               <div className="flex-1">
-                <p className="text-white font-black uppercase italic">{reward.reward_title}</p>
+                <div className="flex items-center gap-2">
+                  <p className="text-white font-black uppercase italic">{reward.reward_title}</p>
+                  {reward.reward_title === 'Recompensa de Ceremonia' && (
+                    <span className="px-2 py-0.5 bg-magical-gold/10 border border-magical-gold/20 rounded-full text-[8px] font-black text-magical-gold uppercase tracking-widest">
+                      Casa {house?.name || ''}
+                    </span>
+                  )}
+                </div>
                 <p className="text-white/40 text-xs mt-1">{reward.reward_description}</p>
                 {Number(reward.min_consumption) > 0 && (
                   <p className="text-[10px] text-magical-gold mt-2 uppercase font-black">
