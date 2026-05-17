@@ -6,7 +6,11 @@ export const HOUSE_MAP = {
   'BLUE': 'RAVENCLAW',
   'RED': 'GRYFFINDOR',
   'YELLOW': 'HUFFLEPUFF',
-  'GREEN': 'SLYTHERIN'
+  'GREEN': 'SLYTHERIN',
+  'blue': 'Ravenclaw',
+  'red': 'Gryffindor',
+  'yellow': 'Hufflepuff',
+  'green': 'Slytherin'
 }
 
 export function formatMagicalText(text) {

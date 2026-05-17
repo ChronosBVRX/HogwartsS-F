@@ -1,1 +1,0 @@
-var e={Blue:`Ravenclaw`,Red:`Gryffindor`,Yellow:`Hufflepuff`,Green:`Slytherin`,BLUE:`RAVENCLAW`,RED:`GRYFFINDOR`,YELLOW:`HUFFLEPUFF`,GREEN:`SLYTHERIN`};function t(t){if(!t)return t;let n=t;return Object.entries(e).forEach(([e,t])=>{let r=RegExp(`\\b${e}\\b`,`g`);n=n.replace(r,t)}),n}export{t};
