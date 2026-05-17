@@ -12,15 +12,29 @@ export default function AdminAdventureManager() {
   const [selectedZone, setSelectedZone] = useState(null)
   const [loading, setLoading] = useState(true)
   const [message, setMessage] = useState(null)
+  const [filter, setFilter] = useState('active')
 
   useEffect(() => {
     fetchData()
-  }, [])
+  }, [filter])
 
   const fetchData = async () => {
     setLoading(true)
 
     try {
+      let runsQuery = supabase
+        .from('hsf_adventure_runs')
+        .select(`
+          id, customer_id, current_step_order, status, started_at, completed_at, failed_attempts,
+          adventure:hsf_adventures!hsf_adventure_runs_adventure_id_fkey(title, slug)
+        `)
+        .order('created_at', { ascending: false })
+        .limit(300)
+
+      if (filter !== 'all') {
+        runsQuery = runsQuery.eq('status', filter)
+      }
+
       const [zonesRes, adventuresRes, runsRes] = await Promise.all([
         withTimeout(
           supabase.from('hsf_active_adventure_zones').select('*'),
@@ -36,14 +50,7 @@ export default function AdminAdventureManager() {
           'Cargando aventuras'
         ),
         withTimeout(
-          supabase
-            .from('hsf_adventure_runs')
-            .select(`
-              id, customer_id, current_step_order, status, started_at, completed_at, failed_attempts,
-              adventure:hsf_adventures!hsf_adventure_runs_adventure_id_fkey(title, slug)
-            `)
-            .order('created_at', { ascending: false })
-            .limit(100),
+          runsQuery,
           8000,
           'Cargando carreras de aventura'
         )
@@ -243,9 +250,24 @@ export default function AdminAdventureManager() {
       </section>
 
       <section className="space-y-6">
-        <div className="flex items-center gap-3 px-2">
-          <Compass className="w-5 h-5 text-magical-gold" />
-          <h2 className="text-sm font-black uppercase tracking-[0.4em] text-white/60">Progreso de Aventuras de Usuarios</h2>
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 px-2">
+          <div className="flex items-center gap-3">
+            <Compass className="w-5 h-5 text-magical-gold" />
+            <h2 className="text-sm font-black uppercase tracking-[0.4em] text-white/60">Progreso de Aventuras de Usuarios</h2>
+          </div>
+          <div className="flex flex-wrap bg-white/5 p-1 rounded-xl border border-white/5 w-full sm:w-auto justify-between gap-1">
+            {['active', 'completed', 'abandoned', 'all'].map(s => (
+              <button
+                key={s}
+                onClick={() => setFilter(s)}
+                className={`flex-1 sm:flex-none px-4 py-2 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all text-center ${
+                  filter === s ? 'bg-magical-gold/20 text-magical-gold border border-magical-gold/30 shadow-sm' : 'text-white/30 hover:text-white/60'
+                }`}
+              >
+                {s === 'active' ? 'Activas' : s === 'completed' ? 'Completadas' : s === 'abandoned' ? 'Abandonadas' : 'Todas'}
+              </button>
+            ))}
+          </div>
         </div>
 
         <div className="glass-card overflow-hidden border border-white/10">
@@ -264,7 +286,7 @@ export default function AdminAdventureManager() {
               </thead>
               <tbody className="divide-y divide-white/5">
                 {runs.length === 0 ? (
-                  <tr><td colSpan="7" className="px-6 py-16 text-center text-white/20 uppercase font-black tracking-widest">Sin registros de aventuras iniciadas</td></tr>
+                  <tr><td colSpan="7" className="px-6 py-16 text-center text-white/20 uppercase font-black tracking-widest">Sin registros de aventuras en este estado</td></tr>
                 ) : runs.map((run) => (
                   <tr key={run.id} className="hover:bg-white/5 transition-colors">
                     <td className="px-6 py-5">
